@@ -15,7 +15,7 @@ export default function DevLogin() {
 
   const handleSelectAccount = (account: UserProfile) => {
     setCurrentUser(account);
-    router.replace("/map");
+    router.replace("/(tabs)/map");
   };
 
   const userTypeLabel: Record<UserProfile["userType"], string> = {
