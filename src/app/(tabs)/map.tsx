@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import Mapbox, {
   MapView,
   Camera,
+  PointAnnotation,
   ShapeSource,
   VectorSource,
   FillLayer,
@@ -22,6 +23,11 @@ import {
   RegionExplorer,
   type SelectedRegion,
 } from "@/components/map/RegionExplorer";
+import {
+  FarmLocationSelector,
+  type FarmLocationSelectorHandle,
+} from "@/components/map/FarmLocationSelector";
+import { useMapStore } from "@/stores/mapStore";
 
 // Set Mapbox access token
 Mapbox.setAccessToken(
@@ -93,11 +99,19 @@ const MAP_MODES: {
 
 export default function MapScreen() {
   const cameraRef = useRef<Camera>(null);
+  const farmSelectorRef = useRef<FarmLocationSelectorHandle>(null);
   const [selectedRegion, setSelectedRegion] = useState<SelectedRegion | null>(
     null,
   );
   const [modalVisible, setModalVisible] = useState(false);
   const [mapMode, setMapMode] = useState<MapMode>("explorer");
+  const [pinMode, setPinMode] = useState(false);
+  const [mapCenter, setMapCenter] = useState<[number, number]>([
+    senegalCenter.longitude,
+    senegalCenter.latitude,
+  ]);
+
+  const { farmLocation } = useMapStore();
 
   // GeoJSON for clickable region fills (tap detection)
   const regionsGeoJSON = useMemo<FeatureCollection<Polygon>>(
@@ -113,7 +127,7 @@ export default function MapScreen() {
   // Handle map tap — uses JS point-in-polygon for reliable region detection
   const handleMapPress = useCallback(
     (event: any) => {
-      if (mapMode !== "explorer") return;
+      if (mapMode !== "explorer" || pinMode) return;
 
       const coords = event?.geometry?.coordinates;
       if (!coords || coords.length < 2) return;
@@ -136,13 +150,17 @@ export default function MapScreen() {
       });
       setModalVisible(true);
     },
-    [mapMode],
+    [mapMode, pinMode],
   );
 
-  // Handle camera region changes to enforce bounds
+  // Handle camera region changes to enforce bounds + track center
   const handleCameraChanged = (state: any) => {
     if (!state?.properties?.center) return;
     const [lng, lat] = state.properties.center;
+
+    // Track map center for pin placement
+    setMapCenter([lng, lat]);
+
     const isOutOfBounds =
       lng < SENEGAL_BOUNDS.sw[0] ||
       lng > SENEGAL_BOUNDS.ne[0] ||
@@ -167,35 +185,37 @@ export default function MapScreen() {
           <Text className="text-lg font-bold text-gray-800 ml-2">Sénégal</Text>
         </View>
 
-        {/* Mode switcher */}
-        <View className="bg-white rounded-2xl mt-2 px-2 py-2 shadow-lg flex-row items-center">
-          {MAP_MODES.map((mode) => {
-            const isActive = mapMode === mode.key;
-            return (
-              <TouchableOpacity
-                key={mode.key}
-                onPress={() => setMapMode(mode.key)}
-                className={`flex-1 flex-row items-center justify-center rounded-full py-2.5 ${
-                  isActive ? "bg-emerald-500" : ""
-                }`}
-                activeOpacity={0.7}
-              >
-                <Ionicons
-                  name={mode.icon}
-                  size={16}
-                  color={isActive ? "white" : "#4b5563"}
-                />
-                <Text
-                  className={`text-xs font-semibold ml-1 ${
-                    isActive ? "text-white" : "text-gray-600"
+        {/* Mode switcher — disabled during pin placement */}
+        {!pinMode && (
+          <View className="bg-white rounded-2xl mt-2 px-2 py-2 shadow-lg flex-row items-center">
+            {MAP_MODES.map((mode) => {
+              const isActive = mapMode === mode.key;
+              return (
+                <TouchableOpacity
+                  key={mode.key}
+                  onPress={() => setMapMode(mode.key)}
+                  className={`flex-1 flex-row items-center justify-center rounded-full py-2.5 ${
+                    isActive ? "bg-emerald-500" : ""
                   }`}
+                  activeOpacity={0.7}
                 >
-                  {mode.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+                  <Ionicons
+                    name={mode.icon}
+                    size={16}
+                    color={isActive ? "white" : "#4b5563"}
+                  />
+                  <Text
+                    className={`text-xs font-semibold ml-1 ${
+                      isActive ? "text-white" : "text-gray-600"
+                    }`}
+                  >
+                    {mode.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
       </View>
 
       <MapView
@@ -303,16 +323,83 @@ export default function MapScreen() {
             style={{ lineColor: "#ffffff", lineWidth: 1.5, lineOpacity: 0.9 }}
           />
         </VectorSource>
+
+        {/* Farm location marker */}
+        {farmLocation && (
+          <PointAnnotation
+            id="farm-marker"
+            coordinate={[
+              farmLocation.coordinates.longitude,
+              farmLocation.coordinates.latitude,
+            ]}
+          >
+            <View style={{ alignItems: "center" }}>
+              <View
+                style={{
+                  backgroundColor: "#10b981",
+                  borderRadius: 20,
+                  padding: 8,
+                }}
+              >
+                <Ionicons name="home" size={20} color="white" />
+              </View>
+            </View>
+          </PointAnnotation>
+        )}
       </MapView>
+
+      {/* Pin placement crosshair overlay */}
+      {pinMode && (
+        <>
+          {/* Centered crosshair */}
+          <View
+            className="absolute"
+            style={styles.crosshairContainer}
+            pointerEvents="none"
+          >
+            <Ionicons name="locate" size={48} color="#10b981" />
+          </View>
+
+          {/* Instruction banner */}
+          <View className="absolute top-32 left-4 right-4 z-20">
+            <View className="bg-white rounded-2xl px-5 py-3 shadow-lg">
+              <Text className="text-gray-700 text-sm text-center font-medium">
+                Déplacez la carte pour positionner votre ferme
+              </Text>
+            </View>
+          </View>
+
+          {/* Confirm / Cancel buttons */}
+          <View className="absolute bottom-28 left-4 right-4 z-20 flex-row gap-3">
+            <TouchableOpacity
+              onPress={() => farmSelectorRef.current?.cancelPin()}
+              className="flex-1 bg-gray-200 rounded-xl py-3.5 items-center"
+              activeOpacity={0.7}
+            >
+              <Text className="text-gray-600 font-semibold text-base">
+                Annuler
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => farmSelectorRef.current?.confirmPin()}
+              className="flex-1 bg-emerald-500 rounded-xl py-3.5 items-center"
+              activeOpacity={0.7}
+            >
+              <Text className="text-white font-bold text-base">Confirmer</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
 
       {/* Mode-specific overlays */}
       {mapMode === "farm" && (
-        <View className="absolute bottom-24 left-4 right-4 bg-white rounded-2xl p-6 shadow-lg items-center">
-          <Ionicons name="home-outline" size={32} color="#9ca3af" />
-          <Text className="text-gray-500 text-base font-medium mt-2">
-            Ma Ferme - Coming Soon
-          </Text>
-        </View>
+        <FarmLocationSelector
+          ref={farmSelectorRef}
+          cameraRef={cameraRef}
+          onPinModeChange={setPinMode}
+          mapCenter={mapCenter}
+          hidden={pinMode}
+        />
       )}
 
       {mapMode === "incidents" && (
@@ -340,4 +427,10 @@ export default function MapScreen() {
 
 const styles = StyleSheet.create({
   map: { flex: 1 },
+  crosshairContainer: {
+    top: "50%",
+    left: "50%",
+    marginTop: -24,
+    marginLeft: -24,
+  },
 });
