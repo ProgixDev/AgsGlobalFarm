@@ -65,6 +65,58 @@ interface AdviceFormErrors {
   crop?: string;
 }
 
+// Map Mode Type
+type MapMode = "explorer" | "farm" | "incidents";
+
+// Farm Location Types
+interface FarmLocation {
+  id: string;
+  userId: string;
+  name: string;
+  region: string;
+  department: string;
+  municipality: string;
+  coordinates: {
+    longitude: number;
+    latitude: number;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Incident Report Types
+type IncidentCategory =
+  | "crop_disease"
+  | "pests"
+  | "fire"
+  | "flood"
+  | "drought"
+  | "locusts"
+  | "storm"
+  | "other";
+
+type IncidentSeverity = "low" | "medium" | "high";
+
+interface IncidentReport {
+  id: string;
+  reporterId: string;
+  reporterName: string;
+  category: IncidentCategory;
+  customCategory?: string;
+  title: string;
+  description: string;
+  severity: IncidentSeverity;
+  coordinates: {
+    longitude: number;
+    latitude: number;
+  };
+  region?: string;
+  locationText?: string;
+  images: string[];
+  createdAt: string;
+  status: "active" | "resolved";
+}
+
 // User Context Types
 type UserType = "job_seeker" | "farm_owner";
 
