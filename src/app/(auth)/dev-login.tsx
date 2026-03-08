@@ -1,19 +1,28 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { DEV_ACCOUNTS, useUserStore } from "@/stores/userStore";
 
+type UserTypeTab = "job_seeker" | "farm_owner";
+
 export default function DevLogin() {
   const router = useRouter();
   const setCurrentUser = useUserStore((state) => state.setCurrentUser);
   const registeredUsers = useUserStore((state) => state.registeredUsers);
+  const [activeTab, setActiveTab] = useState<UserTypeTab>("job_seeker");
 
   // Combine dev accounts and registered users
   const allUsers: UserProfile[] = [
     ...DEV_ACCOUNTS.map(({ password, ...user }) => user),
     ...registeredUsers,
   ];
+
+  // Filter users by type
+  const jobSeekers = allUsers.filter((user) => user.userType === "job_seeker");
+  const farmOwners = allUsers.filter((user) => user.userType === "farm_owner");
+
+  const displayedUsers = activeTab === "job_seeker" ? jobSeekers : farmOwners;
 
   if (!__DEV__) {
     router.replace("/(auth)/login");
@@ -22,7 +31,12 @@ export default function DevLogin() {
 
   const handleSelectAccount = (account: UserProfile) => {
     setCurrentUser(account);
-    router.replace("/(tabs)/map");
+    // Route to the appropriate tab based on user type
+    if (account.userType === "job_seeker") {
+      router.replace("/(tabs-job-seeker)/map");
+    } else {
+      router.replace("/(tabs)/map");
+    }
   };
 
   const userTypeLabel: Record<UserProfile["userType"], string> = {
@@ -67,86 +81,180 @@ export default function DevLogin() {
           </Text>
         </View>
 
+        {/* Tab Buttons */}
+        <View className="flex-row gap-2 mb-6">
+          <TouchableOpacity
+            onPress={() => setActiveTab("job_seeker")}
+            activeOpacity={0.8}
+            className={`flex-1 py-3 px-4 rounded-xl flex-row items-center justify-center ${
+              activeTab === "job_seeker"
+                ? "bg-emerald-500"
+                : "bg-white border border-gray-200"
+            }`}
+          >
+            <Ionicons
+              name="person-outline"
+              size={18}
+              color={activeTab === "job_seeker" ? "#fff" : "#6b7280"}
+            />
+            <Text
+              className={`ml-2 font-medium ${
+                activeTab === "job_seeker" ? "text-white" : "text-gray-600"
+              }`}
+            >
+              Chercheurs d&apos;emploi
+            </Text>
+            <View
+              className={`ml-2 px-2 py-0.5 rounded-full ${
+                activeTab === "job_seeker" ? "bg-white/20" : "bg-emerald-100"
+              }`}
+            >
+              <Text
+                className={`text-xs font-semibold ${
+                  activeTab === "job_seeker" ? "text-white" : "text-emerald-600"
+                }`}
+              >
+                {jobSeekers.length}
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => setActiveTab("farm_owner")}
+            activeOpacity={0.8}
+            className={`flex-1 py-3 px-4 rounded-xl flex-row items-center justify-center ${
+              activeTab === "farm_owner"
+                ? "bg-amber-500"
+                : "bg-white border border-gray-200"
+            }`}
+          >
+            <Ionicons
+              name="leaf-outline"
+              size={18}
+              color={activeTab === "farm_owner" ? "#fff" : "#6b7280"}
+            />
+            <Text
+              className={`ml-2 font-medium ${
+                activeTab === "farm_owner" ? "text-white" : "text-gray-600"
+              }`}
+            >
+              Recruteurs
+            </Text>
+            <View
+              className={`ml-2 px-2 py-0.5 rounded-full ${
+                activeTab === "farm_owner" ? "bg-white/20" : "bg-amber-100"
+              }`}
+            >
+              <Text
+                className={`text-xs font-semibold ${
+                  activeTab === "farm_owner" ? "text-white" : "text-amber-600"
+                }`}
+              >
+                {farmOwners.length}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+
         {/* Account Cards */}
         <Text className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-          Comptes disponibles
+          {activeTab === "job_seeker"
+            ? "Chercheurs d'emploi"
+            : "Propriétaires de ferme / Recruteurs"}
         </Text>
         <View className="gap-4 mb-10">
-          {allUsers.map((account) => (
-            <TouchableOpacity
-              key={account.id}
-              onPress={() => handleSelectAccount(account)}
-              activeOpacity={0.85}
-              className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5"
-            >
-              <View className="flex-row items-center">
-                {/* Avatar */}
-                <View
-                  className="w-14 h-14 rounded-full items-center justify-center mr-4"
-                  style={{
-                    backgroundColor: userTypeColor[account.userType] + "20",
-                  }}
-                >
-                  <Ionicons
-                    name={userTypeIcon[account.userType]}
-                    size={26}
-                    color={userTypeColor[account.userType]}
-                  />
-                </View>
-
-                {/* Info */}
-                <View className="flex-1">
-                  <Text className="text-base font-semibold text-foreground">
-                    {account.firstName} {account.lastName}
-                  </Text>
-                  <Text className="text-sm text-muted-foreground mb-1">
-                    {account.email}
-                  </Text>
+          {displayedUsers.length === 0 ? (
+            <View className="bg-gray-50 rounded-2xl p-8 items-center">
+              <Ionicons name="people-outline" size={40} color="#d1d5db" />
+              <Text className="text-gray-500 mt-2 text-center">
+                Aucun compte{" "}
+                {activeTab === "job_seeker"
+                  ? "chercheur d'emploi"
+                  : "recruteur"}{" "}
+                disponible
+              </Text>
+            </View>
+          ) : (
+            displayedUsers.map((account) => (
+              <TouchableOpacity
+                key={account.id}
+                onPress={() => handleSelectAccount(account)}
+                activeOpacity={0.85}
+                className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5"
+              >
+                <View className="flex-row items-center">
+                  {/* Avatar */}
                   <View
-                    className="self-start rounded-full px-2 py-0.5"
+                    className="w-14 h-14 rounded-full items-center justify-center mr-4"
                     style={{
                       backgroundColor: userTypeColor[account.userType] + "20",
                     }}
                   >
-                    <Text
-                      className="text-xs font-medium"
-                      style={{ color: userTypeColor[account.userType] }}
+                    <Ionicons
+                      name={userTypeIcon[account.userType]}
+                      size={26}
+                      color={userTypeColor[account.userType]}
+                    />
+                  </View>
+
+                  {/* Info */}
+                  <View className="flex-1">
+                    <Text className="text-base font-semibold text-foreground">
+                      {account.firstName} {account.lastName}
+                    </Text>
+                    <Text className="text-sm text-muted-foreground mb-1">
+                      {account.email}
+                    </Text>
+                    <View
+                      className="self-start rounded-full px-2 py-0.5"
+                      style={{
+                        backgroundColor: userTypeColor[account.userType] + "20",
+                      }}
                     >
-                      {userTypeLabel[account.userType]}
-                    </Text>
+                      <Text
+                        className="text-xs font-medium"
+                        style={{ color: userTypeColor[account.userType] }}
+                      >
+                        {userTypeLabel[account.userType]}
+                      </Text>
+                    </View>
                   </View>
+
+                  <Ionicons
+                    name="arrow-forward-circle"
+                    size={28}
+                    color={userTypeColor[account.userType]}
+                  />
                 </View>
 
-                <Ionicons
-                  name="arrow-forward-circle"
-                  size={28}
-                  color={userTypeColor[account.userType]}
-                />
-              </View>
-
-              {/* Extra details */}
-              <View className="flex-row mt-4 pt-4 border-t border-gray-100 gap-4">
-                <View className="flex-row items-center">
-                  <Ionicons name="call-outline" size={14} color="#9ca3af" />
-                  <Text className="text-xs text-muted-foreground ml-1">
-                    +221 {account.phone}
-                  </Text>
-                </View>
-                {account.gender && (
+                {/* Extra details */}
+                <View className="flex-row mt-4 pt-4 border-t border-gray-100 gap-4">
                   <View className="flex-row items-center">
-                    <Ionicons name="person-outline" size={14} color="#9ca3af" />
+                    <Ionicons name="call-outline" size={14} color="#9ca3af" />
                     <Text className="text-xs text-muted-foreground ml-1">
-                      {account.gender === "male"
-                        ? "Homme"
-                        : account.gender === "female"
-                          ? "Femme"
-                          : "Autre"}
+                      +221 {account.phone}
                     </Text>
                   </View>
-                )}
-              </View>
-            </TouchableOpacity>
-          ))}
+                  {account.gender && (
+                    <View className="flex-row items-center">
+                      <Ionicons
+                        name="person-outline"
+                        size={14}
+                        color="#9ca3af"
+                      />
+                      <Text className="text-xs text-muted-foreground ml-1">
+                        {account.gender === "male"
+                          ? "Homme"
+                          : account.gender === "female"
+                            ? "Femme"
+                            : "Autre"}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
         </View>
 
         {/* Divider */}

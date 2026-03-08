@@ -37,6 +37,7 @@ import { IncidentMarkers } from "@/components/map/IncidentMarkers";
 import { IncidentBrowser } from "@/components/map/IncidentBrowser";
 import { IncidentReporter } from "@/components/map/IncidentReporter";
 import { useMapStore } from "@/stores/mapStore";
+import { useUserStore } from "@/stores/userStore";
 
 // Set Mapbox access token
 Mapbox.setAccessToken(
@@ -96,7 +97,7 @@ function findRegionAtPoint(lng: number, lat: number): SenegalRegion | null {
 
 type MapMode = "explorer" | "farm" | "incidents";
 
-const MAP_MODES: {
+const ALL_MAP_MODES: {
   key: MapMode;
   label: string;
   icon: React.ComponentProps<typeof Ionicons>["name"];
@@ -107,6 +108,17 @@ const MAP_MODES: {
 ];
 
 export default function MapScreen() {
+  const { currentUser } = useUserStore();
+  const isFarmOwner = currentUser?.userType === "farm_owner";
+
+  // Job seekers don't see the "Ma Ferme" mode
+  const mapModes = useMemo(
+    () =>
+      isFarmOwner
+        ? ALL_MAP_MODES
+        : ALL_MAP_MODES.filter((m) => m.key !== "farm"),
+    [isFarmOwner],
+  );
   const cameraRef = useRef<Camera>(null);
   const farmSelectorRef = useRef<FarmLocationSelectorHandle>(null);
   const [selectedRegion, setSelectedRegion] = useState<SelectedRegion | null>(
@@ -224,7 +236,7 @@ export default function MapScreen() {
         {/* Mode switcher — disabled during pin placement */}
         {!pinMode && (
           <View className="bg-white rounded-2xl mt-2 px-2 py-2 shadow-lg flex-row items-center">
-            {MAP_MODES.map((mode) => {
+            {mapModes.map((mode) => {
               const isActive = mapMode === mode.key;
               return (
                 <TouchableOpacity

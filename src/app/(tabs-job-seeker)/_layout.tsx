@@ -3,27 +3,17 @@ import { useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useUserStore } from "@/stores/userStore";
 
-export default function TabsLayout() {
+export default function JobSeekerTabsLayout() {
   const router = useRouter();
   const currentUser = useUserStore((state) => state.currentUser);
-  const userType = useUserStore((state) => state.userType);
 
   useEffect(() => {
     if (!currentUser) {
       router.replace(__DEV__ ? "/(auth)/dev-login" : "/(auth)/login");
     }
-    // Redirect job seekers to their specific tabs
-    if (currentUser?.userType === "job_seeker" || userType === "job_seeker") {
-      router.replace("/(tabs-job-seeker)/map");
-    }
-  }, [currentUser, userType, router]);
+  }, [currentUser, router]);
 
   if (!currentUser) return null;
-
-  // Prevent job seekers from accessing recruiter tabs
-  if (currentUser.userType === "job_seeker" || userType === "job_seeker") {
-    return null;
-  }
 
   return (
     <Tabs
