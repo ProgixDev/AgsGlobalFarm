@@ -1,12 +1,5 @@
 import React, { useState, useRef, useCallback, useMemo } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  Modal,
-  StyleSheet,
-} from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import Mapbox, {
   MapView,
   Camera,
@@ -22,10 +15,13 @@ import {
   senegalRegions,
   getRegionColor,
   regionAgriData,
-  type RegionAgriInfo,
   type SenegalRegion,
 } from "@/data/senegal-regions";
 import { getDepartmentsByRegion } from "@/data/agricultural-data";
+import {
+  RegionExplorer,
+  type SelectedRegion,
+} from "@/components/map/RegionExplorer";
 
 // Set Mapbox access token
 Mapbox.setAccessToken(
@@ -62,7 +58,10 @@ function pointInPolygon(lng: number, lat: number, ring: number[][]): boolean {
       yi = ring[i][1];
     const xj = ring[j][0],
       yj = ring[j][1];
-    if (yi > lat !== yj > lat && lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) {
+    if (
+      yi > lat !== yj > lat &&
+      lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi
+    ) {
       inside = !inside;
     }
   }
@@ -80,15 +79,17 @@ function findRegionAtPoint(lng: number, lat: number): SenegalRegion | null {
   return null;
 }
 
-interface SelectedRegion {
-  id: string;
-  name: string;
-  capital: string;
-  population?: number;
-  agriInfo: RegionAgriInfo | null;
-  departments: string[];
-  color: string;
-}
+type MapMode = "explorer" | "farm" | "incidents";
+
+const MAP_MODES: {
+  key: MapMode;
+  label: string;
+  icon: React.ComponentProps<typeof Ionicons>["name"];
+}[] = [
+  { key: "explorer", label: "Explorer", icon: "location-outline" },
+  { key: "farm", label: "Ma Ferme", icon: "home-outline" },
+  { key: "incidents", label: "Incidents", icon: "alert-circle-outline" },
+];
 
 export default function MapScreen() {
   const cameraRef = useRef<Camera>(null);
@@ -96,6 +97,7 @@ export default function MapScreen() {
     null,
   );
   const [modalVisible, setModalVisible] = useState(false);
+  const [mapMode, setMapMode] = useState<MapMode>("explorer");
 
   // GeoJSON for clickable region fills (tap detection)
   const regionsGeoJSON = useMemo<FeatureCollection<Polygon>>(
@@ -109,28 +111,33 @@ export default function MapScreen() {
   const colorExpression = useMemo(() => buildColorExpression("#95A5A6"), []);
 
   // Handle map tap — uses JS point-in-polygon for reliable region detection
-  const handleMapPress = useCallback((event: any) => {
-    const coords = event?.geometry?.coordinates;
-    if (!coords || coords.length < 2) return;
-    const [lng, lat] = coords;
+  const handleMapPress = useCallback(
+    (event: any) => {
+      if (mapMode !== "explorer") return;
 
-    const region = findRegionAtPoint(lng, lat);
-    if (!region) return;
+      const coords = event?.geometry?.coordinates;
+      if (!coords || coords.length < 2) return;
+      const [lng, lat] = coords;
 
-    const { id, name, capital, population } = region.properties;
-    const departments = getDepartmentsByRegion(id).map((d) => d.name);
+      const region = findRegionAtPoint(lng, lat);
+      if (!region) return;
 
-    setSelectedRegion({
-      id,
-      name,
-      capital,
-      population,
-      agriInfo: regionAgriData[id] ?? null,
-      departments,
-      color: getRegionColor(id),
-    });
-    setModalVisible(true);
-  }, []);
+      const { id, name, capital, population } = region.properties;
+      const departments = getDepartmentsByRegion(id).map((d) => d.name);
+
+      setSelectedRegion({
+        id,
+        name,
+        capital,
+        population,
+        agriInfo: regionAgriData[id] ?? null,
+        departments,
+        color: getRegionColor(id),
+      });
+      setModalVisible(true);
+    },
+    [mapMode],
+  );
 
   // Handle camera region changes to enforce bounds
   const handleCameraChanged = (state: any) => {
@@ -152,10 +159,42 @@ export default function MapScreen() {
 
   return (
     <View className="flex-1 bg-gray-100">
+      {/* Header area: title + mode switcher */}
       <View className="absolute top-12 left-4 right-4 z-10">
+        {/* Senegal header row */}
         <View className="bg-white rounded-2xl px-5 py-4 shadow-2xl flex-row items-center">
           <Ionicons name="location" size={24} color="#10b981" />
           <Text className="text-lg font-bold text-gray-800 ml-2">Sénégal</Text>
+        </View>
+
+        {/* Mode switcher */}
+        <View className="bg-white rounded-2xl mt-2 px-2 py-2 shadow-lg flex-row items-center">
+          {MAP_MODES.map((mode) => {
+            const isActive = mapMode === mode.key;
+            return (
+              <TouchableOpacity
+                key={mode.key}
+                onPress={() => setMapMode(mode.key)}
+                className={`flex-1 flex-row items-center justify-center rounded-full py-2.5 ${
+                  isActive ? "bg-emerald-500" : ""
+                }`}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name={mode.icon}
+                  size={16}
+                  color={isActive ? "white" : "#4b5563"}
+                />
+                <Text
+                  className={`text-xs font-semibold ml-1 ${
+                    isActive ? "text-white" : "text-gray-600"
+                  }`}
+                >
+                  {mode.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </View>
 
@@ -227,10 +266,7 @@ export default function MapScreen() {
         </VectorSource>
 
         {/* Per-region colored fills */}
-        <ShapeSource
-          id="senegal-regions"
-          shape={regionsGeoJSON}
-        >
+        <ShapeSource id="senegal-regions" shape={regionsGeoJSON}>
           <FillLayer
             id="region-fill"
             style={{
@@ -269,236 +305,33 @@ export default function MapScreen() {
         </VectorSource>
       </MapView>
 
-      {/* Region info bottom sheet */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            {selectedRegion && (
-              <>
-                {/* Coloured header */}
-                <View
-                  style={[
-                    styles.regionHeader,
-                    { backgroundColor: selectedRegion.color },
-                  ]}
-                >
-                  <View className="flex-row items-center justify-between">
-                    <View className="flex-1 mr-3">
-                      <Text className="text-white text-2xl font-bold">
-                        {selectedRegion.name}
-                      </Text>
-                      <Text className="text-white/80 text-sm mt-0.5">
-                        Capitale : {selectedRegion.capital}
-                      </Text>
-                    </View>
-                    <TouchableOpacity
-                      onPress={() => setModalVisible(false)}
-                      className="bg-white/20 rounded-full p-2"
-                    >
-                      <Ionicons name="close" size={20} color="white" />
-                    </TouchableOpacity>
-                  </View>
-                  {selectedRegion.population && (
-                    <View className="flex-row items-center mt-3 bg-white/20 rounded-xl px-3 py-1.5 self-start">
-                      <Ionicons name="people" size={14} color="white" />
-                      <Text className="text-white text-sm ml-1.5 font-medium">
-                        {selectedRegion.population.toLocaleString("fr-FR")} hab.
-                      </Text>
-                    </View>
-                  )}
-                </View>
-
-                <ScrollView
-                  className="px-5 py-4"
-                  showsVerticalScrollIndicator={false}
-                >
-                  {selectedRegion.agriInfo && (
-                    <>
-                      {/* Climate */}
-                      <InfoSection
-                        icon="partly-sunny"
-                        title="Climat & Pluviométrie"
-                        color={selectedRegion.color}
-                      >
-                        <InfoRow
-                          label="Climat"
-                          value={selectedRegion.agriInfo.climate}
-                        />
-                        <InfoRow
-                          label="Pluviométrie"
-                          value={selectedRegion.agriInfo.rainfall}
-                        />
-                      </InfoSection>
-
-                      {/* Soil */}
-                      <InfoSection
-                        icon="layers"
-                        title="Types de Sols"
-                        color={selectedRegion.color}
-                      >
-                        <View className="flex-row flex-wrap gap-2 mb-2">
-                          {selectedRegion.agriInfo.soilInfo.mainSoilTypes.map(
-                            (soil) => (
-                              <View
-                                key={soil}
-                                className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-1"
-                              >
-                                <Text className="text-amber-800 text-sm font-medium">
-                                  {soil}
-                                </Text>
-                              </View>
-                            ),
-                          )}
-                        </View>
-                        <Text className="text-gray-600 text-sm leading-5 mt-1">
-                          {selectedRegion.agriInfo.soilInfo.soilDescription}
-                        </Text>
-                        <View className="flex-row gap-3 mt-3">
-                          <View className="flex-1 bg-gray-50 rounded-xl p-3">
-                            <Text className="text-xs text-gray-500 mb-0.5">
-                              pH
-                            </Text>
-                            <Text className="text-sm font-semibold text-gray-800">
-                              {selectedRegion.agriInfo.soilInfo.pH}
-                            </Text>
-                          </View>
-                          <View className="flex-1 bg-gray-50 rounded-xl p-3">
-                            <Text className="text-xs text-gray-500 mb-0.5">
-                              Drainage
-                            </Text>
-                            <Text className="text-sm font-semibold text-gray-800">
-                              {selectedRegion.agriInfo.soilInfo.drainage}
-                            </Text>
-                          </View>
-                        </View>
-                      </InfoSection>
-
-                      {/* Crops */}
-                      <InfoSection
-                        icon="leaf"
-                        title="Cultures principales"
-                        color={selectedRegion.color}
-                      >
-                        {selectedRegion.agriInfo.mainCrops.map((crop) => (
-                          <View
-                            key={crop}
-                            className="flex-row items-start mb-1"
-                          >
-                            <Text className="text-green-500 mr-2 mt-0.5">
-                              •
-                            </Text>
-                            <Text className="text-gray-700 text-sm flex-1">
-                              {crop}
-                            </Text>
-                          </View>
-                        ))}
-                      </InfoSection>
-
-                      {/* Livestock */}
-                      <InfoSection
-                        icon="paw"
-                        title="Élevage & Activités"
-                        color={selectedRegion.color}
-                      >
-                        {selectedRegion.agriInfo.mainLivestock.map((item) => (
-                          <View
-                            key={item}
-                            className="flex-row items-start mb-1"
-                          >
-                            <Text className="text-blue-500 mr-2 mt-0.5">•</Text>
-                            <Text className="text-gray-700 text-sm flex-1">
-                              {item}
-                            </Text>
-                          </View>
-                        ))}
-                      </InfoSection>
-
-                      {/* Notes */}
-                      <InfoSection
-                        icon="information-circle"
-                        title="Notes agricoles"
-                        color={selectedRegion.color}
-                      >
-                        <Text className="text-gray-600 text-sm leading-5">
-                          {selectedRegion.agriInfo.agriculturalNotes}
-                        </Text>
-                      </InfoSection>
-                    </>
-                  )}
-
-                  {/* Departments */}
-                  {selectedRegion.departments.length > 0 && (
-                    <InfoSection
-                      icon="location"
-                      title="Départements"
-                      color={selectedRegion.color}
-                    >
-                      <View className="flex-row flex-wrap gap-2">
-                        {selectedRegion.departments.map((dept) => (
-                          <View
-                            key={dept}
-                            className="bg-gray-100 rounded-lg px-3 py-1"
-                          >
-                            <Text className="text-gray-700 text-sm">
-                              {dept}
-                            </Text>
-                          </View>
-                        ))}
-                      </View>
-                    </InfoSection>
-                  )}
-
-                  <View className="h-8" />
-                </ScrollView>
-              </>
-            )}
-          </View>
+      {/* Mode-specific overlays */}
+      {mapMode === "farm" && (
+        <View className="absolute bottom-24 left-4 right-4 bg-white rounded-2xl p-6 shadow-lg items-center">
+          <Ionicons name="home-outline" size={32} color="#9ca3af" />
+          <Text className="text-gray-500 text-base font-medium mt-2">
+            Ma Ferme - Coming Soon
+          </Text>
         </View>
-      </Modal>
-    </View>
-  );
-}
+      )}
 
-// ── Reusable sub-components ───────────────────────────────────────────────────
+      {mapMode === "incidents" && (
+        <View className="absolute bottom-24 left-4 right-4 bg-white rounded-2xl p-6 shadow-lg items-center">
+          <Ionicons name="alert-circle-outline" size={32} color="#9ca3af" />
+          <Text className="text-gray-500 text-base font-medium mt-2">
+            Incidents - Coming Soon
+          </Text>
+        </View>
+      )}
 
-function InfoSection({
-  icon,
-  title,
-  color,
-  children,
-}: {
-  icon: React.ComponentProps<typeof Ionicons>["name"];
-  title: string;
-  color: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <View className="mb-5">
-      <View className="flex-row items-center mb-2">
-        <Ionicons name={icon} size={15} color={color} />
-        <Text className="text-xs font-bold text-gray-800 ml-1.5 uppercase tracking-wide">
-          {title}
-        </Text>
-      </View>
-      <View className="bg-white rounded-xl p-3 border border-gray-100">
-        {children}
-      </View>
-    </View>
-  );
-}
-
-function InfoRow({ label, value }: { label: string; value: string }) {
-  return (
-    <View className="flex-row justify-between py-0.5">
-      <Text className="text-gray-500 text-sm">{label}</Text>
-      <Text className="text-gray-800 text-sm font-medium text-right flex-1 ml-4">
-        {value}
-      </Text>
+      {/* Region explorer modal (only in explorer mode) */}
+      {mapMode === "explorer" && (
+        <RegionExplorer
+          selectedRegion={selectedRegion}
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+        />
+      )}
     </View>
   );
 }
@@ -507,21 +340,4 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 
 const styles = StyleSheet.create({
   map: { flex: 1 },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.45)",
-    justifyContent: "flex-end",
-  },
-  modalContainer: {
-    backgroundColor: "#f9fafb",
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    maxHeight: "85%",
-    overflow: "hidden",
-  },
-  regionHeader: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 20,
-  },
 });
