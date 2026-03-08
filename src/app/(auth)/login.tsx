@@ -88,7 +88,9 @@ export default function Login() {
           setErrors((prev) => ({ ...prev, password: result.error! }));
           passwordRef.current?.focus();
         } else {
-          setGeneralError(result.error || "Une erreur s'est produite. Veuillez réessayer.");
+          setGeneralError(
+            result.error || "Une erreur s'est produite. Veuillez réessayer.",
+          );
         }
         return;
       }
@@ -96,7 +98,9 @@ export default function Login() {
       // Login successful - navigate to map
       router.replace("/(tabs)/map");
     } catch {
-      setGeneralError("Une erreur inattendue s'est produite. Veuillez réessayer.");
+      setGeneralError(
+        "Une erreur inattendue s'est produite. Veuillez réessayer.",
+      );
     } finally {
       setIsLoading(false);
     }

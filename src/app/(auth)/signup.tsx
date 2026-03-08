@@ -159,14 +159,18 @@ export default function Signup() {
       });
 
       if (!result.success) {
-        setGeneralError(result.error || "Une erreur s'est produite lors de l'inscription.");
+        setGeneralError(
+          result.error || "Une erreur s'est produite lors de l'inscription.",
+        );
         return;
       }
 
       // Registration successful - navigate to map
       router.replace("/(tabs)/map");
     } catch {
-      setGeneralError("Une erreur inattendue s'est produite. Veuillez réessayer.");
+      setGeneralError(
+        "Une erreur inattendue s'est produite. Veuillez réessayer.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -247,9 +251,10 @@ export default function Signup() {
             {/* Field Errors Summary */}
             {((currentStep === 1 &&
               (errors.firstName || errors.lastName || errors.userType)) ||
-            (currentStep === 2 && (errors.email || errors.phone)) ||
-            (currentStep === 3 &&
-              (errors.password || errors.confirmPassword || errors.terms))) && !generalError ? (
+              (currentStep === 2 && (errors.email || errors.phone)) ||
+              (currentStep === 3 &&
+                (errors.password || errors.confirmPassword || errors.terms))) &&
+            !generalError ? (
               <View className="flex-row items-center bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-6">
                 <Ionicons
                   name="alert-circle-outline"

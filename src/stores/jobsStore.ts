@@ -58,7 +58,7 @@ export const useJobsStore = create<JobsStore>()(
       updateJob: (id: string, jobData: Partial<Job>) => {
         set((state) => ({
           myJobs: state.myJobs.map((job) =>
-            job.id === id ? { ...job, ...jobData } : job
+            job.id === id ? { ...job, ...jobData } : job,
           ),
         }));
       },
@@ -120,7 +120,7 @@ export const useJobsStore = create<JobsStore>()(
             applications: {
               ...state.applications,
               [jobId]: jobApps.map((app) =>
-                app.id === applicationId ? { ...app, status } : app
+                app.id === applicationId ? { ...app, status } : app,
               ),
             },
           };
@@ -139,7 +139,7 @@ export const useJobsStore = create<JobsStore>()(
 
       hasApplied: (jobId: string, applicantId: string) => {
         return (get().applications[jobId] ?? []).some(
-          (app) => app.applicantId === applicantId
+          (app) => app.applicantId === applicantId,
         );
       },
 
@@ -148,13 +148,14 @@ export const useJobsStore = create<JobsStore>()(
         const acceptedJobIds = Object.entries(state.applications)
           .filter(([, apps]) =>
             apps.some(
-              (app) => app.applicantId === applicantId && app.status === "accepted"
-            )
+              (app) =>
+                app.applicantId === applicantId && app.status === "accepted",
+            ),
           )
           .map(([jobId]) => jobId);
 
         return [...state.allJobs, ...state.myJobs].filter((job) =>
-          acceptedJobIds.includes(job.id)
+          acceptedJobIds.includes(job.id),
         );
       },
     }),

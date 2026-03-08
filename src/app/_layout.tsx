@@ -27,7 +27,14 @@ export default function RootLayout() {
 
   if (!fontsLoaded) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#16a34a" }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#16a34a",
+        }}
+      >
         <ActivityIndicator size="large" color="#ffffff" />
       </View>
     );

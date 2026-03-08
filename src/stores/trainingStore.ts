@@ -177,7 +177,8 @@ export const useTrainingStore = create<TrainingStore>()(
         // Check if eligible for certificate
         const course = state.courses.find((c) => c.id === courseId);
         if (course?.requiresCertification && course.certificationCriteria) {
-          const { minimumScore, requiredLessons } = course.certificationCriteria;
+          const { minimumScore, requiredLessons } =
+            course.certificationCriteria;
           const completedLessons = updatedProgress.completedLessons;
           const avgScore =
             updatedProgress.quizScores.reduce((sum, q) => sum + q.score, 0) /
@@ -192,7 +193,8 @@ export const useTrainingStore = create<TrainingStore>()(
       generateCertificate: (courseId: string) => {
         const state = get();
         const course = state.courses.find((c) => c.id === courseId);
-        if (!course || state.courseProgress[courseId]?.certificateEarned) return;
+        if (!course || state.courseProgress[courseId]?.certificateEarned)
+          return;
 
         const certificate: Certificate = {
           id: `cert-${courseId}-${Date.now()}`,
@@ -259,7 +261,7 @@ export const useTrainingStore = create<TrainingStore>()(
           notes: state.notes.map((n) =>
             n.id === noteId
               ? { ...n, content, updatedAt: new Date().toISOString() }
-              : n
+              : n,
           ),
         }));
       },

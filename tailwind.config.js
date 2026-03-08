@@ -5,7 +5,7 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Geist', 'system-ui', 'sans-serif'],
+        sans: ["Geist", "system-ui", "sans-serif"],
       },
       colors: {
         background: "hsl(var(--background))",

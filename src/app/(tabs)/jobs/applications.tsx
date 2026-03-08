@@ -9,8 +9,12 @@ export default function JobApplicationsScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const getJobById = useJobsStore((state) => state.getJobById);
-  const getApplicationsByJobId = useJobsStore((state) => state.getApplicationsByJobId);
-  const updateApplicationStatus = useJobsStore((state) => state.updateApplicationStatus);
+  const getApplicationsByJobId = useJobsStore(
+    (state) => state.getApplicationsByJobId,
+  );
+  const updateApplicationStatus = useJobsStore(
+    (state) => state.updateApplicationStatus,
+  );
 
   const jobId = params.id as string;
   const job = getJobById(jobId);

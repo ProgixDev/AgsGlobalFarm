@@ -44,7 +44,10 @@ interface UserStore {
   setUserType: (type: UserType) => void;
   toggleUserType: () => void;
   setCurrentUser: (user: UserProfile | null) => void;
-  login: (email: string, password: string) => { success: boolean; error?: string };
+  login: (
+    email: string,
+    password: string,
+  ) => { success: boolean; error?: string };
   register: (data: RegisterData) => { success: boolean; error?: string };
 }
 
@@ -59,7 +62,8 @@ export const useUserStore = create<UserStore>()(
 
       toggleUserType: () =>
         set((state) => ({
-          userType: state.userType === "job_seeker" ? "farm_owner" : "job_seeker",
+          userType:
+            state.userType === "job_seeker" ? "farm_owner" : "job_seeker",
         })),
 
       setCurrentUser: (user: UserProfile | null) =>
@@ -73,18 +77,21 @@ export const useUserStore = create<UserStore>()(
 
         // Check dev accounts first
         const devUser = DEV_ACCOUNTS.find(
-          (account) => account.email.toLowerCase() === email.toLowerCase()
+          (account) => account.email.toLowerCase() === email.toLowerCase(),
         );
 
         // Check registered users
         const registeredUser = registeredUsers.find(
-          (account) => account.email.toLowerCase() === email.toLowerCase()
+          (account) => account.email.toLowerCase() === email.toLowerCase(),
         );
 
         const user = devUser || registeredUser;
 
         if (!user) {
-          return { success: false, error: "Aucun compte trouvé avec cet email." };
+          return {
+            success: false,
+            error: "Aucun compte trouvé avec cet email.",
+          };
         }
 
         if (user.password !== password) {
@@ -102,16 +109,19 @@ export const useUserStore = create<UserStore>()(
 
         // Check if email already exists in dev accounts
         const devExists = DEV_ACCOUNTS.some(
-          (account) => account.email.toLowerCase() === data.email.toLowerCase()
+          (account) => account.email.toLowerCase() === data.email.toLowerCase(),
         );
 
         // Check if email already exists in registered users
         const registeredExists = registeredUsers.some(
-          (account) => account.email.toLowerCase() === data.email.toLowerCase()
+          (account) => account.email.toLowerCase() === data.email.toLowerCase(),
         );
 
         if (devExists || registeredExists) {
-          return { success: false, error: "Un compte avec cet email existe déjà." };
+          return {
+            success: false,
+            error: "Un compte avec cet email existe déjà.",
+          };
         }
 
         // Create new user

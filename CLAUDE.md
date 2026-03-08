@@ -56,6 +56,7 @@ bun run doctor       # Run Expo doctor
 ## Architecture
 
 The app uses a nested provider pattern in `src/app/_layout.tsx`:
+
 ```
 UserProvider -> JobsProvider -> TrainingProvider -> Stack
 ```

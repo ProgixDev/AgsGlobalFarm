@@ -21,7 +21,9 @@ export default function LessonViewerScreen() {
   const getLessonById = useTrainingStore((state) => state.getLessonById);
   const completeLesson = useTrainingStore((state) => state.completeLesson);
   const lessonProgress = useTrainingStore((state) => state.lessonProgress);
-  const submitQuizAttempt = useTrainingStore((state) => state.submitQuizAttempt);
+  const submitQuizAttempt = useTrainingStore(
+    (state) => state.submitQuizAttempt,
+  );
 
   const course = getCourseById(courseId);
   const lesson = getLessonById(courseId, lessonId);
