@@ -1,5 +1,11 @@
 import React, { useState, useRef, useCallback, useMemo } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+} from "react-native";
 import Mapbox, {
   MapView,
   Camera,
@@ -28,6 +34,8 @@ import {
   type FarmLocationSelectorHandle,
 } from "@/components/map/FarmLocationSelector";
 import { IncidentMarkers } from "@/components/map/IncidentMarkers";
+import { IncidentBrowser } from "@/components/map/IncidentBrowser";
+import { IncidentReporter } from "@/components/map/IncidentReporter";
 import { useMapStore } from "@/stores/mapStore";
 
 // Set Mapbox access token
@@ -114,8 +122,32 @@ export default function MapScreen() {
 
   const [selectedIncident, setSelectedIncident] =
     useState<IncidentReport | null>(null);
+  const [reporterVisible, setReporterVisible] = useState(false);
 
   const { farmLocation } = useMapStore();
+
+  // Clear selectedIncident when switching away from incidents mode
+  const handleModeChange = useCallback(
+    (mode: MapMode) => {
+      if (mapMode === "incidents" && mode !== "incidents") {
+        setSelectedIncident(null);
+      }
+      setMapMode(mode);
+    },
+    [mapMode],
+  );
+
+  // Handle camera move from IncidentBrowser
+  const handleIncidentCameraMove = useCallback(
+    (coordinates: [number, number]) => {
+      cameraRef.current?.setCamera({
+        centerCoordinate: coordinates,
+        zoomLevel: 9,
+        animationDuration: 800,
+      });
+    },
+    [],
+  );
 
   // GeoJSON for clickable region fills (tap detection)
   const regionsGeoJSON = useMemo<FeatureCollection<Polygon>>(
@@ -197,7 +229,7 @@ export default function MapScreen() {
               return (
                 <TouchableOpacity
                   key={mode.key}
-                  onPress={() => setMapMode(mode.key)}
+                  onPress={() => handleModeChange(mode.key)}
                   className={`flex-1 flex-row items-center justify-center rounded-full py-2.5 ${
                     isActive ? "bg-emerald-500" : ""
                   }`}
@@ -422,6 +454,35 @@ export default function MapScreen() {
           onClose={() => setModalVisible(false)}
         />
       )}
+
+      {/* Incidents mode: browser + FAB + reporter */}
+      {mapMode === "incidents" && (
+        <>
+          <IncidentBrowser
+            selectedIncident={selectedIncident}
+            onSelectIncident={setSelectedIncident}
+            onCameraMove={handleIncidentCameraMove}
+          />
+
+          {/* FAB — report new incident */}
+          <TouchableOpacity
+            onPress={() => setReporterVisible(true)}
+            style={styles.fab}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="add" size={28} color="white" />
+          </TouchableOpacity>
+
+          <IncidentReporter
+            visible={reporterVisible}
+            onClose={() => setReporterVisible(false)}
+            initialCoordinates={{
+              longitude: mapCenter[0],
+              latitude: mapCenter[1],
+            }}
+          />
+        </>
+      )}
     </View>
   );
 }
@@ -435,5 +496,22 @@ const styles = StyleSheet.create({
     left: "50%",
     marginTop: -24,
     marginLeft: -24,
+  },
+  fab: {
+    position: "absolute",
+    bottom: Dimensions.get("window").height * 0.45 + 16,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#ef4444",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+    zIndex: 10,
   },
 });
