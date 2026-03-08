@@ -27,6 +27,7 @@ import {
   FarmLocationSelector,
   type FarmLocationSelectorHandle,
 } from "@/components/map/FarmLocationSelector";
+import { IncidentMarkers } from "@/components/map/IncidentMarkers";
 import { useMapStore } from "@/stores/mapStore";
 
 // Set Mapbox access token
@@ -110,6 +111,9 @@ export default function MapScreen() {
     senegalCenter.longitude,
     senegalCenter.latitude,
   ]);
+
+  const [selectedIncident, setSelectedIncident] =
+    useState<IncidentReport | null>(null);
 
   const { farmLocation } = useMapStore();
 
@@ -346,6 +350,14 @@ export default function MapScreen() {
             </View>
           </PointAnnotation>
         )}
+
+        {/* Incident markers */}
+        {mapMode === "incidents" && (
+          <IncidentMarkers
+            onMarkerPress={setSelectedIncident}
+            selectedIncidentId={selectedIncident?.id}
+          />
+        )}
       </MapView>
 
       {/* Pin placement crosshair overlay */}
@@ -400,15 +412,6 @@ export default function MapScreen() {
           mapCenter={mapCenter}
           hidden={pinMode}
         />
-      )}
-
-      {mapMode === "incidents" && (
-        <View className="absolute bottom-24 left-4 right-4 bg-white rounded-2xl p-6 shadow-lg items-center">
-          <Ionicons name="alert-circle-outline" size={32} color="#9ca3af" />
-          <Text className="text-gray-500 text-base font-medium mt-2">
-            Incidents - Coming Soon
-          </Text>
-        </View>
       )}
 
       {/* Region explorer modal (only in explorer mode) */}
