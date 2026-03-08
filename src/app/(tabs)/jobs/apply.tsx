@@ -13,8 +13,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { useJobs } from "@/contexts/JobsContext";
-import { useUser } from "@/contexts/UserContext";
+import { useJobsStore } from "@/stores/jobsStore";
+import { useUserStore } from "@/stores/userStore";
 import { senegalRegions, senegalDepartments } from "@/data/senegalData";
 
 const desiredPositions = [
@@ -46,8 +46,9 @@ const educationLevels = [
 export default function JobApplyScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { getJobById, submitApplication } = useJobs();
-  const { currentUser } = useUser();
+  const getJobById = useJobsStore((state) => state.getJobById);
+  const submitApplication = useJobsStore((state) => state.submitApplication);
+  const currentUser = useUserStore((state) => state.currentUser);
 
   const jobId = params.id as string;
   const job = getJobById(jobId);

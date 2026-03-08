@@ -2,18 +2,16 @@ import React from "react";
 import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { useTraining } from "../../contexts/TrainingContext";
+import { useTrainingStore } from "@/stores/trainingStore";
 
 export default function CourseDetailScreen() {
   const router = useRouter();
   const { courseId } = useLocalSearchParams<{ courseId: string }>();
-  const {
-    getCourseById,
-    enrollInCourse,
-    enrolledCourses,
-    courseProgress,
-    lessonProgress,
-  } = useTraining();
+  const getCourseById = useTrainingStore((state) => state.getCourseById);
+  const enrollInCourse = useTrainingStore((state) => state.enrollInCourse);
+  const enrolledCourses = useTrainingStore((state) => state.enrolledCourses);
+  const courseProgress = useTrainingStore((state) => state.courseProgress);
+  const lessonProgress = useTrainingStore((state) => state.lessonProgress);
 
   const course = getCourseById(courseId);
   const isEnrolled = enrolledCourses.includes(courseId);

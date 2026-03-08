@@ -9,8 +9,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useUser } from "@/contexts/UserContext";
-import { useJobs } from "@/contexts/JobsContext";
+import { useUserStore } from "@/stores/userStore";
+import { useJobsStore } from "@/stores/jobsStore";
 
 type JobSeekerTab = "offres" | "candidatures";
 
@@ -53,16 +53,15 @@ const APPLICATION_STATUS: Record<
 
 export default function JobsScreen() {
   const router = useRouter();
-  const { userType, currentUser } = useUser();
-  const {
-    allJobs,
-    myJobs,
-    deleteJob,
-    duplicateJob,
-    getMyApplications,
-    getJobById,
-    hasApplied,
-  } = useJobs();
+  const userType = useUserStore((state) => state.userType);
+  const currentUser = useUserStore((state) => state.currentUser);
+  const allJobs = useJobsStore((state) => state.allJobs);
+  const myJobs = useJobsStore((state) => state.myJobs);
+  const deleteJob = useJobsStore((state) => state.deleteJob);
+  const duplicateJob = useJobsStore((state) => state.duplicateJob);
+  const getMyApplications = useJobsStore((state) => state.getMyApplications);
+  const getJobById = useJobsStore((state) => state.getJobById);
+  const hasApplied = useJobsStore((state) => state.hasApplied);
 
   const [jobSeekerTab, setJobSeekerTab] = useState<JobSeekerTab>("offres");
   const [searchQuery, setSearchQuery] = useState("");

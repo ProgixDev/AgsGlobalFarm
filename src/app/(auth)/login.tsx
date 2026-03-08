@@ -7,14 +7,17 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { loginSchema } from "@/schemas/validation";
 import { ZodError } from "zod";
+import { useUserStore } from "@/stores/userStore";
 
 export default function Login() {
   const router = useRouter();
+  const login = useUserStore((state) => state.login);
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: "",
@@ -25,6 +28,8 @@ export default function Login() {
     email: "",
     password: "",
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [generalError, setGeneralError] = useState("");
 
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
@@ -57,14 +62,44 @@ export default function Login() {
     return isValid;
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
+    // Clear previous errors
+    setGeneralError("");
+    setErrors({ email: "", password: "" });
+
     if (!validateForm()) {
       return;
     }
 
-    // TODO: Implement login logic
-    console.log("Login", formData);
-    router.replace("/map");
+    setIsLoading(true);
+
+    try {
+      // Simulate network delay for better UX
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      const result = login(formData.email, formData.password);
+
+      if (!result.success) {
+        // Set error for email or password based on the error message
+        if (result.error?.includes("email")) {
+          setErrors((prev) => ({ ...prev, email: result.error! }));
+          emailRef.current?.focus();
+        } else if (result.error?.includes("Mot de passe")) {
+          setErrors((prev) => ({ ...prev, password: result.error! }));
+          passwordRef.current?.focus();
+        } else {
+          setGeneralError(result.error || "Une erreur s'est produite. Veuillez réessayer.");
+        }
+        return;
+      }
+
+      // Login successful - navigate to map
+      router.replace("/(tabs)/map");
+    } catch {
+      setGeneralError("Une erreur inattendue s'est produite. Veuillez réessayer.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -83,8 +118,22 @@ export default function Login() {
               Connectez-vous pour accéder à votre espace personnel
             </Text>
 
-            {/* Error Summary */}
-            {errors.email || errors.password ? (
+            {/* General Error */}
+            {generalError ? (
+              <View className="flex-row items-center bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-6">
+                <Ionicons
+                  name="alert-circle-outline"
+                  size={18}
+                  color="#ef4444"
+                />
+                <Text className="text-red-600 text-sm ml-2 flex-1">
+                  {generalError}
+                </Text>
+              </View>
+            ) : null}
+
+            {/* Field Errors Summary */}
+            {(errors.email || errors.password) && !generalError ? (
               <View className="flex-row items-center bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-6">
                 <Ionicons
                   name="alert-circle-outline"
@@ -116,8 +165,9 @@ export default function Login() {
                   value={formData.email}
                   onChangeText={(text) => {
                     setFormData({ ...formData, email: text });
-                    if (errors.email) {
-                      setErrors({ ...errors, email: "" });
+                    if (errors.email || generalError) {
+                      setErrors((prev) => ({ ...prev, email: "" }));
+                      setGeneralError("");
                     }
                   }}
                   keyboardType="email-address"
@@ -158,8 +208,9 @@ export default function Login() {
                   value={formData.password}
                   onChangeText={(text) => {
                     setFormData({ ...formData, password: text });
-                    if (errors.password) {
-                      setErrors({ ...errors, password: "" });
+                    if (errors.password || generalError) {
+                      setErrors((prev) => ({ ...prev, password: "" }));
+                      setGeneralError("");
                     }
                   }}
                   secureTextEntry={!showPassword}
@@ -223,15 +274,22 @@ export default function Login() {
             {/* Login Button */}
             <TouchableOpacity
               onPress={handleLogin}
+              disabled={isLoading}
               activeOpacity={0.8}
-              className="bg-primary rounded-xl py-4 items-center justify-center mb-6"
+              className={`bg-primary rounded-xl py-4 items-center justify-center mb-6 ${
+                isLoading ? "opacity-70" : ""
+              }`}
             >
-              <View className="flex-row items-center">
-                <Ionicons name="log-in-outline" size={20} color="white" />
-                <Text className="text-white text-base font-semibold ml-2">
-                  Se connecter
-                </Text>
-              </View>
+              {isLoading ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <View className="flex-row items-center">
+                  <Ionicons name="log-in-outline" size={20} color="white" />
+                  <Text className="text-white text-base font-semibold ml-2">
+                    Se connecter
+                  </Text>
+                </View>
+              )}
             </TouchableOpacity>
 
             {/* Sign Up Link */}

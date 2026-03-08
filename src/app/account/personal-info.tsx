@@ -8,11 +8,12 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useUser } from "@/contexts/UserContext";
+import { useUserStore } from "@/stores/userStore";
 
 export default function PersonalInfoScreen() {
   const router = useRouter();
-  const { currentUser, setCurrentUser } = useUser();
+  const currentUser = useUserStore((state) => state.currentUser);
+  const setCurrentUser = useUserStore((state) => state.setCurrentUser);
 
   const [formData, setFormData] = useState({
     firstName: currentUser?.firstName ?? "",

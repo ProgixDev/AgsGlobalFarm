@@ -2,11 +2,11 @@ import React, { useEffect } from "react";
 import { View } from "react-native";
 import { Stack, useRouter } from "expo-router";
 import Svg, { Path, Defs, Pattern, Circle } from "react-native-svg";
-import { useUser } from "@/contexts/UserContext";
+import { useUserStore } from "@/stores/userStore";
 
 export default function AuthLayout() {
   const router = useRouter();
-  const { currentUser } = useUser();
+  const currentUser = useUserStore((state) => state.currentUser);
 
   useEffect(() => {
     if (currentUser && router) {

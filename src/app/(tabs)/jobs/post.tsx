@@ -13,7 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { useJobs } from "@/contexts/JobsContext";
+import { useJobsStore } from "@/stores/jobsStore";
 import {
   senegalRegions,
   senegalDepartments,
@@ -23,7 +23,9 @@ import {
 export default function JobPostScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { createJob, updateJob, getJobById } = useJobs();
+  const createJob = useJobsStore((state) => state.createJob);
+  const updateJob = useJobsStore((state) => state.updateJob);
+  const getJobById = useJobsStore((state) => state.getJobById);
 
   const jobId = params.id as string | undefined;
   const isEditing = !!jobId;

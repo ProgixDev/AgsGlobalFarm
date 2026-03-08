@@ -3,11 +3,12 @@ import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useUser } from "@/contexts/UserContext";
+import { useUserStore } from "@/stores/userStore";
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { currentUser, setCurrentUser } = useUser();
+  const currentUser = useUserStore((state) => state.currentUser);
+  const setCurrentUser = useUserStore((state) => state.setCurrentUser);
 
   const handleLogout = () => {
     setCurrentUser(null);

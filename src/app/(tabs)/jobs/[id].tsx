@@ -3,14 +3,18 @@ import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { useJobs } from "@/contexts/JobsContext";
-import { useUser } from "@/contexts/UserContext";
+import { useJobsStore } from "@/stores/jobsStore";
+import { useUserStore } from "@/stores/userStore";
 
 export default function JobDetailsScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { getJobById, deleteJob, duplicateJob, hasApplied } = useJobs();
-  const { userType, currentUser } = useUser();
+  const getJobById = useJobsStore((state) => state.getJobById);
+  const deleteJob = useJobsStore((state) => state.deleteJob);
+  const duplicateJob = useJobsStore((state) => state.duplicateJob);
+  const hasApplied = useJobsStore((state) => state.hasApplied);
+  const userType = useUserStore((state) => state.userType);
+  const currentUser = useUserStore((state) => state.currentUser);
 
   const jobId = params.id as string;
   const job = getJobById(jobId);

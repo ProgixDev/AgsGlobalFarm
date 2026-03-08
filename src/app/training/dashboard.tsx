@@ -2,18 +2,16 @@ import React from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useTraining } from "../../contexts/TrainingContext";
+import { useTrainingStore } from "@/stores/trainingStore";
 
 export default function StudentDashboardScreen() {
   const router = useRouter();
-  const {
-    courses,
-    enrolledCourses,
-    courseProgress,
-    certificates,
-    bookmarks,
-    notes,
-  } = useTraining();
+  const courses = useTrainingStore((state) => state.courses);
+  const enrolledCourses = useTrainingStore((state) => state.enrolledCourses);
+  const courseProgress = useTrainingStore((state) => state.courseProgress);
+  const certificates = useTrainingStore((state) => state.certificates);
+  const bookmarks = useTrainingStore((state) => state.bookmarks);
+  const notes = useTrainingStore((state) => state.notes);
 
   const totalLessonsCompleted = Object.values(courseProgress).reduce(
     (sum, progress) => sum + progress.completedLessons,

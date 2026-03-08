@@ -3,13 +3,14 @@ import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { useJobs } from "@/contexts/JobsContext";
+import { useJobsStore } from "@/stores/jobsStore";
 
 export default function JobApplicationsScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { getJobById, getApplicationsByJobId, updateApplicationStatus } =
-    useJobs();
+  const getJobById = useJobsStore((state) => state.getJobById);
+  const getApplicationsByJobId = useJobsStore((state) => state.getApplicationsByJobId);
+  const updateApplicationStatus = useJobsStore((state) => state.updateApplicationStatus);
 
   const jobId = params.id as string;
   const job = getJobById(jobId);

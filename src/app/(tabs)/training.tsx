@@ -2,11 +2,13 @@ import React from "react";
 import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useTraining } from "../../contexts/TrainingContext";
+import { useTrainingStore } from "@/stores/trainingStore";
 
 export default function TrainingScreen() {
   const router = useRouter();
-  const { courses, enrolledCourses, courseProgress } = useTraining();
+  const courses = useTrainingStore((state) => state.courses);
+  const enrolledCourses = useTrainingStore((state) => state.enrolledCourses);
+  const courseProgress = useTrainingStore((state) => state.courseProgress);
 
   const getDifficultyColor = (difficulty: DifficultyLevel) => {
     switch (difficulty) {

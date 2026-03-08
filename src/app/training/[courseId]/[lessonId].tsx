@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { useTraining } from "../../../contexts/TrainingContext";
+import { useTrainingStore } from "@/stores/trainingStore";
 
 export default function LessonViewerScreen() {
   const router = useRouter();
@@ -17,13 +17,11 @@ export default function LessonViewerScreen() {
     courseId: string;
     lessonId: string;
   }>();
-  const {
-    getCourseById,
-    getLessonById,
-    completeLesson,
-    lessonProgress,
-    submitQuizAttempt,
-  } = useTraining();
+  const getCourseById = useTrainingStore((state) => state.getCourseById);
+  const getLessonById = useTrainingStore((state) => state.getLessonById);
+  const completeLesson = useTrainingStore((state) => state.completeLesson);
+  const lessonProgress = useTrainingStore((state) => state.lessonProgress);
+  const submitQuizAttempt = useTrainingStore((state) => state.submitQuizAttempt);
 
   const course = getCourseById(courseId);
   const lesson = getLessonById(courseId, lessonId);

@@ -8,6 +8,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
@@ -17,10 +18,14 @@ import {
   signupStep3Schema,
 } from "@/schemas/validation";
 import { ZodError } from "zod";
+import { useUserStore } from "@/stores/userStore";
 
 export default function Signup() {
   const router = useRouter();
+  const register = useUserStore((state) => state.register);
   const [currentStep, setCurrentStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [generalError, setGeneralError] = useState("");
   const [formData, setFormData] = useState<SignupFormData>({
     firstName: "",
     lastName: "",
@@ -126,19 +131,45 @@ export default function Signup() {
     }
   };
 
-  const handleSignup = () => {
+  const handleSignup = async () => {
+    // Clear previous errors
+    setGeneralError("");
+
     if (!validateStep(currentStep)) {
       return;
     }
 
-    // Remove leading zeros from phone number
-    const cleanedPhone = formData.phone.replace(/^0+/, "");
+    setIsLoading(true);
 
-    console.log("Signup", {
-      ...formData,
-      phone: countryCode + cleanedPhone,
-    });
-    router.replace("/map");
+    try {
+      // Simulate network delay for better UX
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // Remove leading zeros from phone number
+      const cleanedPhone = formData.phone.replace(/^0+/, "");
+
+      const result = register({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: countryCode + cleanedPhone,
+        userType: formData.userType as "job_seeker" | "farm_owner",
+        gender: formData.gender,
+        password: formData.password,
+      });
+
+      if (!result.success) {
+        setGeneralError(result.error || "Une erreur s'est produite lors de l'inscription.");
+        return;
+      }
+
+      // Registration successful - navigate to map
+      router.replace("/(tabs)/map");
+    } catch {
+      setGeneralError("Une erreur inattendue s'est produite. Veuillez réessayer.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -199,12 +230,26 @@ export default function Signup() {
               </View>
             </View>
 
-            {/* Error Summary */}
-            {(currentStep === 1 &&
+            {/* General Error */}
+            {generalError ? (
+              <View className="flex-row items-center bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-6">
+                <Ionicons
+                  name="alert-circle-outline"
+                  size={18}
+                  color="#ef4444"
+                />
+                <Text className="text-red-600 text-sm ml-2 flex-1">
+                  {generalError}
+                </Text>
+              </View>
+            ) : null}
+
+            {/* Field Errors Summary */}
+            {((currentStep === 1 &&
               (errors.firstName || errors.lastName || errors.userType)) ||
             (currentStep === 2 && (errors.email || errors.phone)) ||
             (currentStep === 3 &&
-              (errors.password || errors.confirmPassword || errors.terms)) ? (
+              (errors.password || errors.confirmPassword || errors.terms))) && !generalError ? (
               <View className="flex-row items-center bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-6">
                 <Ionicons
                   name="alert-circle-outline"
@@ -655,19 +700,26 @@ export default function Signup() {
               ) : (
                 <TouchableOpacity
                   onPress={handleSignup}
+                  disabled={isLoading}
                   activeOpacity={0.8}
-                  className="flex-1 ml-2 bg-primary rounded-xl py-3.5 items-center justify-center"
+                  className={`flex-1 ml-2 bg-primary rounded-xl py-3.5 items-center justify-center ${
+                    isLoading ? "opacity-70" : ""
+                  }`}
                 >
-                  <View className="flex-row items-center">
-                    <Ionicons
-                      name="person-add-outline"
-                      size={20}
-                      color="white"
-                    />
-                    <Text className="text-white text-base font-semibold ml-2">
-                      S&apos;inscrire
-                    </Text>
-                  </View>
+                  {isLoading ? (
+                    <ActivityIndicator size="small" color="white" />
+                  ) : (
+                    <View className="flex-row items-center">
+                      <Ionicons
+                        name="person-add-outline"
+                        size={20}
+                        color="white"
+                      />
+                      <Text className="text-white text-base font-semibold ml-2">
+                        S&apos;inscrire
+                      </Text>
+                    </View>
+                  )}
                 </TouchableOpacity>
               )}
             </View>

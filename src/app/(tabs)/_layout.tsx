@@ -1,11 +1,11 @@
 import { Tabs, useRouter } from "expo-router";
 import { useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { useUser } from "@/contexts/UserContext";
+import { useUserStore } from "@/stores/userStore";
 
 export default function TabsLayout() {
   const router = useRouter();
-  const { currentUser } = useUser();
+  const currentUser = useUserStore((state) => state.currentUser);
 
   useEffect(() => {
     if (!currentUser) {

@@ -2,11 +2,18 @@ import React from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { DEV_ACCOUNTS, useUser } from "@/contexts/UserContext";
+import { DEV_ACCOUNTS, useUserStore } from "@/stores/userStore";
 
 export default function DevLogin() {
   const router = useRouter();
-  const { setCurrentUser } = useUser();
+  const setCurrentUser = useUserStore((state) => state.setCurrentUser);
+  const registeredUsers = useUserStore((state) => state.registeredUsers);
+
+  // Combine dev accounts and registered users
+  const allUsers: UserProfile[] = [
+    ...DEV_ACCOUNTS.map(({ password, ...user }) => user),
+    ...registeredUsers,
+  ];
 
   if (!__DEV__) {
     router.replace("/(auth)/login");
@@ -65,7 +72,7 @@ export default function DevLogin() {
           Comptes disponibles
         </Text>
         <View className="gap-4 mb-10">
-          {DEV_ACCOUNTS.map((account) => (
+          {allUsers.map((account) => (
             <TouchableOpacity
               key={account.id}
               onPress={() => handleSelectAccount(account)}
