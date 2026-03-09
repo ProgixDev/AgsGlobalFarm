@@ -9,12 +9,7 @@ import { View, Text, TouchableOpacity, ScrollView, Alert } from "react-native";
 import { Camera } from "@rnmapbox/maps";
 import { Ionicons } from "@expo/vector-icons";
 import FormInput from "@/components/ui/FormInput";
-import FormPicker from "@/components/ui/FormPicker";
-import { senegalRegions } from "@/data/senegal-regions";
-import {
-  getDepartmentsByRegion,
-  getMunicipalitiesByDepartment,
-} from "@/data/agricultural-data";
+import { findRegionAtPoint } from "@/utils/geo";
 import { useMapStore } from "@/stores/mapStore";
 import { useUserStore } from "@/stores/userStore";
 
@@ -28,6 +23,12 @@ interface FarmLocationSelectorProps {
 export interface FarmLocationSelectorHandle {
   confirmPin: () => void;
   cancelPin: () => void;
+}
+
+/** Derive a display location string from coordinates using region polygons. */
+function getLocationLabel(coords: { longitude: number; latitude: number }) {
+  const region = findRegionAtPoint(coords.longitude, coords.latitude);
+  return region?.properties.name ?? "Position enregistrée";
 }
 
 export const FarmLocationSelector = forwardRef<
@@ -49,35 +50,12 @@ export const FarmLocationSelector = forwardRef<
 
   // Form state
   const [farmName, setFarmName] = useState("");
-  const [region, setRegion] = useState("");
-  const [department, setDepartment] = useState("");
-  const [municipality, setMunicipality] = useState("");
   const [coordinates, setCoordinates] = useState<{
     longitude: number;
     latitude: number;
   } | null>(null);
 
-  // Derived picker items
-  const regionItems = senegalRegions.map((r) => ({
-    label: r.properties.name,
-    value: r.properties.id,
-  }));
-
-  const departmentItems = region
-    ? getDepartmentsByRegion(region).map((d) => ({
-        label: d.name,
-        value: d.id,
-      }))
-    : [];
-
-  const municipalityItems = department
-    ? getMunicipalitiesByDepartment(department).map((m) => ({
-        label: m,
-        value: m,
-      }))
-    : [];
-
-  const canSave = region && department && municipality && coordinates;
+  const canSave = !!coordinates;
 
   // Zoom to farm location when it exists and we're not editing
   useEffect(() => {
@@ -92,19 +70,6 @@ export const FarmLocationSelector = forwardRef<
       });
     }
   }, [farmLocation, isEditing, cameraRef]);
-
-  // Reset department and municipality when region changes
-  const handleRegionChange = useCallback((value: string) => {
-    setRegion(value);
-    setDepartment("");
-    setMunicipality("");
-  }, []);
-
-  // Reset municipality when department changes
-  const handleDepartmentChange = useCallback((value: string) => {
-    setDepartment(value);
-    setMunicipality("");
-  }, []);
 
   // Enter pin placement mode
   const handlePlaceOnMap = useCallback(() => {
@@ -140,9 +105,6 @@ export const FarmLocationSelector = forwardRef<
       id: farmLocation?.id || `farm-${Date.now()}`,
       userId: currentUser?.id || "anonymous",
       name: farmName || "Ma Ferme",
-      region,
-      department,
-      municipality,
       coordinates: coordinates!,
       createdAt: farmLocation?.createdAt || now,
       updatedAt: now,
@@ -157,9 +119,6 @@ export const FarmLocationSelector = forwardRef<
   }, [
     canSave,
     farmName,
-    region,
-    department,
-    municipality,
     coordinates,
     currentUser,
     farmLocation,
@@ -172,9 +131,6 @@ export const FarmLocationSelector = forwardRef<
   const handleEdit = useCallback(() => {
     if (!farmLocation) return;
     setFarmName(farmLocation.name);
-    setRegion(farmLocation.region);
-    setDepartment(farmLocation.department);
-    setMunicipality(farmLocation.municipality);
     setCoordinates(farmLocation.coordinates);
     setIsEditing(true);
   }, [farmLocation]);
@@ -191,11 +147,7 @@ export const FarmLocationSelector = forwardRef<
           style: "destructive",
           onPress: () => {
             deleteFarmLocation();
-            // Reset form
             setFarmName("");
-            setRegion("");
-            setDepartment("");
-            setMunicipality("");
             setCoordinates(null);
             setIsEditing(false);
           },
@@ -204,72 +156,58 @@ export const FarmLocationSelector = forwardRef<
     );
   }, [deleteFarmLocation]);
 
-  // Find display names for saved location
-  const getRegionName = (id: string) =>
-    senegalRegions.find((r) => r.properties.id === id)?.properties.name || id;
-  const getDepartmentName = (regionId: string, deptId: string) => {
-    const allDepts = getDepartmentsByRegion(regionId);
-    return allDepts.find((d) => d.id === deptId)?.name || deptId;
-  };
-
   // ── State B: Farm saved, not editing ──
   if (farmLocation && !isEditing) {
     if (hidden) return null;
     return (
       <View className="absolute bottom-24 left-0 right-0 mx-4">
-        <View className="bg-white rounded-t-3xl rounded-b-2xl shadow-2xl overflow-hidden">
-          {/* Green header */}
-          <View className="bg-emerald-500 px-5 py-3 flex-row items-center">
-            <Ionicons name="home" size={20} color="white" />
-            <Text className="text-white font-bold text-base ml-2">
-              Ma Ferme
+        <View className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
+          {/* Header */}
+          <View className="bg-emerald-500 px-5 py-3.5 flex-row items-center">
+            <View className="bg-white/20 rounded-full p-1.5">
+              <Ionicons name="home" size={16} color="white" />
+            </View>
+            <Text className="text-white font-bold text-base ml-2.5 flex-1">
+              {farmLocation.name}
             </Text>
           </View>
 
           <View className="px-5 py-4">
-            {/* Farm name */}
-            <Text className="text-gray-800 font-bold text-lg">
-              {farmLocation.name}
-            </Text>
-
-            {/* Location */}
-            <View className="flex-row items-center mt-2">
-              <Ionicons name="location-outline" size={16} color="#6b7280" />
-              <Text className="text-gray-600 text-sm ml-1 flex-1">
-                {farmLocation.municipality},{" "}
-                {getDepartmentName(
-                  farmLocation.region,
-                  farmLocation.department,
-                )}
-                , {getRegionName(farmLocation.region)}
-              </Text>
+            {/* Location card */}
+            <View className="bg-emerald-50 rounded-xl p-3.5 flex-row items-center">
+              <View className="bg-emerald-100 rounded-full p-2 mr-3">
+                <Ionicons name="location" size={18} color="#059669" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-emerald-800 font-semibold text-sm">
+                  {getLocationLabel(farmLocation.coordinates)}
+                </Text>
+                <Text className="text-emerald-600/70 text-xs mt-0.5">
+                  {farmLocation.coordinates.latitude.toFixed(4)}°N,{" "}
+                  {farmLocation.coordinates.longitude.toFixed(4)}°W
+                </Text>
+              </View>
             </View>
-
-            {/* Coordinates */}
-            <Text className="text-gray-400 text-xs mt-1">
-              {farmLocation.coordinates.latitude.toFixed(4)}°N,{" "}
-              {farmLocation.coordinates.longitude.toFixed(4)}°W
-            </Text>
 
             {/* Buttons */}
             <View className="flex-row mt-4 gap-3">
               <TouchableOpacity
                 onPress={handleEdit}
-                className="flex-1 border border-emerald-500 rounded-xl py-3 flex-row items-center justify-center"
+                className="flex-1 bg-emerald-50 rounded-xl py-3 flex-row items-center justify-center"
                 activeOpacity={0.7}
               >
-                <Ionicons name="create-outline" size={18} color="#10b981" />
-                <Text className="text-emerald-500 font-semibold ml-1">
+                <Ionicons name="create-outline" size={18} color="#059669" />
+                <Text className="text-emerald-700 font-semibold ml-1.5">
                   Modifier
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleDelete}
-                className="flex-1 border border-red-400 rounded-xl py-3 flex-row items-center justify-center"
+                className="flex-1 bg-red-50 rounded-xl py-3 flex-row items-center justify-center"
                 activeOpacity={0.7}
               >
-                <Ionicons name="trash-outline" size={18} color="#f87171" />
-                <Text className="text-red-400 font-semibold ml-1">
+                <Ionicons name="trash-outline" size={18} color="#dc2626" />
+                <Text className="text-red-600 font-semibold ml-1.5">
                   Supprimer
                 </Text>
               </TouchableOpacity>
@@ -288,88 +226,115 @@ export const FarmLocationSelector = forwardRef<
       style={{ maxHeight: "60%" }}
     >
       <View className="bg-white rounded-t-3xl shadow-2xl">
-        <ScrollView className="px-5 py-4" showsVerticalScrollIndicator={false}>
+        {/* Drag handle */}
+        <View className="items-center pt-3 pb-1">
+          <View className="w-10 h-1 rounded-full bg-gray-300" />
+        </View>
+
+        <ScrollView
+          className="px-5 pt-2 pb-4"
+          showsVerticalScrollIndicator={false}
+        >
           {/* Title */}
-          <View className="flex-row items-center mb-4">
-            <Ionicons name="location" size={24} color="#10b981" />
-            <Text className="text-lg font-bold text-gray-800 ml-2">
-              {isEditing
-                ? "Modifier votre exploitation"
-                : "Localiser votre exploitation"}
-            </Text>
+          <View className="flex-row items-center mb-5">
+            <View className="bg-emerald-100 rounded-full p-2 mr-3">
+              <Ionicons name="location" size={20} color="#059669" />
+            </View>
+            <View>
+              <Text className="text-lg font-bold text-gray-800">
+                {isEditing
+                  ? "Modifier votre exploitation"
+                  : "Localiser votre exploitation"}
+              </Text>
+              <Text className="text-xs text-gray-400 mt-0.5">
+                Placez votre ferme sur la carte
+              </Text>
+            </View>
           </View>
 
           {/* Farm name */}
+          <Text className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
+            Nom de l&apos;exploitation
+          </Text>
           <FormInput
-            label="Nom de l'exploitation"
+            label=""
             value={farmName}
             onChangeText={setFarmName}
-            placeholder="Nom de l'exploitation"
+            placeholder="Ex: Ferme de Thiès"
+            containerClassName="mb-4"
           />
 
-          {/* Region picker */}
-          <FormPicker
-            label="Région"
-            value={region}
-            onValueChange={handleRegionChange}
-            items={regionItems}
-            required
-            placeholder="Sélectionner une région"
-          />
+          {/* Location section */}
+          <Text className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
+            Emplacement
+          </Text>
 
-          {/* Department picker */}
-          <FormPicker
-            label="Département"
-            value={department}
-            onValueChange={handleDepartmentChange}
-            items={departmentItems}
-            required
-            enabled={region !== ""}
-            placeholder="Sélectionner un département"
-          />
-
-          {/* Municipality picker */}
-          <FormPicker
-            label="Commune"
-            value={municipality}
-            onValueChange={setMunicipality}
-            items={municipalityItems}
-            required
-            enabled={department !== ""}
-            placeholder="Sélectionner une commune"
-          />
-
-          {/* Place on map button */}
-          <TouchableOpacity
-            onPress={handlePlaceOnMap}
-            className="border border-emerald-500 rounded-xl py-3 flex-row items-center justify-center mb-3"
-            activeOpacity={0.7}
-          >
-            <Ionicons name="map-outline" size={18} color="#10b981" />
-            <Text className="text-emerald-500 font-semibold ml-2">
-              Placer sur la carte
-            </Text>
-          </TouchableOpacity>
-
-          {/* Coordinates display */}
-          {coordinates && (
-            <Text className="text-gray-400 text-xs text-center mb-3">
-              Coordonnées : {coordinates.latitude.toFixed(4)}°N,{" "}
-              {coordinates.longitude.toFixed(4)}°W
-            </Text>
+          {coordinates ? (
+            /* Pin placed — green confirmation card */
+            <View className="bg-emerald-50 rounded-xl p-4 mb-4 border border-emerald-200">
+              <View className="flex-row items-center">
+                <View className="bg-emerald-500 rounded-full p-1.5 mr-3">
+                  <Ionicons name="checkmark" size={16} color="white" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-emerald-800 font-semibold text-sm">
+                    {getLocationLabel(coordinates)}
+                  </Text>
+                  <Text className="text-emerald-600/70 text-xs mt-0.5">
+                    {coordinates.latitude.toFixed(4)}°N,{" "}
+                    {coordinates.longitude.toFixed(4)}°W
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                onPress={handlePlaceOnMap}
+                className="mt-3 flex-row items-center justify-center border border-emerald-300 rounded-lg py-2"
+                activeOpacity={0.7}
+              >
+                <Ionicons name="refresh" size={14} color="#059669" />
+                <Text className="text-emerald-700 font-medium text-xs ml-1.5">
+                  Repositionner
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            /* No pin yet — dashed prompt card */
+            <TouchableOpacity
+              onPress={handlePlaceOnMap}
+              className="mb-4"
+              activeOpacity={0.7}
+            >
+              <View className="border-2 border-dashed border-gray-300 rounded-xl py-6 items-center">
+                <View className="bg-gray-100 rounded-full p-3 mb-2">
+                  <Ionicons name="map-outline" size={28} color="#9ca3af" />
+                </View>
+                <Text className="text-gray-600 font-semibold text-sm">
+                  Placer sur la carte
+                </Text>
+                <Text className="text-gray-400 text-xs mt-1">
+                  Touchez pour positionner votre ferme
+                </Text>
+              </View>
+            </TouchableOpacity>
           )}
 
           {/* Save button */}
           <TouchableOpacity
             onPress={handleSave}
             disabled={!canSave}
-            className={`rounded-xl py-3.5 flex-row items-center justify-center mb-6 ${
-              canSave ? "bg-emerald-500" : "bg-gray-300"
+            className={`rounded-xl py-4 flex-row items-center justify-center mb-4 ${
+              canSave ? "bg-emerald-500" : "bg-gray-200"
             }`}
             activeOpacity={0.7}
           >
-            <Ionicons name="checkmark-circle-outline" size={20} color="white" />
-            <Text className="text-white font-bold text-base ml-2">
+            <Ionicons
+              name="checkmark-circle-outline"
+              size={20}
+              color={canSave ? "white" : "#9ca3af"}
+            />
+            <Text
+              className={`font-bold text-base ml-2 ${canSave ? "text-white" : "text-gray-400"}`}
+            >
               Enregistrer
             </Text>
           </TouchableOpacity>
@@ -378,7 +343,7 @@ export const FarmLocationSelector = forwardRef<
           {isEditing && (
             <TouchableOpacity
               onPress={() => setIsEditing(false)}
-              className="rounded-xl py-3 flex-row items-center justify-center mb-6 border border-gray-300"
+              className="rounded-xl py-3 flex-row items-center justify-center mb-4"
               activeOpacity={0.7}
             >
               <Text className="text-gray-500 font-semibold">Annuler</Text>

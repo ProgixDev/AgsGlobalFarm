@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -21,6 +21,7 @@ import {
 } from "@/data/incident-categories";
 import { useMapStore } from "@/stores/mapStore";
 import { useUserStore } from "@/stores/userStore";
+import { findRegionAtPoint } from "@/utils/geo";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -95,6 +96,15 @@ export function IncidentReporter({
     ? getCategoryConfig(selectedCategory)
     : null;
   const headerColor = categoryConfig?.color ?? "#ef4444";
+
+  const regionName = useMemo(() => {
+    if (!initialCoordinates) return null;
+    const region = findRegionAtPoint(
+      initialCoordinates.longitude,
+      initialCoordinates.latitude,
+    );
+    return region?.properties.name ?? null;
+  }, [initialCoordinates]);
 
   const isFormComplete =
     selectedCategory !== null &&
@@ -211,6 +221,11 @@ export function IncidentReporter({
         style={styles.modalOverlay}
       >
         <View style={styles.modalContainer}>
+          {/* ── Drag handle ──────────────────────────────────────── */}
+          <View className="items-center pt-3 pb-1">
+            <View className="w-10 h-1 rounded-full bg-gray-300" />
+          </View>
+
           {/* ── Header ───────────────────────────────────────────── */}
           <View style={[styles.header, { backgroundColor: headerColor }]}>
             <View className="flex-row items-center justify-between">
@@ -357,19 +372,41 @@ export function IncidentReporter({
 
             {/* 5. Location */}
             <SectionTitle title="Localisation" />
-            <View className="bg-white rounded-xl p-3 border border-gray-100 flex-row items-center mb-6">
-              <Ionicons name="location" size={18} color={headerColor} />
-              {initialCoordinates ? (
-                <Text className="text-gray-700 text-sm ml-2">
-                  Position :{" "}
-                  {formatCoord(initialCoordinates.latitude, "N", "S")},{" "}
-                  {formatCoord(initialCoordinates.longitude, "E", "W")}
-                </Text>
-              ) : (
-                <Text className="text-gray-400 text-sm ml-2">
-                  Aucune position sélectionnée
-                </Text>
-              )}
+            <View
+              className="rounded-xl p-3.5 flex-row items-center mb-6"
+              style={{ backgroundColor: `${headerColor}15` }}
+            >
+              <View
+                className="rounded-full p-2 mr-3"
+                style={{ backgroundColor: `${headerColor}25` }}
+              >
+                <Ionicons name="location" size={18} color={headerColor} />
+              </View>
+              <View className="flex-1">
+                {initialCoordinates ? (
+                  <>
+                    <Text
+                      className="font-semibold text-sm"
+                      style={{ color: headerColor }}
+                    >
+                      {regionName
+                        ? `Région de ${regionName}`
+                        : "Position signalée"}
+                    </Text>
+                    <Text
+                      className="text-xs mt-0.5"
+                      style={{ color: headerColor, opacity: 0.6 }}
+                    >
+                      {formatCoord(initialCoordinates.latitude, "N", "S")},{" "}
+                      {formatCoord(initialCoordinates.longitude, "E", "W")}
+                    </Text>
+                  </>
+                ) : (
+                  <Text className="text-gray-400 text-sm italic">
+                    Aucune position sélectionnée
+                  </Text>
+                )}
+              </View>
             </View>
 
             {/* 6. Images */}

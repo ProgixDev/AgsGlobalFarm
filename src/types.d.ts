@@ -73,9 +73,6 @@ interface FarmLocation {
   id: string;
   userId: string;
   name: string;
-  region: string;
-  department: string;
-  municipality: string;
   coordinates: {
     longitude: number;
     latitude: number;
@@ -110,8 +107,6 @@ interface IncidentReport {
     longitude: number;
     latitude: number;
   };
-  region?: string;
-  locationText?: string;
   images: string[];
   createdAt: string;
   status: "active" | "resolved";

@@ -17,6 +17,7 @@ import {
   incidentCategories,
   getCategoryConfig,
 } from "@/data/incident-categories";
+import { findRegionAtPoint } from "@/utils/geo";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -317,7 +318,10 @@ function IncidentCard({
           {incident.title}
         </Text>
         <Text className="text-xs text-gray-500 mt-0.5" numberOfLines={1}>
-          {incident.locationText ?? incident.region ?? "Position signalée"}
+          {findRegionAtPoint(
+            incident.coordinates.longitude,
+            incident.coordinates.latitude,
+          )?.properties.name ?? "Position signalée"}
         </Text>
         <Text className="text-xs text-gray-400 mt-0.5">
           {getTimeAgo(incident.createdAt)}
@@ -365,6 +369,11 @@ function IncidentDetail({
   const severity = SEVERITY_CONFIG[incident.severity];
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const scrollRef = useRef<ScrollView>(null);
+  const regionName =
+    findRegionAtPoint(
+      incident.coordinates.longitude,
+      incident.coordinates.latitude,
+    )?.properties.name ?? null;
 
   const handleScroll = useCallback(
     (e: any) => {
@@ -390,6 +399,11 @@ function IncidentDetail({
     >
       <View style={styles.modalOverlay}>
         <View style={styles.modalContainer}>
+          {/* Drag handle */}
+          <View className="items-center pt-3 pb-1">
+            <View className="w-10 h-1 rounded-full bg-gray-300" />
+          </View>
+
           {/* Header */}
           <View
             style={[styles.detailHeader, { backgroundColor: catConfig.color }]}
@@ -559,17 +573,38 @@ function IncidentDetail({
                     {formatDate(incident.createdAt)}
                   </Text>
                 }
+                isLast
               />
-              <DetailRow
-                label="Position"
-                value={
-                  <Text className="text-sm text-gray-800 font-medium">
+
+              {/* Location card */}
+              <View
+                className="rounded-xl p-3.5 flex-row items-center mt-3"
+                style={{ backgroundColor: `${catConfig.color}15` }}
+              >
+                <View
+                  className="rounded-full p-2 mr-3"
+                  style={{ backgroundColor: `${catConfig.color}25` }}
+                >
+                  <Ionicons name="location" size={18} color={catConfig.color} />
+                </View>
+                <View className="flex-1">
+                  <Text
+                    className="font-semibold text-sm"
+                    style={{ color: catConfig.color }}
+                  >
+                    {regionName
+                      ? `Région de ${regionName}`
+                      : "Position signalée"}
+                  </Text>
+                  <Text
+                    className="text-xs mt-0.5"
+                    style={{ color: catConfig.color, opacity: 0.6 }}
+                  >
                     {formatCoord(incident.coordinates.latitude, "N", "S")},{" "}
                     {formatCoord(incident.coordinates.longitude, "E", "W")}
                   </Text>
-                }
-                isLast
-              />
+                </View>
+              </View>
             </DetailSection>
 
             {/* Action buttons */}

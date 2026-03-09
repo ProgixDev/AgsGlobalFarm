@@ -22,9 +22,9 @@ import {
   senegalRegions,
   getRegionColor,
   regionAgriData,
-  type SenegalRegion,
 } from "@/data/senegal-regions";
 import { getDepartmentsByRegion } from "@/data/agricultural-data";
+import { findRegionAtPoint } from "@/utils/geo";
 import {
   RegionExplorer,
   type SelectedRegion,
@@ -64,35 +64,6 @@ function buildColorExpression(fallback: string): any[] {
   }
   expr.push(fallback);
   return expr;
-}
-
-// Ray-casting point-in-polygon test
-function pointInPolygon(lng: number, lat: number, ring: number[][]): boolean {
-  let inside = false;
-  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-    const xi = ring[i][0],
-      yi = ring[i][1];
-    const xj = ring[j][0],
-      yj = ring[j][1];
-    if (
-      yi > lat !== yj > lat &&
-      lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi
-    ) {
-      inside = !inside;
-    }
-  }
-  return inside;
-}
-
-// Find which region contains a given coordinate
-function findRegionAtPoint(lng: number, lat: number): SenegalRegion | null {
-  for (const region of senegalRegions) {
-    const ring = region.geometry.coordinates[0];
-    if (pointInPolygon(lng, lat, ring)) {
-      return region;
-    }
-  }
-  return null;
 }
 
 type MapMode = "explorer" | "farm" | "incidents";

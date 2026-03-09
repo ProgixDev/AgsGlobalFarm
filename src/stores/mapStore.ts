@@ -13,7 +13,6 @@ const mockIncidents: IncidentReport[] = [
       "Le mildiou a été détecté sur plusieurs parcelles de tomates et de pommes de terre dans la zone de Ziguinchor. Les feuilles présentent des taches brunes et un flétrissement rapide. Environ 3 hectares sont touchés.",
     severity: "high",
     coordinates: { longitude: -16.27, latitude: 12.56 },
-    region: "Ziguinchor",
     images: [
       "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400",
     ],
@@ -30,7 +29,6 @@ const mockIncidents: IncidentReport[] = [
       "Des essaims de criquets pèlerins ont été observés dans les champs de mil et de sorgho au nord de Saint-Louis. Les cultures sur environ 15 hectares ont été partiellement détruites.",
     severity: "high",
     coordinates: { longitude: -16.02, latitude: 16.02 },
-    region: "Saint-Louis",
     images: [
       "https://images.unsplash.com/photo-1470058869958-2a77ade41c02?w=400",
     ],
@@ -47,7 +45,6 @@ const mockIncidents: IncidentReport[] = [
       "Les fortes pluies ont provoqué l'inondation de plusieurs rizières dans le département de Fatick. Les plants de riz sont submergés depuis 3 jours.",
     severity: "medium",
     coordinates: { longitude: -16.41, latitude: 14.33 },
-    region: "Fatick",
     images: ["https://images.unsplash.com/photo-1547683905-f686c993aae5?w=400"],
     createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
     status: "active",
@@ -62,7 +59,6 @@ const mockIncidents: IncidentReport[] = [
       "Un feu de brousse s'est déclaré à l'est de Tambacounda, menaçant les plantations d'anacardiers et les pâturages. Les pompiers sont sur place.",
     severity: "high",
     coordinates: { longitude: -13.68, latitude: 13.77 },
-    region: "Tambacounda",
     images: [
       "https://images.unsplash.com/photo-1473448912268-2022ce9509d8?w=400",
     ],
@@ -79,7 +75,6 @@ const mockIncidents: IncidentReport[] = [
       "Une forte infestation de pucerons a été constatée sur les cultures d'arachide dans le bassin arachidier. Les rendements risquent d'être affectés de 30%.",
     severity: "medium",
     coordinates: { longitude: -16.07, latitude: 14.15 },
-    region: "Kaolack",
     images: [
       "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=400",
     ],
@@ -96,7 +91,6 @@ const mockIncidents: IncidentReport[] = [
       "La saison des pluies est en retard de 3 semaines dans la région de Louga. Les cultures pluviales n'ont pas encore pu être semées.",
     severity: "low",
     coordinates: { longitude: -15.62, latitude: 15.62 },
-    region: "Louga",
     images: [
       "https://images.unsplash.com/photo-1504297050568-910d24c426d3?w=400",
     ],
@@ -113,7 +107,6 @@ const mockIncidents: IncidentReport[] = [
       "Des chenilles légionnaires d'automne ont été identifiées dans les champs de maïs. Les larves se nourrissent des feuilles et des épis en formation.",
     severity: "medium",
     coordinates: { longitude: -15.55, latitude: 14.1 },
-    region: "Kaffrine",
     images: [
       "https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?w=400",
     ],
