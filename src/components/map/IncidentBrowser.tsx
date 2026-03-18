@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   FlatList,
   ScrollView,
-  Modal,
   Dimensions,
   StyleSheet,
 } from "react-native";
@@ -18,6 +17,10 @@ import {
   getCategoryConfig,
 } from "@/data/incident-categories";
 import { findRegionAtPoint } from "@/utils/geo";
+import SwipeableBottomSheet from "@/components/ui/SwipeableBottomSheet";
+import { AnimatedPressable } from "@/components/animated";
+import { haptic } from "@/utils/haptics";
+import { colors } from "@/theme/colors";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -29,8 +32,7 @@ interface IncidentBrowserProps {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
-const SHEET_HEIGHT = SCREEN_HEIGHT * 0.45;
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const IMAGE_WIDTH = SCREEN_WIDTH - 40;
 
 const SEVERITY_CONFIG: Record<
@@ -148,87 +150,102 @@ export function IncidentBrowser({
 
   // ── Render ──────────────────────────────────────────────────────────────────
 
+  // Show detail OR list — never both at once (prevents overlapping sheet bugs)
+  if (selectedIncident) {
+    return (
+      <IncidentDetail
+        incident={selectedIncident}
+        onClose={() => onSelectIncident(null)}
+        onResolve={handleResolve}
+        isReporter={currentUser?.id === selectedIncident.reporterId}
+      />
+    );
+  }
+
   return (
-    <>
-      {/* View 1: Bottom sheet list */}
-      <View style={styles.sheet}>
-        {/* Drag indicator */}
-        <View className="items-center pt-2 pb-1">
-          <View className="w-10 h-1 rounded-full bg-gray-300" />
-        </View>
-
-        {/* Filter chips */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="px-4 py-2"
-          contentContainerStyle={{ paddingRight: 16 }}
-        >
-          {/* "Tous" chip */}
-          <FilterChip
-            label="Tous"
-            icon="list"
-            count={activeIncidents.length}
-            color="#10b981"
-            active={activeFilter === "all"}
-            onPress={() => setActiveFilter("all")}
-          />
-          {activeCategories.map((cat) => (
-            <FilterChip
-              key={cat.id}
-              label={cat.label}
-              icon={cat.icon}
-              count={categoryCounts[cat.id] ?? 0}
-              color={cat.color}
-              active={activeFilter === cat.id}
-              onPress={() => setActiveFilter(cat.id)}
-            />
-          ))}
-        </ScrollView>
-
-        {/* List header */}
-        <View className="px-4 pb-2">
-          <Text className="text-xs text-gray-500 font-medium">
-            {filteredIncidents.length} incident
-            {filteredIncidents.length !== 1 ? "s" : ""} signalé
-            {filteredIncidents.length !== 1 ? "s" : ""}
-          </Text>
-        </View>
-
-        {/* Incident list */}
-        {filteredIncidents.length === 0 ? (
-          <View className="flex-1 items-center justify-center pb-8">
-            <Ionicons name="alert-circle-outline" size={40} color="#9ca3af" />
-            <Text className="text-gray-400 text-sm mt-2 font-medium">
-              Aucun incident signalé
+    <SwipeableBottomSheet
+      visible={true}
+      onDismiss={() => {}}
+      expandedHeight={0.45}
+      minimizedHeight={80}
+      showBackdrop={false}
+      minimizedContent={
+        <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center">
+            <Ionicons name="warning" size={18} color={colors.primary} />
+            <Text className="text-sm font-bold text-gray-800 ml-2">
+              Incidents
             </Text>
           </View>
-        ) : (
-          <FlatList
-            data={filteredIncidents}
-            keyExtractor={(item) => item.id}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
-            renderItem={({ item }) => (
-              <IncidentCard
-                incident={item}
-                onPress={() => handleSelectIncident(item)}
-              />
-            )}
+          <View className="bg-primary/10 rounded-full px-2.5 py-0.5">
+            <Text className="text-xs font-bold text-primary">
+              {activeIncidents.length}
+            </Text>
+          </View>
+        </View>
+      }
+    >
+      {/* Filter chips */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        className="px-4 py-2"
+        contentContainerStyle={{ paddingRight: 16 }}
+      >
+        {/* "Tous" chip */}
+        <FilterChip
+          label="Tous"
+          icon="list"
+          count={activeIncidents.length}
+          color={colors.primary}
+          active={activeFilter === "all"}
+          onPress={() => setActiveFilter("all")}
+        />
+        {activeCategories.map((cat) => (
+          <FilterChip
+            key={cat.id}
+            label={cat.label}
+            icon={cat.icon}
+            count={categoryCounts[cat.id] ?? 0}
+            color={cat.color}
+            active={activeFilter === cat.id}
+            onPress={() => setActiveFilter(cat.id)}
           />
-        )}
+        ))}
+      </ScrollView>
+
+      {/* List header */}
+      <View className="px-4 pb-2">
+        <Text className="text-xs text-gray-500 font-medium">
+          {filteredIncidents.length} incident
+          {filteredIncidents.length !== 1 ? "s" : ""} signalé
+          {filteredIncidents.length !== 1 ? "s" : ""}
+        </Text>
       </View>
 
-      {/* View 2: Detail modal */}
-      {selectedIncident && (
-        <IncidentDetail
-          incident={selectedIncident}
-          onClose={() => onSelectIncident(null)}
-          onResolve={handleResolve}
-          isReporter={currentUser?.id === selectedIncident.reporterId}
+      {/* Incident list */}
+      {filteredIncidents.length === 0 ? (
+        <View className="flex-1 items-center justify-center pb-8">
+          <Ionicons name="alert-circle-outline" size={40} color="#9ca3af" />
+          <Text className="text-gray-400 text-sm mt-2 font-medium">
+            Aucun incident signalé
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={filteredIncidents}
+          keyExtractor={(item) => item.id}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
+          renderItem={({ item }) => (
+            <IncidentCard
+              incident={item}
+              onPress={() => handleSelectIncident(item)}
+            />
+          )}
         />
       )}
-    </>
+    </SwipeableBottomSheet>
   );
 }
 
@@ -252,7 +269,6 @@ function FilterChip({
   return (
     <TouchableOpacity
       onPress={onPress}
-      className="flex-row items-center rounded-full mr-2"
       style={[
         styles.chip,
         {
@@ -263,21 +279,32 @@ function FilterChip({
     >
       <Ionicons name={icon} size={14} color={active ? "white" : "#4b5563"} />
       <Text
-        className="text-xs font-semibold ml-1"
-        style={{ color: active ? "white" : "#4b5563" }}
+        style={{
+          fontSize: 12,
+          fontWeight: "600",
+          marginLeft: 4,
+          color: active ? "white" : "#4b5563",
+        }}
         numberOfLines={1}
       >
         {label}
       </Text>
       <View
-        className="ml-1.5 rounded-full px-1.5 min-w-[18px] items-center"
         style={{
+          marginLeft: 6,
+          borderRadius: 9,
+          paddingHorizontal: 6,
+          minWidth: 18,
+          alignItems: "center",
           backgroundColor: active ? "rgba(255,255,255,0.3)" : "#e5e7eb",
         }}
       >
         <Text
-          className="text-[10px] font-bold"
-          style={{ color: active ? "white" : "#6b7280" }}
+          style={{
+            fontSize: 10,
+            fontWeight: "700",
+            color: active ? "white" : "#6b7280",
+          }}
         >
           {count}
         </Text>
@@ -391,251 +418,265 @@ function IncidentDetail({
   );
 
   return (
-    <Modal
-      animationType="slide"
-      transparent={true}
+    <SwipeableBottomSheet
       visible={true}
-      onRequestClose={onClose}
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
-          {/* Drag handle */}
-          <View className="items-center pt-3 pb-1">
-            <View className="w-10 h-1 rounded-full bg-gray-300" />
-          </View>
-
-          {/* Header */}
+      onDismiss={onClose}
+      expandedHeight={0.92}
+      minimizedHeight={90}
+      minimizedContent={
+        <View className="flex-row items-center">
           <View
-            style={[styles.detailHeader, { backgroundColor: catConfig.color }]}
+            className="w-10 h-10 rounded-full items-center justify-center mr-3"
+            style={{ backgroundColor: catConfig.color + "20" }}
           >
-            <View className="flex-row items-start justify-between">
-              <View className="flex-1 mr-3">
-                <View className="flex-row items-center mb-2">
-                  <Ionicons name={catConfig.icon} size={24} color="white" />
-                  <Text className="text-white/80 text-sm ml-2 font-medium">
-                    {catConfig.label}
-                  </Text>
-                </View>
-                <Text className="text-white text-xl font-bold">
-                  {incident.title}
-                </Text>
-              </View>
-              <View className="items-end">
-                <TouchableOpacity
-                  onPress={onClose}
-                  className="bg-white/20 rounded-full p-2 mb-2"
-                >
-                  <Ionicons name="close" size={20} color="white" />
-                </TouchableOpacity>
-                <View
-                  className="rounded-full px-2.5 py-1"
-                  style={{ backgroundColor: "rgba(255,255,255,0.9)" }}
-                >
-                  <Text
-                    className="text-xs font-bold"
-                    style={{ color: severity.color }}
-                  >
-                    {severity.label}
-                  </Text>
-                </View>
-              </View>
+            <Ionicons name={catConfig.icon} size={20} color={catConfig.color} />
+          </View>
+          <View className="flex-1">
+            <Text
+              className="text-base font-bold text-gray-800"
+              numberOfLines={1}
+            >
+              {incident.title}
+            </Text>
+            <Text className="text-xs text-muted-foreground">
+              {catConfig.label}
+            </Text>
+          </View>
+        </View>
+      }
+    >
+      {/* Header */}
+      <View
+        className="px-5 pt-5 pb-4"
+        style={{ backgroundColor: catConfig.color }}
+      >
+        <View className="flex-row items-start justify-between">
+          <View className="flex-1 mr-3">
+            <View className="flex-row items-center mb-2">
+              <Ionicons name={catConfig.icon} size={24} color="white" />
+              <Text className="text-white/80 text-sm ml-2 font-medium">
+                {catConfig.label}
+              </Text>
+            </View>
+            <Text className="text-white text-xl font-bold">
+              {incident.title}
+            </Text>
+          </View>
+          <View className="items-end">
+            <AnimatedPressable
+              onPress={() => {
+                haptic.light();
+                onClose();
+              }}
+              className="bg-white/20 rounded-full p-2 mb-2"
+            >
+              <Ionicons name="close" size={20} color="white" />
+            </AnimatedPressable>
+            <View
+              className="rounded-full px-2.5 py-1"
+              style={{ backgroundColor: "rgba(255,255,255,0.9)" }}
+            >
+              <Text
+                className="text-xs font-bold"
+                style={{ color: severity.color }}
+              >
+                {severity.label}
+              </Text>
             </View>
           </View>
-
-          {/* Scrollable content */}
-          <ScrollView
-            className="px-5 py-4"
-            showsVerticalScrollIndicator={false}
-          >
-            {/* Image carousel */}
-            {incident.images.length > 0 && (
-              <View className="mb-5">
-                <ScrollView
-                  ref={scrollRef}
-                  horizontal
-                  pagingEnabled
-                  showsHorizontalScrollIndicator={false}
-                  onScroll={handleScroll}
-                  scrollEventThrottle={16}
-                  decelerationRate="fast"
-                  snapToInterval={IMAGE_WIDTH}
-                >
-                  {incident.images.map((uri, index) => (
-                    <Image
-                      key={`img-${index}`}
-                      source={{ uri }}
-                      style={{
-                        width: IMAGE_WIDTH,
-                        height: 200,
-                        borderRadius: 12,
-                      }}
-                      contentFit="cover"
-                    />
-                  ))}
-                </ScrollView>
-                {/* Dots indicator */}
-                {incident.images.length > 1 && (
-                  <View className="flex-row justify-center mt-2">
-                    {incident.images.map((_, index) => (
-                      <View
-                        key={`dot-${index}`}
-                        className="w-2 h-2 rounded-full mx-1"
-                        style={{
-                          backgroundColor:
-                            index === activeImageIndex
-                              ? catConfig.color
-                              : "#d1d5db",
-                        }}
-                      />
-                    ))}
-                  </View>
-                )}
-              </View>
-            )}
-
-            {/* Description */}
-            <DetailSection title="Description">
-              <Text className="text-gray-700 leading-relaxed text-sm">
-                {incident.description}
-              </Text>
-            </DetailSection>
-
-            {/* Details */}
-            <DetailSection title="Détails">
-              <DetailRow
-                label="Catégorie"
-                value={
-                  <View className="flex-row items-center">
-                    <Ionicons
-                      name={catConfig.icon}
-                      size={14}
-                      color={catConfig.color}
-                    />
-                    <Text
-                      className="text-sm font-medium ml-1"
-                      style={{ color: catConfig.color }}
-                    >
-                      {catConfig.label}
-                    </Text>
-                  </View>
-                }
-              />
-              <DetailRow
-                label="Gravité"
-                value={
-                  <View
-                    className="rounded-full px-2.5 py-0.5"
-                    style={{ backgroundColor: severity.bg }}
-                  >
-                    <Text
-                      className="text-xs font-bold"
-                      style={{ color: severity.color }}
-                    >
-                      {severity.label}
-                    </Text>
-                  </View>
-                }
-              />
-              <DetailRow
-                label="Statut"
-                value={
-                  <View
-                    className="rounded-full px-2.5 py-0.5"
-                    style={{
-                      backgroundColor:
-                        incident.status === "active" ? "#d1fae5" : "#f3f4f6",
-                    }}
-                  >
-                    <Text
-                      className="text-xs font-bold"
-                      style={{
-                        color:
-                          incident.status === "active" ? "#059669" : "#6b7280",
-                      }}
-                    >
-                      {incident.status === "active" ? "Actif" : "Résolu"}
-                    </Text>
-                  </View>
-                }
-              />
-              <DetailRow
-                label="Signalé par"
-                value={
-                  <Text className="text-sm text-gray-800 font-medium">
-                    {incident.reporterName}
-                  </Text>
-                }
-              />
-              <DetailRow
-                label="Date"
-                value={
-                  <Text className="text-sm text-gray-800 font-medium">
-                    {formatDate(incident.createdAt)}
-                  </Text>
-                }
-                isLast
-              />
-
-              {/* Location card */}
-              <View
-                className="rounded-xl p-3.5 flex-row items-center mt-3"
-                style={{ backgroundColor: `${catConfig.color}15` }}
-              >
-                <View
-                  className="rounded-full p-2 mr-3"
-                  style={{ backgroundColor: `${catConfig.color}25` }}
-                >
-                  <Ionicons name="location" size={18} color={catConfig.color} />
-                </View>
-                <View className="flex-1">
-                  <Text
-                    className="font-semibold text-sm"
-                    style={{ color: catConfig.color }}
-                  >
-                    {regionName
-                      ? `Région de ${regionName}`
-                      : "Position signalée"}
-                  </Text>
-                  <Text
-                    className="text-xs mt-0.5"
-                    style={{ color: catConfig.color, opacity: 0.6 }}
-                  >
-                    {formatCoord(incident.coordinates.latitude, "N", "S")},{" "}
-                    {formatCoord(incident.coordinates.longitude, "E", "W")}
-                  </Text>
-                </View>
-              </View>
-            </DetailSection>
-
-            {/* Action buttons */}
-            <View className="mb-8 mt-2">
-              {isReporter && incident.status === "active" && (
-                <TouchableOpacity
-                  onPress={() => onResolve(incident.id)}
-                  className="bg-emerald-500 rounded-xl py-4 items-center mb-3"
-                  activeOpacity={0.7}
-                >
-                  <Text className="text-white font-bold text-base">
-                    Marquer comme résolu
-                  </Text>
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity
-                onPress={onClose}
-                className="bg-gray-200 rounded-xl py-4 items-center"
-                activeOpacity={0.7}
-              >
-                <Text className="text-gray-600 font-semibold text-base">
-                  Fermer
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            <View className="h-4" />
-          </ScrollView>
         </View>
       </View>
-    </Modal>
+
+      {/* Scrollable content */}
+      <ScrollView className="px-5 py-4" showsVerticalScrollIndicator={false}>
+        {/* Image carousel */}
+        {incident.images.length > 0 && (
+          <View className="mb-5">
+            <ScrollView
+              ref={scrollRef}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onScroll={handleScroll}
+              scrollEventThrottle={16}
+              decelerationRate="fast"
+              snapToInterval={IMAGE_WIDTH}
+            >
+              {incident.images.map((uri, index) => (
+                <Image
+                  key={`img-${index}`}
+                  source={{ uri }}
+                  style={{
+                    width: IMAGE_WIDTH,
+                    height: 200,
+                    borderRadius: 12,
+                  }}
+                  contentFit="cover"
+                />
+              ))}
+            </ScrollView>
+            {/* Dots indicator */}
+            {incident.images.length > 1 && (
+              <View className="flex-row justify-center mt-2">
+                {incident.images.map((_, index) => (
+                  <View
+                    key={`dot-${index}`}
+                    className="w-2 h-2 rounded-full mx-1"
+                    style={{
+                      backgroundColor:
+                        index === activeImageIndex
+                          ? catConfig.color
+                          : "#d1d5db",
+                    }}
+                  />
+                ))}
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Description */}
+        <DetailSection title="Description">
+          <Text className="text-gray-700 leading-relaxed text-sm">
+            {incident.description}
+          </Text>
+        </DetailSection>
+
+        {/* Details */}
+        <DetailSection title="Détails">
+          <DetailRow
+            label="Catégorie"
+            value={
+              <View className="flex-row items-center">
+                <Ionicons
+                  name={catConfig.icon}
+                  size={14}
+                  color={catConfig.color}
+                />
+                <Text
+                  className="text-sm font-medium ml-1"
+                  style={{ color: catConfig.color }}
+                >
+                  {catConfig.label}
+                </Text>
+              </View>
+            }
+          />
+          <DetailRow
+            label="Gravité"
+            value={
+              <View
+                className="rounded-full px-2.5 py-0.5"
+                style={{ backgroundColor: severity.bg }}
+              >
+                <Text
+                  className="text-xs font-bold"
+                  style={{ color: severity.color }}
+                >
+                  {severity.label}
+                </Text>
+              </View>
+            }
+          />
+          <DetailRow
+            label="Statut"
+            value={
+              <View
+                className="rounded-full px-2.5 py-0.5"
+                style={{
+                  backgroundColor:
+                    incident.status === "active" ? "#d1fae5" : "#f3f4f6",
+                }}
+              >
+                <Text
+                  className="text-xs font-bold"
+                  style={{
+                    color: incident.status === "active" ? "#059669" : "#6b7280",
+                  }}
+                >
+                  {incident.status === "active" ? "Actif" : "Résolu"}
+                </Text>
+              </View>
+            }
+          />
+          <DetailRow
+            label="Signalé par"
+            value={
+              <Text className="text-sm text-gray-800 font-medium">
+                {incident.reporterName}
+              </Text>
+            }
+          />
+          <DetailRow
+            label="Date"
+            value={
+              <Text className="text-sm text-gray-800 font-medium">
+                {formatDate(incident.createdAt)}
+              </Text>
+            }
+            isLast
+          />
+
+          {/* Location card */}
+          <View
+            className="rounded-xl p-3.5 flex-row items-center mt-3"
+            style={{ backgroundColor: `${catConfig.color}15` }}
+          >
+            <View
+              className="rounded-full p-2 mr-3"
+              style={{ backgroundColor: `${catConfig.color}25` }}
+            >
+              <Ionicons name="location" size={18} color={catConfig.color} />
+            </View>
+            <View className="flex-1">
+              <Text
+                className="font-semibold text-sm"
+                style={{ color: catConfig.color }}
+              >
+                {regionName ? `Région de ${regionName}` : "Position signalée"}
+              </Text>
+              <Text
+                className="text-xs mt-0.5"
+                style={{ color: catConfig.color, opacity: 0.6 }}
+              >
+                {formatCoord(incident.coordinates.latitude, "N", "S")},{" "}
+                {formatCoord(incident.coordinates.longitude, "E", "W")}
+              </Text>
+            </View>
+          </View>
+        </DetailSection>
+
+        {/* Action buttons */}
+        <View className="mb-8 mt-2">
+          {isReporter && incident.status === "active" && (
+            <AnimatedPressable
+              onPress={() => {
+                haptic.medium();
+                onResolve(incident.id);
+              }}
+              className="bg-emerald-500 rounded-xl py-4 items-center mb-3"
+            >
+              <Text className="text-white font-bold text-base">
+                Marquer comme résolu
+              </Text>
+            </AnimatedPressable>
+          )}
+          <AnimatedPressable
+            onPress={() => {
+              haptic.light();
+              onClose();
+            }}
+            className="bg-gray-200 rounded-xl py-4 items-center"
+          >
+            <Text className="text-gray-600 font-semibold text-base">
+              Fermer
+            </Text>
+          </AnimatedPressable>
+        </View>
+
+        <View className="h-4" />
+      </ScrollView>
+    </SwipeableBottomSheet>
   );
 }
 
@@ -653,7 +694,7 @@ function DetailSection({
       <Text className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
         {title}
       </Text>
-      <View className="bg-white rounded-xl p-4 border border-gray-100">
+      <View className="bg-white rounded-2xl p-4 border border-gray-100">
         {children}
       </View>
     </View>
@@ -684,40 +725,13 @@ function DetailRow({
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  sheet: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: SHEET_HEIGHT,
-    backgroundColor: "white",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 20,
-  },
   chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 6,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.45)",
-    justifyContent: "flex-end",
-  },
-  modalContainer: {
-    backgroundColor: "#f9fafb",
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    maxHeight: "92%",
-    overflow: "hidden",
-  },
-  detailHeader: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 16,
+    marginRight: 8,
   },
 });

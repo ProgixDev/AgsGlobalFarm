@@ -1,10 +1,13 @@
 import React from "react";
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useJobsStore } from "@/stores/jobsStore";
 import { useUserStore } from "@/stores/userStore";
+import { AnimatedPressable } from "@/components/animated";
+import { haptic } from "@/utils/haptics";
+import { colors } from "@/theme/colors";
 
 export default function JobSeekerJobDetailsScreen() {
   const router = useRouter();
@@ -23,9 +26,9 @@ export default function JobSeekerJobDetailsScreen() {
       <SafeAreaView className="flex-1 bg-white">
         <View className="bg-primary px-4 py-4">
           <View className="flex-row items-center">
-            <TouchableOpacity onPress={() => router.back()} className="mr-3">
+            <AnimatedPressable onPress={() => router.back()} className="mr-3">
               <Ionicons name="arrow-back" size={24} color="white" />
-            </TouchableOpacity>
+            </AnimatedPressable>
             <Text className="flex-1 text-white text-lg font-bold">
               Détails de l&apos;offre
             </Text>
@@ -42,6 +45,7 @@ export default function JobSeekerJobDetailsScreen() {
   }
 
   const handleApply = () => {
+    haptic.success();
     router.push({
       pathname: "/(tabs-job-seeker)/jobs/apply",
       params: { id: jobId },
@@ -53,15 +57,15 @@ export default function JobSeekerJobDetailsScreen() {
       {/* Header */}
       <View className="bg-primary px-4 py-4">
         <View className="flex-row items-center">
-          <TouchableOpacity onPress={() => router.back()} className="mr-3">
+          <AnimatedPressable onPress={() => router.back()} className="mr-3">
             <Ionicons name="arrow-back" size={24} color="white" />
-          </TouchableOpacity>
+          </AnimatedPressable>
           <Text className="flex-1 text-white text-lg font-bold">
             Détails de l&apos;offre
           </Text>
-          <TouchableOpacity>
+          <AnimatedPressable>
             <Ionicons name="bookmark-outline" size={24} color="white" />
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
       </View>
 
@@ -108,9 +112,9 @@ export default function JobSeekerJobDetailsScreen() {
         </View>
 
         {/* Salary */}
-        <View className="bg-gray-50 rounded-xl p-4 mb-6">
+        <View className="bg-gray-50 rounded-2xl p-4 mb-6">
           <View className="flex-row items-center mb-2">
-            <Ionicons name="cash" size={20} color="#10b981" />
+            <Ionicons name="cash" size={20} color={colors.primary} />
             <Text className="text-base font-semibold text-gray-800 ml-2">
               Salaire proposé
             </Text>
@@ -121,9 +125,9 @@ export default function JobSeekerJobDetailsScreen() {
         </View>
 
         {/* Location Details */}
-        <View className="bg-gray-50 rounded-xl p-4 mb-6">
+        <View className="bg-gray-50 rounded-2xl p-4 mb-6">
           <View className="flex-row items-center mb-2">
-            <Ionicons name="map" size={20} color="#10b981" />
+            <Ionicons name="map" size={20} color={colors.primary} />
             <Text className="text-base font-semibold text-gray-800 ml-2">
               Localisation
             </Text>
@@ -160,17 +164,21 @@ export default function JobSeekerJobDetailsScreen() {
         </View>
 
         {/* Posted Date and Applicants */}
-        <View className="bg-gray-50 rounded-xl p-4 mb-6">
+        <View className="bg-gray-50 rounded-2xl p-4 mb-6">
           <View className="flex-row items-center justify-between mb-2">
             <View className="flex-row items-center">
-              <Ionicons name="calendar-outline" size={18} color="#6b7280" />
+              <Ionicons
+                name="calendar-outline"
+                size={18}
+                color={colors.muted}
+              />
               <Text className="text-sm text-gray-600 ml-2">
                 Publié le {new Date(job.postedDate).toLocaleDateString("fr-FR")}
               </Text>
             </View>
           </View>
           <View className="flex-row items-center">
-            <Ionicons name="people" size={18} color="#6b7280" />
+            <Ionicons name="people" size={18} color={colors.muted} />
             <Text className="text-sm text-gray-600 ml-2">
               {job.applicantsCount} personne
               {job.applicantsCount > 1 ? "s" : ""} ont déjà postulé
@@ -183,13 +191,17 @@ export default function JobSeekerJobDetailsScreen() {
       <View className="px-4 py-4 bg-white border-t border-gray-200">
         {alreadyApplied ? (
           <View className="bg-gray-100 rounded-xl py-4 flex-row items-center justify-center">
-            <Ionicons name="checkmark-circle" size={20} color="#10b981" />
+            <Ionicons
+              name="checkmark-circle"
+              size={20}
+              color={colors.primary}
+            />
             <Text className="text-gray-600 text-lg font-bold ml-2">
               Candidature envoyée
             </Text>
           </View>
         ) : (
-          <TouchableOpacity
+          <AnimatedPressable
             onPress={handleApply}
             className="bg-primary rounded-xl py-4 flex-row items-center justify-center"
           >
@@ -197,7 +209,7 @@ export default function JobSeekerJobDetailsScreen() {
             <Text className="text-white text-lg font-bold ml-2">
               Postuler maintenant
             </Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         )}
       </View>
     </SafeAreaView>

@@ -1,7 +1,10 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
-import { useRouter } from "expo-router";
+import { View, Text, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import ScreenHeader from "@/components/ui/ScreenHeader";
+import { AnimatedPressable, FadeInView } from "@/components/animated";
+import { haptic } from "@/utils/haptics";
+import { colors } from "@/theme/colors";
 
 interface Section {
   id: string;
@@ -73,10 +76,10 @@ const TERMS_SECTIONS: Section[] = [
 ];
 
 export default function TermsScreen() {
-  const router = useRouter();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const toggle = (id: string) => {
+    haptic.selection();
     setExpandedId((prev) => (prev === id ? null : id));
   };
 
@@ -85,31 +88,19 @@ export default function TermsScreen() {
       className="flex-1 bg-gray-50"
       contentContainerStyle={{ flexGrow: 1 }}
     >
-      {/* Header */}
-      <View className="bg-primary px-6 pt-14 pb-6">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="flex-row items-center mb-4"
-          activeOpacity={0.7}
-        >
-          <Ionicons name="arrow-back" size={22} color="white" />
-          <Text className="text-white text-base ml-2">Retour</Text>
-        </TouchableOpacity>
-        <Text className="text-white text-2xl font-bold">
-          Conditions d&apos;utilisation
-        </Text>
-        <Text className="text-white/70 text-sm mt-1">
-          Dernière mise à jour : janvier 2025
-        </Text>
-      </View>
+      <ScreenHeader
+        title="Conditions d'utilisation"
+        subtitle="Dernière mise à jour : janvier 2025"
+        showBack
+      />
 
-      <View className="px-6 py-6 gap-4">
+      <FadeInView className="px-6 py-6 gap-4">
         {/* Intro card */}
         <View className="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex-row">
           <Ionicons
             name="information-circle-outline"
             size={20}
-            color="#10b981"
+            color={colors.primary}
             style={{ marginTop: 1 }}
           />
           <Text className="text-sm text-muted-foreground ml-2 flex-1 leading-relaxed">
@@ -124,10 +115,10 @@ export default function TermsScreen() {
           {TERMS_SECTIONS.map((section) => {
             const isOpen = expandedId === section.id;
             return (
-              <TouchableOpacity
+              <AnimatedPressable
                 key={section.id}
                 onPress={() => toggle(section.id)}
-                activeOpacity={0.85}
+                hapticType="none"
                 className={`bg-white rounded-2xl shadow-sm overflow-hidden border ${
                   isOpen ? "border-primary/30" : "border-transparent"
                 }`}
@@ -144,7 +135,7 @@ export default function TermsScreen() {
                   <Ionicons
                     name={isOpen ? "chevron-up" : "chevron-down"}
                     size={18}
-                    color="#9ca3af"
+                    color={colors.mutedLight}
                   />
                 </View>
                 {isOpen && (
@@ -155,7 +146,7 @@ export default function TermsScreen() {
                     </Text>
                   </View>
                 )}
-              </TouchableOpacity>
+              </AnimatedPressable>
             );
           })}
         </View>
@@ -163,7 +154,7 @@ export default function TermsScreen() {
         {/* Footer */}
         <View className="bg-white rounded-2xl shadow-sm p-5 flex-row items-center gap-3">
           <View className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center">
-            <Ionicons name="mail-outline" size={20} color="#10b981" />
+            <Ionicons name="mail-outline" size={20} color={colors.primary} />
           </View>
           <View className="flex-1">
             <Text className="text-sm font-semibold text-foreground">
@@ -174,7 +165,7 @@ export default function TermsScreen() {
             </Text>
           </View>
         </View>
-      </View>
+      </FadeInView>
     </ScrollView>
   );
 }

@@ -1,7 +1,10 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, Switch } from "react-native";
-import { useRouter } from "expo-router";
+import { View, Text, ScrollView, Switch } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import ScreenHeader from "@/components/ui/ScreenHeader";
+import { AnimatedPressable, FadeInView } from "@/components/animated";
+import { haptic } from "@/utils/haptics";
+import { colors } from "@/theme/colors";
 
 interface NotificationSetting {
   id: string;
@@ -12,8 +15,6 @@ interface NotificationSetting {
 }
 
 export default function NotificationsScreen() {
-  const router = useRouter();
-
   const [settings, setSettings] = useState<NotificationSetting[]>([
     {
       id: "new_jobs",
@@ -61,6 +62,7 @@ export default function NotificationsScreen() {
   ]);
 
   const toggle = (id: string) => {
+    haptic.selection();
     setSettings((prev) =>
       prev.map((s) => (s.id === id ? { ...s, enabled: !s.enabled } : s)),
     );
@@ -73,48 +75,39 @@ export default function NotificationsScreen() {
       className="flex-1 bg-gray-50"
       contentContainerStyle={{ flexGrow: 1 }}
     >
-      {/* Header */}
-      <View className="bg-primary px-6 pt-14 pb-6">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="flex-row items-center mb-4"
-          activeOpacity={0.7}
-        >
-          <Ionicons name="arrow-back" size={22} color="white" />
-          <Text className="text-white text-base ml-2">Retour</Text>
-        </TouchableOpacity>
-        <Text className="text-white text-2xl font-bold">Notifications</Text>
-        <Text className="text-white/70 text-sm mt-1">
-          {enabledCount} notification{enabledCount !== 1 ? "s" : ""} activée
-          {enabledCount !== 1 ? "s" : ""} sur {settings.length}
-        </Text>
-      </View>
+      <ScreenHeader
+        title="Notifications"
+        subtitle={`${enabledCount} notification${enabledCount !== 1 ? "s" : ""} activée${enabledCount !== 1 ? "s" : ""} sur ${settings.length}`}
+        showBack
+      />
 
-      <View className="px-6 py-6 gap-4">
+      <FadeInView className="px-6 py-6 gap-4">
         {/* Quick actions */}
         <View className="flex-row gap-3">
-          <TouchableOpacity
-            onPress={() =>
-              setSettings((prev) => prev.map((s) => ({ ...s, enabled: true })))
-            }
-            activeOpacity={0.7}
-            className="flex-1 bg-white border border-gray-200 rounded-xl py-3 items-center"
+          <AnimatedPressable
+            onPress={() => {
+              haptic.selection();
+              setSettings((prev) => prev.map((s) => ({ ...s, enabled: true })));
+            }}
+            className="flex-1 bg-white border border-border rounded-xl py-3 items-center"
           >
             <Text className="text-sm font-medium text-foreground">
               Tout activer
             </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() =>
-              setSettings((prev) => prev.map((s) => ({ ...s, enabled: false })))
-            }
-            activeOpacity={0.7}
-            className="flex-1 bg-white border border-gray-200 rounded-xl py-3 items-center"
+          </AnimatedPressable>
+          <AnimatedPressable
+            onPress={() => {
+              haptic.selection();
+              setSettings((prev) =>
+                prev.map((s) => ({ ...s, enabled: false })),
+              );
+            }}
+            className="flex-1 bg-white border border-border rounded-xl py-3 items-center"
           >
             <Text className="text-sm font-medium text-foreground">
               Tout désactiver
             </Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
 
         {/* Settings list */}
@@ -127,7 +120,11 @@ export default function NotificationsScreen() {
               }`}
             >
               <View className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center mr-3">
-                <Ionicons name={setting.icon} size={20} color="#10b981" />
+                <Ionicons
+                  name={setting.icon}
+                  size={20}
+                  color={colors.primary}
+                />
               </View>
               <View className="flex-1 mr-3">
                 <Text className="text-sm font-semibold text-foreground">
@@ -140,13 +137,13 @@ export default function NotificationsScreen() {
               <Switch
                 value={setting.enabled}
                 onValueChange={() => toggle(setting.id)}
-                trackColor={{ false: "#e5e7eb", true: "#10b981" }}
-                thumbColor="white"
+                trackColor={{ false: colors.border, true: colors.primary }}
+                thumbColor={colors.white}
               />
             </View>
           ))}
         </View>
-      </View>
+      </FadeInView>
     </ScrollView>
   );
 }

@@ -11,6 +11,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useUserStore } from "@/stores/userStore";
 import { useJobsStore } from "@/stores/jobsStore";
+import { AnimatedPressable } from "@/components/animated";
+import { haptic } from "@/utils/haptics";
+import { colors } from "@/theme/colors";
 
 type JobSeekerTab = "offres" | "candidatures";
 
@@ -118,8 +121,11 @@ export default function JobSeekerJobsScreen() {
 
         {/* Job seeker tabs */}
         <View className="flex-row bg-white/20 rounded-xl p-1 mb-3">
-          <TouchableOpacity
-            onPress={() => setJobSeekerTab("offres")}
+          <AnimatedPressable
+            onPress={() => {
+              haptic.selection();
+              setJobSeekerTab("offres");
+            }}
             className={`flex-1 rounded-lg py-2 items-center ${jobSeekerTab === "offres" ? "bg-white" : ""}`}
           >
             <Text
@@ -127,9 +133,12 @@ export default function JobSeekerJobsScreen() {
             >
               Offres
             </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setJobSeekerTab("candidatures")}
+          </AnimatedPressable>
+          <AnimatedPressable
+            onPress={() => {
+              haptic.selection();
+              setJobSeekerTab("candidatures");
+            }}
             className={`flex-1 rounded-lg py-2 items-center flex-row justify-center gap-2 ${jobSeekerTab === "candidatures" ? "bg-white" : ""}`}
           >
             <Text
@@ -148,14 +157,14 @@ export default function JobSeekerJobsScreen() {
                 </Text>
               </View>
             )}
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
 
         {/* Search + filters — offres tab only */}
         {jobSeekerTab === "offres" && (
           <View>
             <View className="bg-white rounded-xl flex-row items-center px-4 py-3 mb-3">
-              <Ionicons name="search" size={20} color="#9ca3af" />
+              <Ionicons name="search" size={20} color={colors.mutedLight} />
               <TextInput
                 className="flex-1 ml-3 text-base text-gray-800"
                 placeholder="Rechercher un emploi..."
@@ -170,8 +179,11 @@ export default function JobSeekerJobsScreen() {
               )}
             </View>
 
-            <TouchableOpacity
-              onPress={() => setShowFilters(!showFilters)}
+            <AnimatedPressable
+              onPress={() => {
+                haptic.selection();
+                setShowFilters(!showFilters);
+              }}
               className="bg-white/20 rounded-xl px-4 py-2 flex-row items-center justify-center"
             >
               <Ionicons name="options-outline" size={18} color="white" />
@@ -181,7 +193,7 @@ export default function JobSeekerJobsScreen() {
               {selectedContractType !== "all" && (
                 <View className="bg-white rounded-full w-2 h-2 ml-2" />
               )}
-            </TouchableOpacity>
+            </AnimatedPressable>
 
             {showFilters && (
               <View className="bg-white rounded-xl p-4 mt-3">
@@ -190,9 +202,12 @@ export default function JobSeekerJobsScreen() {
                 </Text>
                 <View className="flex-row flex-wrap gap-2">
                   {["all", "CDI", "CDD", "Saisonnier", "Stage"].map((type) => (
-                    <TouchableOpacity
+                    <AnimatedPressable
                       key={type}
-                      onPress={() => setSelectedContractType(type)}
+                      onPress={() => {
+                        haptic.selection();
+                        setSelectedContractType(type);
+                      }}
                       className={`px-4 py-2 rounded-full ${selectedContractType === type ? "bg-primary" : "bg-gray-100"}`}
                     >
                       <Text
@@ -200,7 +215,7 @@ export default function JobSeekerJobsScreen() {
                       >
                         {type === "all" ? "Tous" : type}
                       </Text>
-                    </TouchableOpacity>
+                    </AnimatedPressable>
                   ))}
                 </View>
               </View>
@@ -211,7 +226,7 @@ export default function JobSeekerJobsScreen() {
 
       {/* ── Job seeker: Offres tab ── */}
       {jobSeekerTab === "offres" && (
-        <ScrollView className="flex-1 px-4 py-4">
+        <ScrollView className="flex-1 px-6 py-4">
           <Text className="text-sm text-gray-500 mb-3">
             {filteredJobs.length} offre{filteredJobs.length !== 1 ? "s" : ""}{" "}
             disponible{filteredJobs.length !== 1 ? "s" : ""}
@@ -224,11 +239,10 @@ export default function JobSeekerJobsScreen() {
               : false;
 
             return (
-              <TouchableOpacity
+              <AnimatedPressable
                 key={job.id}
                 onPress={() => handleOpenJobDetails(job.id)}
-                activeOpacity={0.8}
-                className="bg-white rounded-xl p-4 mb-3 border border-gray-200"
+                className="bg-white rounded-2xl p-4 mb-3 border border-gray-200"
               >
                 <View className="flex-row justify-between items-start mb-1">
                   <Text className="flex-1 text-base font-bold text-gray-800 mr-2">
@@ -246,13 +260,21 @@ export default function JobSeekerJobsScreen() {
                 </Text>
 
                 <View className="flex-row items-center mb-1">
-                  <Ionicons name="location-outline" size={14} color="#10b981" />
+                  <Ionicons
+                    name="location-outline"
+                    size={14}
+                    color={colors.primary}
+                  />
                   <Text className="text-sm text-gray-600 ml-1">
                     {job.location}
                   </Text>
                 </View>
                 <View className="flex-row items-center mb-3">
-                  <Ionicons name="cash-outline" size={14} color="#10b981" />
+                  <Ionicons
+                    name="cash-outline"
+                    size={14}
+                    color={colors.primary}
+                  />
                   <Text className="text-sm text-gray-600 ml-1">
                     {job.salaryRange}
                   </Text>
@@ -260,7 +282,11 @@ export default function JobSeekerJobsScreen() {
 
                 <View className="flex-row justify-between items-center pt-3 border-t border-gray-100">
                   <View className="flex-row items-center">
-                    <Ionicons name="people-outline" size={14} color="#6b7280" />
+                    <Ionicons
+                      name="people-outline"
+                      size={14}
+                      color={colors.muted}
+                    />
                     <Text className="text-xs text-gray-400 ml-1">
                       {job.applicantsCount} candidature
                       {job.applicantsCount !== 1 ? "s" : ""}
@@ -272,24 +298,24 @@ export default function JobSeekerJobsScreen() {
                       <Ionicons
                         name="checkmark-circle"
                         size={14}
-                        color="#10b981"
+                        color={colors.primary}
                       />
                       <Text className="text-green-700 text-xs font-medium ml-1">
                         Candidature envoyée
                       </Text>
                     </View>
                   ) : (
-                    <TouchableOpacity
+                    <AnimatedPressable
                       onPress={() => handleApply(job.id)}
                       className="bg-primary px-3 py-1.5 rounded-lg"
                     >
                       <Text className="text-white text-xs font-semibold">
                         Postuler
                       </Text>
-                    </TouchableOpacity>
+                    </AnimatedPressable>
                   )}
                 </View>
-              </TouchableOpacity>
+              </AnimatedPressable>
             );
           })}
 
@@ -311,7 +337,7 @@ export default function JobSeekerJobsScreen() {
 
       {/* ── Job seeker: Mes candidatures tab ── */}
       {jobSeekerTab === "candidatures" && (
-        <ScrollView className="flex-1 px-4 py-4">
+        <ScrollView className="flex-1 px-6 py-4">
           {myApplications.length > 0 ? (
             <>
               <Text className="text-sm text-gray-500 mb-3">
@@ -330,13 +356,12 @@ export default function JobSeekerJobsScreen() {
                   : { bg: "bg-gray-100", text: "text-gray-700" };
 
                 return (
-                  <TouchableOpacity
+                  <AnimatedPressable
                     key={application.id}
                     onPress={() =>
                       job && handleOpenJobDetails(application.jobId)
                     }
-                    activeOpacity={job ? 0.8 : 1}
-                    className="bg-white rounded-xl p-4 mb-3 border border-gray-200"
+                    className="bg-white rounded-2xl p-4 mb-3 border border-gray-200"
                   >
                     {/* Status badge */}
                     <View className="flex-row justify-between items-start mb-3">
@@ -387,7 +412,7 @@ export default function JobSeekerJobsScreen() {
                           <Ionicons
                             name="location-outline"
                             size={13}
-                            color="#6b7280"
+                            color={colors.muted}
                           />
                           <Text className="text-xs text-gray-500 ml-0.5">
                             {job.location}
@@ -401,7 +426,7 @@ export default function JobSeekerJobsScreen() {
                         <Ionicons
                           name="calendar-outline"
                           size={13}
-                          color="#9ca3af"
+                          color={colors.mutedLight}
                         />
                         <Text className="text-xs text-gray-400 ml-1">
                           Envoyée le{" "}
@@ -412,14 +437,18 @@ export default function JobSeekerJobsScreen() {
                       </View>
                       {application.status === "accepted" && (
                         <View className="flex-row items-center">
-                          <Ionicons name="star" size={13} color="#10b981" />
+                          <Ionicons
+                            name="star"
+                            size={13}
+                            color={colors.primary}
+                          />
                           <Text className="text-xs text-green-600 font-medium ml-1">
                             Félicitations !
                           </Text>
                         </View>
                       )}
                     </View>
-                  </TouchableOpacity>
+                  </AnimatedPressable>
                 );
               })}
             </>
@@ -433,14 +462,17 @@ export default function JobSeekerJobsScreen() {
                 Parcourez les offres et postulez depuis l&apos;onglet{" "}
                 <Text className="text-primary font-medium">Offres</Text>
               </Text>
-              <TouchableOpacity
-                onPress={() => setJobSeekerTab("offres")}
+              <AnimatedPressable
+                onPress={() => {
+                  haptic.selection();
+                  setJobSeekerTab("offres");
+                }}
                 className="mt-4 bg-primary px-6 py-2.5 rounded-xl"
               >
                 <Text className="text-white text-sm font-semibold">
                   Voir les offres
                 </Text>
-              </TouchableOpacity>
+              </AnimatedPressable>
             </View>
           )}
 

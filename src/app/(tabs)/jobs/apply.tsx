@@ -16,6 +16,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { useJobsStore } from "@/stores/jobsStore";
 import { useUserStore } from "@/stores/userStore";
 import { senegalRegions, senegalDepartments } from "@/data/senegalData";
+import { colors } from "@/theme/colors";
 
 const desiredPositions = [
   { label: "Ouvrier agricole", value: "Ouvrier agricole" },
@@ -299,8 +300,16 @@ export default function JobApplyScreen() {
                   setField("region", v);
                   setField("department", "");
                 }}
+                style={{
+                  height: Platform.OS === "ios" ? 180 : 50,
+                  color: colors.black,
+                }}
               >
-                <Picker.Item label="Sélectionnez une région" value="" />
+                <Picker.Item
+                  label="Sélectionnez une région"
+                  value=""
+                  color={colors.placeholder}
+                />
                 {senegalRegions.map((r) => (
                   <Picker.Item key={r.value} label={r.label} value={r.value} />
                 ))}
@@ -321,8 +330,16 @@ export default function JobApplyScreen() {
                 <Picker
                   selectedValue={formData.department}
                   onValueChange={(v) => setField("department", v)}
+                  style={{
+                    height: Platform.OS === "ios" ? 180 : 50,
+                    color: colors.black,
+                  }}
                 >
-                  <Picker.Item label="Sélectionnez un département" value="" />
+                  <Picker.Item
+                    label="Sélectionnez un département"
+                    value=""
+                    color={colors.placeholder}
+                  />
                   {(senegalDepartments[formData.region] ?? []).map((d) => (
                     <Picker.Item
                       key={d.value}
@@ -389,10 +406,15 @@ export default function JobApplyScreen() {
               <Picker
                 selectedValue={formData.education}
                 onValueChange={(v) => setField("education", v)}
+                style={{
+                  height: Platform.OS === "ios" ? 180 : 50,
+                  color: colors.black,
+                }}
               >
                 <Picker.Item
                   label="Sélectionnez votre niveau d'études"
                   value=""
+                  color={colors.placeholder}
                 />
                 {educationLevels.map((e) => (
                   <Picker.Item key={e.value} label={e.label} value={e.value} />
@@ -436,8 +458,16 @@ export default function JobApplyScreen() {
               <Picker
                 selectedValue={formData.desiredPosition}
                 onValueChange={(v) => setField("desiredPosition", v)}
+                style={{
+                  height: Platform.OS === "ios" ? 180 : 50,
+                  color: colors.black,
+                }}
               >
-                <Picker.Item label="Sélectionnez un poste" value="" />
+                <Picker.Item
+                  label="Sélectionnez un poste"
+                  value=""
+                  color={colors.placeholder}
+                />
                 {desiredPositions.map((p) => (
                   <Picker.Item key={p.value} label={p.label} value={p.value} />
                 ))}

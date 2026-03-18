@@ -25,7 +25,7 @@ export default function CourseDetailScreen() {
           Cours introuvable
         </Text>
         <TouchableOpacity
-          className="bg-purple-600 px-6 py-3 rounded-lg mt-6"
+          className="bg-primary px-6 py-3 rounded-xl mt-6"
           onPress={() => router.back()}
         >
           <Text className="text-white font-semibold">Retour</Text>
@@ -158,9 +158,9 @@ export default function CourseDetailScreen() {
           </Text>
 
           {course.instructorName && (
-            <View className="flex-row items-center bg-purple-50 rounded-lg p-3 mb-4">
-              <View className="bg-purple-200 rounded-full p-2 mr-3">
-                <Ionicons name="person" size={20} color="#7c3aed" />
+            <View className="flex-row items-center bg-primary/5 rounded-xl p-3 mb-4">
+              <View className="bg-primary/20 rounded-full p-2 mr-3">
+                <Ionicons name="person" size={20} color="#16a34a" />
               </View>
               <View>
                 <Text className="text-xs text-gray-600">Formateur</Text>
@@ -241,10 +241,10 @@ export default function CourseDetailScreen() {
               <View key={module.id} className="mb-6">
                 <View className="bg-white rounded-xl shadow-sm overflow-hidden">
                   {/* Module Header */}
-                  <View className="bg-purple-50 p-4 border-b border-purple-100">
+                  <View className="bg-primary/5 p-4 border-b border-primary/10">
                     <View className="flex-row items-start justify-between mb-2">
                       <View className="flex-1">
-                        <Text className="text-xs text-purple-600 font-semibold mb-1">
+                        <Text className="text-xs text-primary font-semibold mb-1">
                           Module {moduleIndex + 1}
                         </Text>
                         <Text className="text-base font-bold text-gray-800">
@@ -256,8 +256,8 @@ export default function CourseDetailScreen() {
                       </View>
                       {isEnrolled && (
                         <View className="ml-3">
-                          <View className="bg-purple-200 rounded-full w-12 h-12 items-center justify-center">
-                            <Text className="text-purple-700 font-bold text-xs">
+                          <View className="bg-primary/20 rounded-full w-12 h-12 items-center justify-center">
+                            <Text className="text-primary font-bold text-xs">
                               {moduleProgress}%
                             </Text>
                           </View>
@@ -353,7 +353,7 @@ export default function CourseDetailScreen() {
       {!isEnrolled && (
         <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
           <TouchableOpacity
-            className="bg-purple-600 py-4 rounded-xl items-center shadow-lg"
+            className="bg-primary py-4 rounded-xl items-center shadow-lg"
             onPress={handleEnroll}
           >
             <Text className="text-white font-bold text-base">

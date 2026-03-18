@@ -1,11 +1,16 @@
 import React from "react";
-import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
+import { View, Text, ScrollView, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useTrainingStore } from "@/stores/trainingStore";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { AnimatedPressable, FadeInView } from "@/components/animated";
+import { haptic } from "@/utils/haptics";
+import { colors } from "@/theme/colors";
 
 export default function TrainingScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const courses = useTrainingStore((state) => state.courses);
   const enrolledCourses = useTrainingStore((state) => state.enrolledCourses);
   const courseProgress = useTrainingStore((state) => state.courseProgress);
@@ -45,24 +50,30 @@ export default function TrainingScreen() {
   return (
     <ScrollView className="flex-1 bg-gray-50">
       {/* Header */}
-      <View className="bg-purple-600 pt-12 pb-8 px-6">
+      <View
+        className="bg-primary pb-8 px-6"
+        style={{ paddingTop: insets.top + 12 }}
+      >
         <View className="flex-row items-center mb-4">
           <View className="bg-white/20 p-3 rounded-full mr-4">
             <Ionicons name="school" size={32} color="white" />
           </View>
           <View className="flex-1">
-            <Text className="text-white text-3xl font-bold">Formation</Text>
-            <Text className="text-purple-100 text-base mt-1">
+            <Text className="text-white text-2xl font-bold">Formation</Text>
+            <Text className="text-white/70 text-base mt-1">
               Développez vos compétences agricoles
             </Text>
           </View>
           {enrolledCourses.length > 0 && (
-            <TouchableOpacity
+            <AnimatedPressable
               className="bg-white/20 p-3 rounded-full"
-              onPress={() => router.push("/training/dashboard")}
+              onPress={() => {
+                haptic.selection();
+                router.push("/training/dashboard");
+              }}
             >
               <Ionicons name="stats-chart" size={24} color="white" />
-            </TouchableOpacity>
+            </AnimatedPressable>
           )}
         </View>
 
@@ -85,14 +96,14 @@ export default function TrainingScreen() {
 
       {/* My Courses Section */}
       {enrolledCourses.length > 0 && (
-        <View className="px-6 mt-6">
+        <FadeInView className="px-6 mt-6">
           <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-xl font-bold text-gray-800">
+            <Text className="text-lg font-bold text-gray-800">
               Mes Formations
             </Text>
-            <TouchableOpacity>
-              <Text className="text-purple-600 font-semibold">Tout voir</Text>
-            </TouchableOpacity>
+            <AnimatedPressable hapticType="selection">
+              <Text className="text-primary font-semibold">Tout voir</Text>
+            </AnimatedPressable>
           </View>
 
           <ScrollView
@@ -107,15 +118,15 @@ export default function TrainingScreen() {
               const progress = getProgressPercentage(courseId);
 
               return (
-                <TouchableOpacity
+                <AnimatedPressable
                   key={course.id}
-                  className="bg-white rounded-xl mr-4 shadow-sm"
+                  className="bg-white rounded-2xl mr-4 shadow-sm"
                   style={{ width: 280 }}
                   onPress={() => router.push(`/training/${course.id}`)}
                 >
                   <Image
                     source={{ uri: course.thumbnailUrl }}
-                    className="w-full h-32 rounded-t-xl"
+                    className="w-full h-32 rounded-t-2xl"
                     resizeMode="cover"
                   />
                   <View className="p-4">
@@ -129,24 +140,24 @@ export default function TrainingScreen() {
                     {/* Progress Bar */}
                     <View className="bg-gray-200 h-2 rounded-full mb-2">
                       <View
-                        className="bg-purple-600 h-2 rounded-full"
+                        className="bg-primary h-2 rounded-full"
                         style={{ width: `${progress}%` }}
                       />
                     </View>
-                    <Text className="text-xs text-gray-600">
+                    <Text className="text-xs text-muted-foreground">
                       {progress}% complété
                     </Text>
                   </View>
-                </TouchableOpacity>
+                </AnimatedPressable>
               );
             })}
           </ScrollView>
-        </View>
+        </FadeInView>
       )}
 
       {/* All Courses Section */}
-      <View className="px-6 mt-4 pb-8">
-        <Text className="text-xl font-bold text-gray-800 mb-4">
+      <FadeInView className="px-6 mt-4 pb-8" delay={100}>
+        <Text className="text-lg font-bold text-gray-800 mb-4">
           {enrolledCourses.length > 0 ? "Tous les Cours" : "Cours Disponibles"}
         </Text>
 
@@ -155,9 +166,9 @@ export default function TrainingScreen() {
           const progress = getProgressPercentage(course.id);
 
           return (
-            <TouchableOpacity
+            <AnimatedPressable
               key={course.id}
-              className="bg-white rounded-xl mb-4 shadow-sm overflow-hidden"
+              className="bg-white rounded-2xl mb-4 shadow-sm overflow-hidden"
               onPress={() => router.push(`/training/${course.id}`)}
             >
               <View className="flex-row">
@@ -175,8 +186,8 @@ export default function TrainingScreen() {
                       {course.title}
                     </Text>
                     {enrolled && (
-                      <View className="bg-purple-100 px-2 py-1 rounded-full">
-                        <Text className="text-purple-700 text-xs font-semibold">
+                      <View className="bg-primary/10 px-2 py-1 rounded-full">
+                        <Text className="text-primary text-xs font-semibold">
                           Inscrit
                         </Text>
                       </View>
@@ -184,7 +195,7 @@ export default function TrainingScreen() {
                   </View>
 
                   <Text
-                    className="text-xs text-gray-600 mb-3"
+                    className="text-xs text-muted-foreground mb-3"
                     numberOfLines={2}
                   >
                     {course.description}
@@ -202,15 +213,23 @@ export default function TrainingScreen() {
                     </View>
 
                     <View className="flex-row items-center bg-gray-100 px-2 py-1 rounded-full">
-                      <Ionicons name="time-outline" size={12} color="#6b7280" />
-                      <Text className="text-gray-600 text-xs ml-1">
+                      <Ionicons
+                        name="time-outline"
+                        size={12}
+                        color={colors.muted}
+                      />
+                      <Text className="text-muted-foreground text-xs ml-1">
                         {course.duration}h
                       </Text>
                     </View>
 
                     <View className="flex-row items-center bg-gray-100 px-2 py-1 rounded-full">
-                      <Ionicons name="book-outline" size={12} color="#6b7280" />
-                      <Text className="text-gray-600 text-xs ml-1">
+                      <Ionicons
+                        name="book-outline"
+                        size={12}
+                        color={colors.muted}
+                      />
+                      <Text className="text-muted-foreground text-xs ml-1">
                         {course.modules.reduce(
                           (sum, m) => sum + m.lessons.length,
                           0,
@@ -237,7 +256,7 @@ export default function TrainingScreen() {
                     <View className="mt-3">
                       <View className="bg-gray-200 h-1.5 rounded-full">
                         <View
-                          className="bg-purple-600 h-1.5 rounded-full"
+                          className="bg-primary h-1.5 rounded-full"
                           style={{ width: `${progress}%` }}
                         />
                       </View>
@@ -245,15 +264,15 @@ export default function TrainingScreen() {
                   )}
                 </View>
               </View>
-            </TouchableOpacity>
+            </AnimatedPressable>
           );
         })}
-      </View>
+      </FadeInView>
 
       {courses.length === 0 && (
         <View className="flex-1 justify-center items-center px-6 py-20">
-          <Ionicons name="school-outline" size={64} color="#9ca3af" />
-          <Text className="text-xl font-bold text-gray-400 mt-4">
+          <Ionicons name="school-outline" size={64} color={colors.mutedLight} />
+          <Text className="text-lg font-bold text-gray-400 mt-4">
             Aucun cours disponible
           </Text>
         </View>

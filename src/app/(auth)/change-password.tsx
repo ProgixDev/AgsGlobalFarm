@@ -10,6 +10,10 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { haptic } from "@/utils/haptics";
+import { AnimatedPressable } from "@/components/animated";
+import { colors } from "@/theme/colors";
+import ScreenHeader from "@/components/ui/ScreenHeader";
 
 interface ChangePasswordForm {
   currentPassword: string;
@@ -93,6 +97,7 @@ export default function ChangePasswordScreen() {
     if (!validate()) return;
     // TODO: implement password change with Supabase
     console.log("Change password", formData);
+    haptic.success();
     router.back();
   };
 
@@ -107,22 +112,7 @@ export default function ChangePasswordScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {/* Header */}
-        <View className="bg-primary px-6 pt-14 pb-6">
-          <TouchableOpacity
-            onPress={() => router.back()}
-            className="flex-row items-center mb-4"
-            activeOpacity={0.7}
-          >
-            <Ionicons name="arrow-back" size={22} color="white" />
-            <Text className="text-white text-base ml-2">Retour</Text>
-          </TouchableOpacity>
-          <Text className="text-white text-2xl font-bold">
-            Changer le mot de passe
-          </Text>
-          <Text className="text-white/70 text-sm mt-1">
-            Choisissez un mot de passe sécurisé
-          </Text>
-        </View>
+        <ScreenHeader title="Changer le mot de passe" showBack />
 
         <View className="px-6 py-6 gap-4">
           {/* Error Summary */}
@@ -150,7 +140,7 @@ export default function ChangePasswordScreen() {
                 <Ionicons
                   name="lock-closed-outline"
                   size={18}
-                  color="#10b981"
+                  color={colors.primary}
                 />
                 <TextInput
                   className="flex-1 ml-2 text-base text-foreground"
@@ -175,7 +165,7 @@ export default function ChangePasswordScreen() {
                   <Ionicons
                     name={showCurrent ? "eye-off-outline" : "eye-outline"}
                     size={18}
-                    color="#9ca3af"
+                    color={colors.placeholder}
                   />
                 </TouchableOpacity>
               </View>
@@ -196,7 +186,7 @@ export default function ChangePasswordScreen() {
                   errors.newPassword ? "border-red-400" : "border-gray-200"
                 }`}
               >
-                <Ionicons name="key-outline" size={18} color="#10b981" />
+                <Ionicons name="key-outline" size={18} color={colors.primary} />
                 <TextInput
                   ref={newPasswordRef}
                   className="flex-1 ml-2 text-base text-foreground"
@@ -221,7 +211,7 @@ export default function ChangePasswordScreen() {
                   <Ionicons
                     name={showNew ? "eye-off-outline" : "eye-outline"}
                     size={18}
-                    color="#9ca3af"
+                    color={colors.placeholder}
                   />
                 </TouchableOpacity>
               </View>
@@ -243,7 +233,7 @@ export default function ChangePasswordScreen() {
                   errors.confirmPassword ? "border-red-400" : "border-gray-200"
                 }`}
               >
-                <Ionicons name="key-outline" size={18} color="#10b981" />
+                <Ionicons name="key-outline" size={18} color={colors.primary} />
                 <TextInput
                   ref={confirmPasswordRef}
                   className="flex-1 ml-2 text-base text-foreground"
@@ -267,7 +257,7 @@ export default function ChangePasswordScreen() {
                   <Ionicons
                     name={showConfirm ? "eye-off-outline" : "eye-outline"}
                     size={18}
-                    color="#9ca3af"
+                    color={colors.placeholder}
                   />
                 </TouchableOpacity>
               </View>
@@ -293,7 +283,7 @@ export default function ChangePasswordScreen() {
                 <Ionicons
                   name="checkmark-circle-outline"
                   size={14}
-                  color="#10b981"
+                  color={colors.primary}
                   style={{ marginTop: 1 }}
                 />
                 <Text className="text-xs text-muted-foreground ml-2 flex-1">
@@ -304,9 +294,8 @@ export default function ChangePasswordScreen() {
           </View>
 
           {/* Submit */}
-          <TouchableOpacity
+          <AnimatedPressable
             onPress={handleSubmit}
-            activeOpacity={0.8}
             className="bg-primary rounded-2xl py-4 items-center justify-center"
           >
             <View className="flex-row items-center">
@@ -319,7 +308,7 @@ export default function ChangePasswordScreen() {
                 Mettre à jour le mot de passe
               </Text>
             </View>
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

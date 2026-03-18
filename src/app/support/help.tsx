@@ -1,7 +1,10 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
-import { useRouter } from "expo-router";
+import { View, Text, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import ScreenHeader from "@/components/ui/ScreenHeader";
+import { AnimatedPressable, FadeInView } from "@/components/animated";
+import { haptic } from "@/utils/haptics";
+import { colors } from "@/theme/colors";
 
 interface FaqItem {
   id: string;
@@ -86,7 +89,6 @@ const FAQ_ITEMS: FaqItem[] = [
 const CATEGORIES = Array.from(new Set(FAQ_ITEMS.map((f) => f.category)));
 
 export default function HelpScreen() {
-  const router = useRouter();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
@@ -95,6 +97,7 @@ export default function HelpScreen() {
     : FAQ_ITEMS;
 
   const toggle = (id: string) => {
+    haptic.selection();
     setExpandedId((prev) => (prev === id ? null : id));
   };
 
@@ -103,23 +106,13 @@ export default function HelpScreen() {
       className="flex-1 bg-gray-50"
       contentContainerStyle={{ flexGrow: 1 }}
     >
-      {/* Header */}
-      <View className="bg-primary px-6 pt-14 pb-6">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="flex-row items-center mb-4"
-          activeOpacity={0.7}
-        >
-          <Ionicons name="arrow-back" size={22} color="white" />
-          <Text className="text-white text-base ml-2">Retour</Text>
-        </TouchableOpacity>
-        <Text className="text-white text-2xl font-bold">Aide</Text>
-        <Text className="text-white/70 text-sm mt-1">
-          Questions fréquemment posées
-        </Text>
-      </View>
+      <ScreenHeader
+        title="Aide"
+        subtitle="Questions fréquemment posées"
+        showBack
+      />
 
-      <View className="px-6 py-6 gap-5">
+      <FadeInView className="px-6 py-6 gap-5">
         {/* Category filter */}
         <ScrollView
           horizontal
@@ -127,13 +120,16 @@ export default function HelpScreen() {
           className="-mx-6 px-6"
           contentContainerStyle={{ gap: 8 }}
         >
-          <TouchableOpacity
-            onPress={() => setActiveCategory(null)}
-            activeOpacity={0.7}
+          <AnimatedPressable
+            onPress={() => {
+              haptic.selection();
+              setActiveCategory(null);
+            }}
+            hapticType="none"
             className={`rounded-full px-4 py-2 border ${
               activeCategory === null
                 ? "bg-primary border-primary"
-                : "bg-white border-gray-200"
+                : "bg-white border-border"
             }`}
           >
             <Text
@@ -143,18 +139,19 @@ export default function HelpScreen() {
             >
               Tout
             </Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
           {CATEGORIES.map((cat) => (
-            <TouchableOpacity
+            <AnimatedPressable
               key={cat}
-              onPress={() =>
-                setActiveCategory((prev) => (prev === cat ? null : cat))
-              }
-              activeOpacity={0.7}
+              onPress={() => {
+                haptic.selection();
+                setActiveCategory((prev) => (prev === cat ? null : cat));
+              }}
+              hapticType="none"
               className={`rounded-full px-4 py-2 border ${
                 activeCategory === cat
                   ? "bg-primary border-primary"
-                  : "bg-white border-gray-200"
+                  : "bg-white border-border"
               }`}
             >
               <Text
@@ -164,7 +161,7 @@ export default function HelpScreen() {
               >
                 {cat}
               </Text>
-            </TouchableOpacity>
+            </AnimatedPressable>
           ))}
         </ScrollView>
 
@@ -173,10 +170,10 @@ export default function HelpScreen() {
           {filtered.map((item) => {
             const isOpen = expandedId === item.id;
             return (
-              <TouchableOpacity
+              <AnimatedPressable
                 key={item.id}
                 onPress={() => toggle(item.id)}
-                activeOpacity={0.85}
+                hapticType="none"
                 className={`bg-white rounded-2xl shadow-sm overflow-hidden border ${
                   isOpen ? "border-primary/30" : "border-transparent"
                 }`}
@@ -186,7 +183,7 @@ export default function HelpScreen() {
                     <Ionicons
                       name="help-circle-outline"
                       size={18}
-                      color="#10b981"
+                      color={colors.primary}
                     />
                   </View>
                   <Text className="flex-1 text-sm font-semibold text-foreground pr-2">
@@ -195,7 +192,7 @@ export default function HelpScreen() {
                   <Ionicons
                     name={isOpen ? "chevron-up" : "chevron-down"}
                     size={18}
-                    color="#9ca3af"
+                    color={colors.mutedLight}
                   />
                 </View>
                 {isOpen && (
@@ -206,7 +203,7 @@ export default function HelpScreen() {
                     </Text>
                   </View>
                 )}
-              </TouchableOpacity>
+              </AnimatedPressable>
             );
           })}
         </View>
@@ -214,7 +211,11 @@ export default function HelpScreen() {
         {/* Contact support */}
         <View className="bg-primary/5 border border-primary/20 rounded-2xl p-5">
           <View className="flex-row items-center mb-2">
-            <Ionicons name="chatbubbles-outline" size={20} color="#10b981" />
+            <Ionicons
+              name="chatbubbles-outline"
+              size={20}
+              color={colors.primary}
+            />
             <Text className="text-base font-semibold text-foreground ml-2">
               Toujours besoin d&apos;aide ?
             </Text>
@@ -222,16 +223,13 @@ export default function HelpScreen() {
           <Text className="text-sm text-muted-foreground mb-4">
             Notre équipe est disponible pour répondre à vos questions.
           </Text>
-          <TouchableOpacity
-            activeOpacity={0.8}
-            className="bg-primary rounded-xl py-3 items-center"
-          >
+          <AnimatedPressable className="bg-primary rounded-xl py-3 items-center">
             <Text className="text-white font-semibold text-sm">
               Contacter le support
             </Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
-      </View>
+      </FadeInView>
     </ScrollView>
   );
 }

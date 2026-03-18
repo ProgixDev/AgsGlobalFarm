@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, Platform } from "react-native";
 import { Picker } from "@react-native-picker/picker";
+import { colors } from "@/theme/colors";
 
 interface FormPickerProps {
   label: string;
@@ -27,13 +28,13 @@ export default function FormPicker({
 }: FormPickerProps) {
   return (
     <View className={`mb-4 ${containerClassName}`}>
-      <Text className="text-gray-700 font-medium mb-2">
+      <Text className="text-sm font-medium text-foreground mb-2">
         {label}
-        {required && <Text className="text-red-500"> *</Text>}
+        {required && <Text className="text-danger"> *</Text>}
       </Text>
       <View
-        className={`bg-white border rounded-lg ${
-          error ? "border-red-500" : "border-gray-300"
+        className={`bg-gray-50 border rounded-xl overflow-hidden ${
+          error ? "border-danger" : "border-border"
         } ${!enabled ? "opacity-50" : ""}`}
       >
         <Picker
@@ -47,8 +48,7 @@ export default function FormPicker({
           <Picker.Item
             label={placeholder}
             value=""
-            color="#9CA3AF"
-            enabled={false}
+            color={colors.placeholder}
           />
           {items.map((item) => (
             <Picker.Item
@@ -59,7 +59,7 @@ export default function FormPicker({
           ))}
         </Picker>
       </View>
-      {error && <Text className="text-red-500 text-sm mt-1">{error}</Text>}
+      {error && <Text className="text-danger text-xs mt-1">{error}</Text>}
     </View>
   );
 }

@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   TextInput,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   Alert,
@@ -19,6 +18,10 @@ import {
   senegalDepartments,
   contractTypes,
 } from "@/data/senegalData";
+import { AnimatedPressable } from "@/components/animated";
+import { haptic } from "@/utils/haptics";
+import { colors } from "@/theme/colors";
+import ScreenHeader from "@/components/ui/ScreenHeader";
 
 export default function JobPostScreen() {
   const router = useRouter();
@@ -177,6 +180,7 @@ export default function JobPostScreen() {
       });
     }
 
+    haptic.success();
     router.back();
   };
 
@@ -187,16 +191,10 @@ export default function JobPostScreen() {
         className="flex-1"
       >
         {/* Header */}
-        <View className="bg-primary px-4 py-4">
-          <View className="flex-row items-center">
-            <TouchableOpacity onPress={() => router.back()} className="mr-3">
-              <Ionicons name="arrow-back" size={24} color="white" />
-            </TouchableOpacity>
-            <Text className="flex-1 text-white text-lg font-bold">
-              {isEditing ? "Modifier l'offre" : "Publier une offre"}
-            </Text>
-          </View>
-        </View>
+        <ScreenHeader
+          title={isEditing ? "Modifier l'offre" : "Publier une offre"}
+          showBack
+        />
 
         <ScrollView className="flex-1 px-4 py-6">
           {/* Title */}
@@ -260,8 +258,16 @@ export default function JobPostScreen() {
                   if (jobFormErrors.region)
                     setJobFormErrors({ ...jobFormErrors, region: "" });
                 }}
+                style={{
+                  height: Platform.OS === "ios" ? 180 : 50,
+                  color: colors.black,
+                }}
               >
-                <Picker.Item label="Sélectionnez une région" value="" />
+                <Picker.Item
+                  label="Sélectionnez une région"
+                  value=""
+                  color={colors.placeholder}
+                />
                 {senegalRegions.map((region) => (
                   <Picker.Item
                     key={region.value}
@@ -292,8 +298,16 @@ export default function JobPostScreen() {
                     if (jobFormErrors.department)
                       setJobFormErrors({ ...jobFormErrors, department: "" });
                   }}
+                  style={{
+                    height: Platform.OS === "ios" ? 180 : 50,
+                    color: colors.black,
+                  }}
                 >
-                  <Picker.Item label="Sélectionnez un département" value="" />
+                  <Picker.Item
+                    label="Sélectionnez un département"
+                    value=""
+                    color={colors.placeholder}
+                  />
                   {senegalDepartments[jobFormData.region]?.map((dept) => (
                     <Picker.Item
                       key={dept.value}
@@ -346,8 +360,16 @@ export default function JobPostScreen() {
                   if (jobFormErrors.contractType)
                     setJobFormErrors({ ...jobFormErrors, contractType: "" });
                 }}
+                style={{
+                  height: Platform.OS === "ios" ? 180 : 50,
+                  color: colors.black,
+                }}
               >
-                <Picker.Item label="Sélectionnez un type de contrat" value="" />
+                <Picker.Item
+                  label="Sélectionnez un type de contrat"
+                  value=""
+                  color={colors.placeholder}
+                />
                 {contractTypes.map((type) => (
                   <Picker.Item
                     key={type.value}
@@ -442,7 +464,7 @@ export default function JobPostScreen() {
 
         {/* Submit Button */}
         <View className="px-4 py-4 bg-white border-t border-gray-200">
-          <TouchableOpacity
+          <AnimatedPressable
             onPress={handleSubmit}
             className="bg-primary rounded-xl py-4 flex-row items-center justify-center"
           >
@@ -450,7 +472,7 @@ export default function JobPostScreen() {
             <Text className="text-white text-lg font-bold ml-2">
               {isEditing ? "Enregistrer les modifications" : "Publier l'offre"}
             </Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>

@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.agsmobile",
+      "bundleIdentifier": "pro.progix.agsmobile",
       "infoPlist": {
         "UIStatusBarHidden": true,
         "UIViewControllerBasedStatusBarAppearance": false
@@ -28,7 +28,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.agsmobile"
+      "package": "pro.progix.agsmobile"
     },
     "web": {
       "output": "static",
@@ -54,6 +54,14 @@
         }
       ],
       ["@rnmapbox/maps"]
-    ]
+    ],
+    "extra": {
+      "router": {
+        "root": "./src/app"
+      },
+      "eas": {
+        "projectId": "5de333a3-5a47-4628-9d32-c067179ceb3c"
+      }
+    }
   }
 }

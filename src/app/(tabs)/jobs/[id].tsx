@@ -1,10 +1,13 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
+import { View, Text, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useJobsStore } from "@/stores/jobsStore";
 import { useUserStore } from "@/stores/userStore";
+import { AnimatedPressable } from "@/components/animated";
+import { haptic } from "@/utils/haptics";
+import { colors } from "@/theme/colors";
 
 export default function JobDetailsScreen() {
   const router = useRouter();
@@ -31,9 +34,9 @@ export default function JobDetailsScreen() {
       <SafeAreaView className="flex-1 bg-white">
         <View className="bg-primary px-4 py-4">
           <View className="flex-row items-center">
-            <TouchableOpacity onPress={() => router.back()} className="mr-3">
+            <AnimatedPressable onPress={() => router.back()} className="mr-3">
               <Ionicons name="arrow-back" size={24} color="white" />
-            </TouchableOpacity>
+            </AnimatedPressable>
             <Text className="flex-1 text-white text-lg font-bold">
               Détails de l&apos;offre
             </Text>
@@ -54,6 +57,7 @@ export default function JobDetailsScreen() {
   };
 
   const handleDelete = () => {
+    haptic.warning();
     deleteJob(jobId);
     router.back();
   };
@@ -71,6 +75,7 @@ export default function JobDetailsScreen() {
   };
 
   const handleApply = () => {
+    haptic.success();
     router.push({ pathname: "/(tabs)/jobs/apply", params: { id: jobId } });
   };
 
@@ -88,23 +93,23 @@ export default function JobDetailsScreen() {
       <View className="bg-primary px-4 py-4">
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center flex-1">
-            <TouchableOpacity onPress={() => router.back()} className="mr-3">
+            <AnimatedPressable onPress={() => router.back()} className="mr-3">
               <Ionicons name="arrow-back" size={24} color="white" />
-            </TouchableOpacity>
+            </AnimatedPressable>
             <Text className="flex-1 text-white text-lg font-bold">
               Détails de l&apos;offre
             </Text>
           </View>
           {isMyJob ? (
-            <TouchableOpacity
+            <AnimatedPressable
               onPress={() => setShowActionMenu(!showActionMenu)}
             >
               <Ionicons name="ellipsis-vertical" size={24} color="white" />
-            </TouchableOpacity>
+            </AnimatedPressable>
           ) : (
-            <TouchableOpacity>
+            <AnimatedPressable>
               <Ionicons name="bookmark-outline" size={24} color="white" />
-            </TouchableOpacity>
+            </AnimatedPressable>
           )}
         </View>
       </View>
@@ -112,47 +117,51 @@ export default function JobDetailsScreen() {
       {/* Action Menu Dropdown */}
       {showActionMenu && isMyJob && (
         <View className="bg-white border-b border-gray-200 px-4 py-2">
-          <TouchableOpacity
+          <AnimatedPressable
             onPress={handleEdit}
             className="flex-row items-center py-3 border-b border-gray-100"
           >
-            <Ionicons name="create-outline" size={20} color="#10b981" />
+            <Ionicons name="create-outline" size={20} color={colors.primary} />
             <Text className="text-base text-gray-800 ml-3">Modifier</Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
 
-          <TouchableOpacity
+          <AnimatedPressable
             onPress={handleViewApplications}
             className="flex-row items-center py-3 border-b border-gray-100"
           >
-            <Ionicons name="eye-outline" size={20} color="#3b82f6" />
+            <Ionicons name="eye-outline" size={20} color={colors.info} />
             <Text className="text-base text-gray-800 ml-3">
               Voir candidatures ({job.applicantsCount})
             </Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
 
-          <TouchableOpacity
+          <AnimatedPressable
             onPress={handleDuplicate}
             className="flex-row items-center py-3 border-b border-gray-100"
           >
             <Ionicons name="copy-outline" size={20} color="#8b5cf6" />
             <Text className="text-base text-gray-800 ml-3">Dupliquer</Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
 
-          <TouchableOpacity
+          <AnimatedPressable
             onPress={handleStatistics}
             className="flex-row items-center py-3 border-b border-gray-100"
           >
-            <Ionicons name="stats-chart-outline" size={20} color="#f59e0b" />
+            <Ionicons
+              name="stats-chart-outline"
+              size={20}
+              color={colors.warning}
+            />
             <Text className="text-base text-gray-800 ml-3">Statistiques</Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
 
-          <TouchableOpacity
+          <AnimatedPressable
             onPress={handleDelete}
             className="flex-row items-center py-3"
           >
-            <Ionicons name="trash-outline" size={20} color="#ef4444" />
+            <Ionicons name="trash-outline" size={20} color={colors.danger} />
             <Text className="text-base text-red-500 ml-3">Supprimer</Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
       )}
 
@@ -199,9 +208,9 @@ export default function JobDetailsScreen() {
         </View>
 
         {/* Salary */}
-        <View className="bg-gray-50 rounded-xl p-4 mb-6">
+        <View className="bg-gray-50 rounded-2xl p-4 mb-6">
           <View className="flex-row items-center mb-2">
-            <Ionicons name="cash" size={20} color="#10b981" />
+            <Ionicons name="cash" size={20} color={colors.primary} />
             <Text className="text-base font-semibold text-gray-800 ml-2">
               Salaire proposé
             </Text>
@@ -212,9 +221,9 @@ export default function JobDetailsScreen() {
         </View>
 
         {/* Location Details */}
-        <View className="bg-gray-50 rounded-xl p-4 mb-6">
+        <View className="bg-gray-50 rounded-2xl p-4 mb-6">
           <View className="flex-row items-center mb-2">
-            <Ionicons name="map" size={20} color="#10b981" />
+            <Ionicons name="map" size={20} color={colors.primary} />
             <Text className="text-base font-semibold text-gray-800 ml-2">
               Localisation
             </Text>
@@ -251,10 +260,14 @@ export default function JobDetailsScreen() {
         </View>
 
         {/* Posted Date and Applicants */}
-        <View className="bg-gray-50 rounded-xl p-4 mb-6">
+        <View className="bg-gray-50 rounded-2xl p-4 mb-6">
           <View className="flex-row items-center justify-between mb-2">
             <View className="flex-row items-center">
-              <Ionicons name="calendar-outline" size={18} color="#6b7280" />
+              <Ionicons
+                name="calendar-outline"
+                size={18}
+                color={colors.muted}
+              />
               <Text className="text-sm text-gray-600 ml-2">
                 Publié le {new Date(job.postedDate).toLocaleDateString("fr-FR")}
               </Text>
@@ -262,7 +275,7 @@ export default function JobDetailsScreen() {
           </View>
           {!isMyJob && (
             <View className="flex-row items-center">
-              <Ionicons name="people" size={18} color="#6b7280" />
+              <Ionicons name="people" size={18} color={colors.muted} />
               <Text className="text-sm text-gray-600 ml-2">
                 {job.applicantsCount} personne
                 {job.applicantsCount > 1 ? "s" : ""} ont déjà postulé
@@ -276,7 +289,7 @@ export default function JobDetailsScreen() {
       <View className="px-4 py-4 bg-white border-t border-gray-200">
         {isMyJob ? (
           <View className="flex-row gap-2">
-            <TouchableOpacity
+            <AnimatedPressable
               onPress={handleViewApplications}
               className="flex-1 bg-primary rounded-xl py-4 flex-row items-center justify-center"
             >
@@ -284,23 +297,27 @@ export default function JobDetailsScreen() {
               <Text className="text-white text-lg font-bold ml-2">
                 Candidatures ({job.applicantsCount})
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+            </AnimatedPressable>
+            <AnimatedPressable
               onPress={handleEdit}
               className="bg-gray-100 rounded-xl px-6 py-4 flex-row items-center justify-center"
             >
-              <Ionicons name="create" size={20} color="#10b981" />
-            </TouchableOpacity>
+              <Ionicons name="create" size={20} color={colors.primary} />
+            </AnimatedPressable>
           </View>
         ) : alreadyApplied ? (
           <View className="bg-gray-100 rounded-xl py-4 flex-row items-center justify-center">
-            <Ionicons name="checkmark-circle" size={20} color="#10b981" />
+            <Ionicons
+              name="checkmark-circle"
+              size={20}
+              color={colors.primary}
+            />
             <Text className="text-gray-600 text-lg font-bold ml-2">
               Candidature envoyée
             </Text>
           </View>
         ) : (
-          <TouchableOpacity
+          <AnimatedPressable
             onPress={handleApply}
             className="bg-primary rounded-xl py-4 flex-row items-center justify-center"
           >
@@ -308,7 +325,7 @@ export default function JobDetailsScreen() {
             <Text className="text-white text-lg font-bold ml-2">
               Postuler maintenant
             </Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         )}
       </View>
     </SafeAreaView>

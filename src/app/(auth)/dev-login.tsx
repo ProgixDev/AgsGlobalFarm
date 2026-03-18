@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { DEV_ACCOUNTS, useUserStore } from "@/stores/userStore";
+import { haptic } from "@/utils/haptics";
+import { AnimatedPressable, FadeInView } from "@/components/animated";
 
 type UserTypeTab = "job_seeker" | "farm_owner";
 
@@ -83,9 +85,11 @@ export default function DevLogin() {
 
         {/* Tab Buttons */}
         <View className="flex-row gap-2 mb-6">
-          <TouchableOpacity
-            onPress={() => setActiveTab("job_seeker")}
-            activeOpacity={0.8}
+          <AnimatedPressable
+            onPress={() => {
+              haptic.selection();
+              setActiveTab("job_seeker");
+            }}
             className={`flex-1 py-3 px-4 rounded-xl flex-row items-center justify-center ${
               activeTab === "job_seeker"
                 ? "bg-emerald-500"
@@ -117,11 +121,13 @@ export default function DevLogin() {
                 {jobSeekers.length}
               </Text>
             </View>
-          </TouchableOpacity>
+          </AnimatedPressable>
 
-          <TouchableOpacity
-            onPress={() => setActiveTab("farm_owner")}
-            activeOpacity={0.8}
+          <AnimatedPressable
+            onPress={() => {
+              haptic.selection();
+              setActiveTab("farm_owner");
+            }}
             className={`flex-1 py-3 px-4 rounded-xl flex-row items-center justify-center ${
               activeTab === "farm_owner"
                 ? "bg-amber-500"
@@ -153,7 +159,7 @@ export default function DevLogin() {
                 {farmOwners.length}
               </Text>
             </View>
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
 
         {/* Account Cards */}
@@ -162,100 +168,102 @@ export default function DevLogin() {
             ? "Chercheurs d'emploi"
             : "Propriétaires de ferme / Recruteurs"}
         </Text>
-        <View className="gap-4 mb-10">
-          {displayedUsers.length === 0 ? (
-            <View className="bg-gray-50 rounded-2xl p-8 items-center">
-              <Ionicons name="people-outline" size={40} color="#d1d5db" />
-              <Text className="text-gray-500 mt-2 text-center">
-                Aucun compte{" "}
-                {activeTab === "job_seeker"
-                  ? "chercheur d'emploi"
-                  : "recruteur"}{" "}
-                disponible
-              </Text>
-            </View>
-          ) : (
-            displayedUsers.map((account) => (
-              <TouchableOpacity
-                key={account.id}
-                onPress={() => handleSelectAccount(account)}
-                activeOpacity={0.85}
-                className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5"
-              >
-                <View className="flex-row items-center">
-                  {/* Avatar */}
-                  <View
-                    className="w-14 h-14 rounded-full items-center justify-center mr-4"
-                    style={{
-                      backgroundColor: userTypeColor[account.userType] + "20",
-                    }}
-                  >
-                    <Ionicons
-                      name={userTypeIcon[account.userType]}
-                      size={26}
-                      color={userTypeColor[account.userType]}
-                    />
-                  </View>
-
-                  {/* Info */}
-                  <View className="flex-1">
-                    <Text className="text-base font-semibold text-foreground">
-                      {account.firstName} {account.lastName}
-                    </Text>
-                    <Text className="text-sm text-muted-foreground mb-1">
-                      {account.email}
-                    </Text>
+        <FadeInView>
+          <View className="gap-4 mb-10">
+            {displayedUsers.length === 0 ? (
+              <View className="bg-gray-50 rounded-2xl p-8 items-center">
+                <Ionicons name="people-outline" size={40} color="#d1d5db" />
+                <Text className="text-gray-500 mt-2 text-center">
+                  Aucun compte{" "}
+                  {activeTab === "job_seeker"
+                    ? "chercheur d'emploi"
+                    : "recruteur"}{" "}
+                  disponible
+                </Text>
+              </View>
+            ) : (
+              displayedUsers.map((account) => (
+                <AnimatedPressable
+                  key={account.id}
+                  onPress={() => handleSelectAccount(account)}
+                  className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5"
+                >
+                  <View className="flex-row items-center">
+                    {/* Avatar */}
                     <View
-                      className="self-start rounded-full px-2 py-0.5"
+                      className="w-14 h-14 rounded-full items-center justify-center mr-4"
                       style={{
                         backgroundColor: userTypeColor[account.userType] + "20",
                       }}
                     >
-                      <Text
-                        className="text-xs font-medium"
-                        style={{ color: userTypeColor[account.userType] }}
-                      >
-                        {userTypeLabel[account.userType]}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <Ionicons
-                    name="arrow-forward-circle"
-                    size={28}
-                    color={userTypeColor[account.userType]}
-                  />
-                </View>
-
-                {/* Extra details */}
-                <View className="flex-row mt-4 pt-4 border-t border-gray-100 gap-4">
-                  <View className="flex-row items-center">
-                    <Ionicons name="call-outline" size={14} color="#9ca3af" />
-                    <Text className="text-xs text-muted-foreground ml-1">
-                      +221 {account.phone}
-                    </Text>
-                  </View>
-                  {account.gender && (
-                    <View className="flex-row items-center">
                       <Ionicons
-                        name="person-outline"
-                        size={14}
-                        color="#9ca3af"
+                        name={userTypeIcon[account.userType]}
+                        size={26}
+                        color={userTypeColor[account.userType]}
                       />
+                    </View>
+
+                    {/* Info */}
+                    <View className="flex-1">
+                      <Text className="text-base font-semibold text-foreground">
+                        {account.firstName} {account.lastName}
+                      </Text>
+                      <Text className="text-sm text-muted-foreground mb-1">
+                        {account.email}
+                      </Text>
+                      <View
+                        className="self-start rounded-full px-2 py-0.5"
+                        style={{
+                          backgroundColor:
+                            userTypeColor[account.userType] + "20",
+                        }}
+                      >
+                        <Text
+                          className="text-xs font-medium"
+                          style={{ color: userTypeColor[account.userType] }}
+                        >
+                          {userTypeLabel[account.userType]}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <Ionicons
+                      name="arrow-forward-circle"
+                      size={28}
+                      color={userTypeColor[account.userType]}
+                    />
+                  </View>
+
+                  {/* Extra details */}
+                  <View className="flex-row mt-4 pt-4 border-t border-gray-100 gap-4">
+                    <View className="flex-row items-center">
+                      <Ionicons name="call-outline" size={14} color="#9ca3af" />
                       <Text className="text-xs text-muted-foreground ml-1">
-                        {account.gender === "male"
-                          ? "Homme"
-                          : account.gender === "female"
-                            ? "Femme"
-                            : "Autre"}
+                        +221 {account.phone}
                       </Text>
                     </View>
-                  )}
-                </View>
-              </TouchableOpacity>
-            ))
-          )}
-        </View>
+                    {account.gender && (
+                      <View className="flex-row items-center">
+                        <Ionicons
+                          name="person-outline"
+                          size={14}
+                          color="#9ca3af"
+                        />
+                        <Text className="text-xs text-muted-foreground ml-1">
+                          {account.gender === "male"
+                            ? "Homme"
+                            : account.gender === "female"
+                              ? "Femme"
+                              : "Autre"}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                </AnimatedPressable>
+              ))
+            )}
+          </View>
+        </FadeInView>
 
         {/* Divider */}
         <View className="flex-row items-center mb-6">
@@ -265,16 +273,15 @@ export default function DevLogin() {
         </View>
 
         {/* Go to real login */}
-        <TouchableOpacity
+        <AnimatedPressable
           onPress={() => router.replace("/(auth)/login")}
-          activeOpacity={0.7}
           className="flex-row items-center justify-center border border-gray-200 rounded-2xl py-4"
         >
           <Ionicons name="log-in-outline" size={18} color="#6b7280" />
           <Text className="text-muted-foreground font-medium ml-2">
             Aller à la page de connexion
           </Text>
-        </TouchableOpacity>
+        </AnimatedPressable>
       </View>
     </ScrollView>
   );

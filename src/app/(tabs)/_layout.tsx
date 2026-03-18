@@ -2,6 +2,7 @@ import { Tabs, useRouter } from "expo-router";
 import { useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useUserStore } from "@/stores/userStore";
+import { tabBarScreenOptions } from "@/theme/tabBarConfig";
 
 export default function TabsLayout() {
   const router = useRouter();
@@ -12,7 +13,6 @@ export default function TabsLayout() {
     if (!currentUser) {
       router.replace(__DEV__ ? "/(auth)/dev-login" : "/(auth)/login");
     }
-    // Redirect job seekers to their specific tabs
     if (currentUser?.userType === "job_seeker" || userType === "job_seeker") {
       router.replace("/(tabs-job-seeker)/map");
     }
@@ -20,38 +20,12 @@ export default function TabsLayout() {
 
   if (!currentUser) return null;
 
-  // Prevent job seekers from accessing recruiter tabs
   if (currentUser.userType === "job_seeker" || userType === "job_seeker") {
     return null;
   }
 
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: "#10b981",
-        tabBarInactiveTintColor: "#6b7280",
-        tabBarStyle: {
-          backgroundColor: "#ffffff",
-          borderTopWidth: 1,
-          borderTopColor: "#e5e7eb",
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: "600",
-        },
-        headerStyle: {
-          backgroundColor: "#10b981",
-        },
-        headerTintColor: "#ffffff",
-        headerTitleStyle: {
-          fontWeight: "bold",
-        },
-        headerShown: false,
-      }}
-    >
+    <Tabs screenOptions={tabBarScreenOptions}>
       <Tabs.Screen
         name="map"
         options={{

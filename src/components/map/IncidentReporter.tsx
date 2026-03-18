@@ -4,16 +4,16 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  Modal,
   StyleSheet,
   Image,
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import FormInput from "@/components/ui/FormInput";
+import SwipeableBottomSheet from "@/components/ui/SwipeableBottomSheet";
+import { AnimatedPressable } from "@/components/animated";
+import { haptic } from "@/utils/haptics";
 import {
   incidentCategories,
   getCategoryConfig,
@@ -210,272 +210,280 @@ export function IncidentReporter({
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <Modal
-      animationType="slide"
-      transparent={true}
+    <SwipeableBottomSheet
       visible={visible}
-      onRequestClose={onClose}
-    >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.modalOverlay}
-      >
-        <View style={styles.modalContainer}>
-          {/* ── Drag handle ──────────────────────────────────────── */}
-          <View className="items-center pt-3 pb-1">
-            <View className="w-10 h-1 rounded-full bg-gray-300" />
-          </View>
-
-          {/* ── Header ───────────────────────────────────────────── */}
-          <View style={[styles.header, { backgroundColor: headerColor }]}>
-            <View className="flex-row items-center justify-between">
-              <View className="flex-1 mr-3">
-                <Text className="text-white text-xl font-bold">
-                  Signaler un incident
-                </Text>
-                <Text className="text-white/70 text-xs mt-1">
-                  Aidez la communauté agricole en signalant les incidents
-                </Text>
-              </View>
-              <TouchableOpacity
-                onPress={onClose}
-                className="bg-white/20 rounded-full p-2"
-              >
-                <Ionicons name="close" size={20} color="white" />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* ── Scrollable form ──────────────────────────────────── */}
-          <ScrollView
-            className="px-5 py-4"
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
+      onDismiss={onClose}
+      expandedHeight={0.92}
+      minimizedHeight={70}
+      minimizedContent={
+        <View className="flex-row items-center">
+          <View
+            className="w-10 h-10 rounded-full items-center justify-center mr-3"
+            style={{ backgroundColor: `${headerColor}20` }}
           >
-            {/* 1. Category selector */}
-            <SectionTitle title="Type d'incident" />
-            <View className="flex-row flex-wrap mb-1">
-              {incidentCategories.map((cat) => (
-                <CategoryCard
-                  key={cat.id}
-                  category={cat}
-                  selected={selectedCategory === cat.id}
-                  onPress={() => {
-                    setSelectedCategory(cat.id);
-                    setErrors((e) => ({ ...e, category: undefined }));
-                  }}
+            <Ionicons name="add-circle" size={20} color={headerColor} />
+          </View>
+          <View className="flex-1">
+            <Text className="text-base font-bold text-gray-800">
+              Signaler un incident
+            </Text>
+            <Text className="text-xs text-gray-500">Nouveau signalement</Text>
+          </View>
+        </View>
+      }
+    >
+      {/* ── Header ───────────────────────────────────────────── */}
+      <View style={[styles.header, { backgroundColor: headerColor }]}>
+        <View className="flex-row items-center justify-between">
+          <View className="flex-1 mr-3">
+            <Text className="text-white text-xl font-bold">
+              Signaler un incident
+            </Text>
+            <Text className="text-white/70 text-xs mt-1">
+              Aidez la communauté agricole en signalant les incidents
+            </Text>
+          </View>
+          <AnimatedPressable
+            onPress={() => {
+              haptic.light();
+              onClose();
+            }}
+            className="bg-white/20 rounded-full p-2"
+          >
+            <Ionicons name="close" size={20} color="white" />
+          </AnimatedPressable>
+        </View>
+      </View>
+
+      {/* ── Scrollable form ──────────────────────────────────── */}
+      <ScrollView
+        className="px-5 py-4"
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* 1. Category selector */}
+        <SectionTitle title="Type d'incident" />
+        <View className="flex-row flex-wrap mb-1">
+          {incidentCategories.map((cat) => (
+            <CategoryCard
+              key={cat.id}
+              category={cat}
+              selected={selectedCategory === cat.id}
+              onPress={() => {
+                setSelectedCategory(cat.id);
+                setErrors((e) => ({ ...e, category: undefined }));
+              }}
+            />
+          ))}
+        </View>
+        {errors.category && (
+          <Text className="text-red-500 text-sm mb-2">{errors.category}</Text>
+        )}
+
+        {/* Custom category input */}
+        {selectedCategory === "other" && (
+          <View className="mb-2">
+            <FormInput
+              label="Précisez le type"
+              value={customCategory}
+              onChangeText={(t) => {
+                setCustomCategory(t);
+                setErrors((e) => ({ ...e, customCategory: undefined }));
+              }}
+              placeholder="Ex: Érosion des sols"
+              maxLength={60}
+              error={errors.customCategory}
+              required
+            />
+          </View>
+        )}
+
+        {/* 2. Title */}
+        <SectionTitle title="Titre" />
+        <FormInput
+          label=""
+          value={title}
+          onChangeText={(t) => {
+            setTitle(t);
+            setErrors((e) => ({ ...e, title: undefined }));
+          }}
+          placeholder="Ex: Invasion de criquets dans le champ de mil"
+          maxLength={100}
+          error={errors.title}
+          containerClassName="mb-1"
+        />
+
+        {/* 3. Description */}
+        <SectionTitle title="Description détaillée" />
+        <FormInput
+          label=""
+          value={description}
+          onChangeText={(t) => {
+            setDescription(t);
+            setErrors((e) => ({ ...e, description: undefined }));
+          }}
+          placeholder="Décrivez l'incident, son étendue et ses effets..."
+          maxLength={500}
+          multiline={true}
+          numberOfLines={4}
+          textAlignVertical="top"
+          error={errors.description}
+          containerClassName="mb-1"
+        />
+        <Text className="text-gray-400 text-xs text-right mb-5">
+          {description.length}/500
+        </Text>
+
+        {/* 4. Severity */}
+        <SectionTitle title="Niveau de gravité" />
+        <View className="flex-row gap-2 mb-1">
+          {SEVERITY_OPTIONS.map((opt) => {
+            const isSelected = severity === opt.value;
+            return (
+              <TouchableOpacity
+                key={opt.value}
+                onPress={() => {
+                  setSeverity(opt.value);
+                  setErrors((e) => ({ ...e, severity: undefined }));
+                }}
+                className="flex-1 flex-row items-center justify-center rounded-full py-2.5 px-3"
+                style={[
+                  styles.severityPill,
+                  {
+                    backgroundColor: isSelected ? opt.color : "transparent",
+                    borderColor: opt.color,
+                  },
+                ]}
+              >
+                <Ionicons
+                  name={opt.icon}
+                  size={16}
+                  color={isSelected ? "white" : opt.color}
                 />
+                <Text
+                  className="ml-1.5 font-semibold text-sm"
+                  style={{ color: isSelected ? "white" : opt.color }}
+                >
+                  {opt.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+        {errors.severity && (
+          <Text className="text-red-500 text-sm mt-1 mb-4">
+            {errors.severity}
+          </Text>
+        )}
+        {!errors.severity && <View className="mb-5" />}
+
+        {/* 5. Location */}
+        <SectionTitle title="Localisation" />
+        <View
+          className="rounded-xl p-3.5 flex-row items-center mb-6"
+          style={{ backgroundColor: `${headerColor}15` }}
+        >
+          <View
+            className="rounded-full p-2 mr-3"
+            style={{ backgroundColor: `${headerColor}25` }}
+          >
+            <Ionicons name="location" size={18} color={headerColor} />
+          </View>
+          <View className="flex-1">
+            {initialCoordinates ? (
+              <>
+                <Text
+                  className="font-semibold text-sm"
+                  style={{ color: headerColor }}
+                >
+                  {regionName ? `Région de ${regionName}` : "Position signalée"}
+                </Text>
+                <Text
+                  className="text-xs mt-0.5"
+                  style={{ color: headerColor, opacity: 0.6 }}
+                >
+                  {formatCoord(initialCoordinates.latitude, "N", "S")},{" "}
+                  {formatCoord(initialCoordinates.longitude, "E", "W")}
+                </Text>
+              </>
+            ) : (
+              <Text className="text-gray-400 text-sm italic">
+                Aucune position sélectionnée
+              </Text>
+            )}
+          </View>
+        </View>
+
+        {/* 6. Images */}
+        <SectionTitle title="Photos (optionnel)" />
+        <View className="mb-6">
+          {/* Thumbnails row */}
+          {images.length > 0 && (
+            <View className="flex-row gap-3 mb-3">
+              {images.map((uri, index) => (
+                <View key={uri} className="relative">
+                  <Image source={{ uri }} className="w-20 h-20 rounded-xl" />
+                  <TouchableOpacity
+                    onPress={() => removeImage(index)}
+                    className="absolute -top-2 -right-2 bg-red-500 rounded-full w-6 h-6 items-center justify-center"
+                    style={styles.imageRemoveBtn}
+                  >
+                    <Ionicons name="close" size={14} color="white" />
+                  </TouchableOpacity>
+                </View>
               ))}
             </View>
-            {errors.category && (
-              <Text className="text-red-500 text-sm mb-2">
-                {errors.category}
-              </Text>
-            )}
+          )}
 
-            {/* Custom category input */}
-            {selectedCategory === "other" && (
-              <View className="mb-2">
-                <FormInput
-                  label="Précisez le type"
-                  value={customCategory}
-                  onChangeText={(t) => {
-                    setCustomCategory(t);
-                    setErrors((e) => ({ ...e, customCategory: undefined }));
-                  }}
-                  placeholder="Ex: Érosion des sols"
-                  maxLength={60}
-                  error={errors.customCategory}
-                  required
-                />
-              </View>
-            )}
-
-            {/* 2. Title */}
-            <SectionTitle title="Titre" />
-            <FormInput
-              label=""
-              value={title}
-              onChangeText={(t) => {
-                setTitle(t);
-                setErrors((e) => ({ ...e, title: undefined }));
-              }}
-              placeholder="Ex: Invasion de criquets dans le champ de mil"
-              maxLength={100}
-              error={errors.title}
-              containerClassName="mb-1"
-            />
-
-            {/* 3. Description */}
-            <SectionTitle title="Description détaillée" />
-            <FormInput
-              label=""
-              value={description}
-              onChangeText={(t) => {
-                setDescription(t);
-                setErrors((e) => ({ ...e, description: undefined }));
-              }}
-              placeholder="Décrivez l'incident, son étendue et ses effets..."
-              maxLength={500}
-              multiline={true}
-              numberOfLines={4}
-              textAlignVertical="top"
-              error={errors.description}
-              containerClassName="mb-1"
-            />
-            <Text className="text-gray-400 text-xs text-right mb-5">
-              {description.length}/500
-            </Text>
-
-            {/* 4. Severity */}
-            <SectionTitle title="Niveau de gravité" />
-            <View className="flex-row gap-2 mb-1">
-              {SEVERITY_OPTIONS.map((opt) => {
-                const isSelected = severity === opt.value;
-                return (
-                  <TouchableOpacity
-                    key={opt.value}
-                    onPress={() => {
-                      setSeverity(opt.value);
-                      setErrors((e) => ({ ...e, severity: undefined }));
-                    }}
-                    className="flex-1 flex-row items-center justify-center rounded-full py-2.5 px-3"
-                    style={[
-                      styles.severityPill,
-                      {
-                        backgroundColor: isSelected ? opt.color : "transparent",
-                        borderColor: opt.color,
-                      },
-                    ]}
-                  >
-                    <Ionicons
-                      name={opt.icon}
-                      size={16}
-                      color={isSelected ? "white" : opt.color}
-                    />
-                    <Text
-                      className="ml-1.5 font-semibold text-sm"
-                      style={{ color: isSelected ? "white" : opt.color }}
-                    >
-                      {opt.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-            {errors.severity && (
-              <Text className="text-red-500 text-sm mt-1 mb-4">
-                {errors.severity}
-              </Text>
-            )}
-            {!errors.severity && <View className="mb-5" />}
-
-            {/* 5. Location */}
-            <SectionTitle title="Localisation" />
-            <View
-              className="rounded-xl p-3.5 flex-row items-center mb-6"
-              style={{ backgroundColor: `${headerColor}15` }}
-            >
-              <View
-                className="rounded-full p-2 mr-3"
-                style={{ backgroundColor: `${headerColor}25` }}
-              >
-                <Ionicons name="location" size={18} color={headerColor} />
-              </View>
-              <View className="flex-1">
-                {initialCoordinates ? (
-                  <>
-                    <Text
-                      className="font-semibold text-sm"
-                      style={{ color: headerColor }}
-                    >
-                      {regionName
-                        ? `Région de ${regionName}`
-                        : "Position signalée"}
-                    </Text>
-                    <Text
-                      className="text-xs mt-0.5"
-                      style={{ color: headerColor, opacity: 0.6 }}
-                    >
-                      {formatCoord(initialCoordinates.latitude, "N", "S")},{" "}
-                      {formatCoord(initialCoordinates.longitude, "E", "W")}
-                    </Text>
-                  </>
-                ) : (
-                  <Text className="text-gray-400 text-sm italic">
-                    Aucune position sélectionnée
-                  </Text>
-                )}
-              </View>
-            </View>
-
-            {/* 6. Images */}
-            <SectionTitle title="Photos (optionnel)" />
-            <View className="mb-6">
-              {/* Thumbnails row */}
-              {images.length > 0 && (
-                <View className="flex-row gap-3 mb-3">
-                  {images.map((uri, index) => (
-                    <View key={uri} className="relative">
-                      <Image
-                        source={{ uri }}
-                        className="w-20 h-20 rounded-xl"
-                      />
-                      <TouchableOpacity
-                        onPress={() => removeImage(index)}
-                        className="absolute -top-2 -right-2 bg-red-500 rounded-full w-6 h-6 items-center justify-center"
-                        style={styles.imageRemoveBtn}
-                      >
-                        <Ionicons name="close" size={14} color="white" />
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                </View>
-              )}
-
-              {/* Add photos button */}
-              {images.length < 3 && (
-                <TouchableOpacity
-                  onPress={pickImages}
-                  className="flex-row items-center justify-center border border-dashed border-gray-300 rounded-xl py-3"
-                >
-                  <Ionicons name="camera" size={20} color="#9CA3AF" />
-                  <Text className="text-gray-500 text-sm ml-2 font-medium">
-                    Ajouter des photos
-                  </Text>
-                </TouchableOpacity>
-              )}
-              <Text className="text-gray-400 text-xs mt-1.5 text-right">
-                {images.length}/3 photos
-              </Text>
-            </View>
-
-            {/* 7. Submit button */}
+          {/* Add photos button */}
+          {images.length < 3 && (
             <TouchableOpacity
-              onPress={handleSubmit}
-              disabled={!isFormComplete || isSubmitting}
-              className="rounded-xl py-4 items-center mb-8"
-              style={[
-                {
-                  backgroundColor: isFormComplete ? headerColor : "#d1d5db",
-                },
-              ]}
+              onPress={pickImages}
+              className="flex-row items-center justify-center border border-dashed border-gray-300 rounded-xl py-3"
             >
-              {isSubmitting ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <Text className="text-white font-bold text-base">
-                  Signaler l&apos;incident
-                </Text>
-              )}
+              <Ionicons name="camera" size={20} color="#9CA3AF" />
+              <Text className="text-gray-500 text-sm ml-2 font-medium">
+                Ajouter des photos
+              </Text>
             </TouchableOpacity>
-
-            {/* Bottom spacer */}
-            <View className="h-4" />
-          </ScrollView>
+          )}
+          <Text className="text-gray-400 text-xs mt-1.5 text-right">
+            {images.length}/3 photos
+          </Text>
         </View>
-      </KeyboardAvoidingView>
-    </Modal>
+
+        {/* 7. Submit button */}
+        <AnimatedPressable
+          onPress={handleSubmit}
+          disabled={!isFormComplete || isSubmitting}
+          className="rounded-xl py-4 items-center mb-3"
+          style={{
+            backgroundColor: isFormComplete ? headerColor : "#d1d5db",
+          }}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text className="text-white font-bold text-base">
+              Signaler l&apos;incident
+            </Text>
+          )}
+        </AnimatedPressable>
+
+        <AnimatedPressable
+          onPress={() => {
+            haptic.light();
+            onClose();
+          }}
+          className="bg-gray-200 rounded-xl py-4 items-center mb-8"
+        >
+          <Text className="text-gray-600 font-semibold text-base">Annuler</Text>
+        </AnimatedPressable>
+
+        {/* Bottom spacer */}
+        <View className="h-4" />
+      </ScrollView>
+    </SwipeableBottomSheet>
   );
 }
 
@@ -544,18 +552,6 @@ function CategoryCard({
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.45)",
-    justifyContent: "flex-end",
-  },
-  modalContainer: {
-    backgroundColor: "#f9fafb",
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    maxHeight: "92%",
-    overflow: "hidden",
-  },
   header: {
     paddingHorizontal: 20,
     paddingTop: 20,

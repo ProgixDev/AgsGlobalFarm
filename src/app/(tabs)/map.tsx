@@ -17,6 +17,8 @@ import Mapbox, {
 } from "@rnmapbox/maps";
 import type { FeatureCollection, Feature, Polygon } from "geojson";
 import { Ionicons } from "@expo/vector-icons";
+import { haptic } from "@/utils/haptics";
+import { colors } from "@/theme/colors";
 import {
   senegalCenter,
   senegalRegions,
@@ -115,6 +117,7 @@ export default function MapScreen() {
       if (mapMode === "incidents" && mode !== "incidents") {
         setSelectedIncident(null);
       }
+      haptic.selection();
       setMapMode(mode);
     },
     [mapMode],
@@ -200,7 +203,7 @@ export default function MapScreen() {
       <View className="absolute top-12 left-4 right-4 z-10">
         {/* Senegal header row */}
         <View className="bg-white rounded-2xl px-5 py-4 shadow-2xl flex-row items-center">
-          <Ionicons name="location" size={24} color="#10b981" />
+          <Ionicons name="location" size={24} color={colors.primary} />
           <Text className="text-lg font-bold text-gray-800 ml-2">Sénégal</Text>
         </View>
 
@@ -355,7 +358,7 @@ export default function MapScreen() {
             <View style={{ alignItems: "center" }}>
               <View
                 style={{
-                  backgroundColor: "#10b981",
+                  backgroundColor: colors.primary,
                   borderRadius: 20,
                   padding: 8,
                 }}
@@ -384,7 +387,7 @@ export default function MapScreen() {
             style={styles.crosshairContainer}
             pointerEvents="none"
           >
-            <Ionicons name="locate" size={48} color="#10b981" />
+            <Ionicons name="locate" size={48} color={colors.primary} />
           </View>
 
           {/* Instruction banner */}
@@ -438,23 +441,31 @@ export default function MapScreen() {
         />
       )}
 
-      {/* Incidents mode: browser + FAB + reporter */}
+      {/* Incidents mode: browser + FAB + reporter (only one sheet at a time) */}
       {mapMode === "incidents" && (
         <>
-          <IncidentBrowser
-            selectedIncident={selectedIncident}
-            onSelectIncident={setSelectedIncident}
-            onCameraMove={handleIncidentCameraMove}
-          />
+          {!reporterVisible && (
+            <IncidentBrowser
+              selectedIncident={selectedIncident}
+              onSelectIncident={setSelectedIncident}
+              onCameraMove={handleIncidentCameraMove}
+            />
+          )}
 
-          {/* FAB — report new incident */}
-          <TouchableOpacity
-            onPress={() => setReporterVisible(true)}
-            style={styles.fab}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="add" size={28} color="white" />
-          </TouchableOpacity>
+          {/* FAB — report new incident (hidden when reporter is open) */}
+          {!reporterVisible && (
+            <TouchableOpacity
+              onPress={() => {
+                haptic.medium();
+                setSelectedIncident(null);
+                setReporterVisible(true);
+              }}
+              style={styles.fab}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="add" size={28} color="white" />
+            </TouchableOpacity>
+          )}
 
           <IncidentReporter
             visible={reporterVisible}

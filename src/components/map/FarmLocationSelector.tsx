@@ -5,10 +5,14 @@ import React, {
   forwardRef,
   useImperativeHandle,
 } from "react";
-import { View, Text, TouchableOpacity, ScrollView, Alert } from "react-native";
+import { View, Text, ScrollView, Alert } from "react-native";
 import { Camera } from "@rnmapbox/maps";
 import { Ionicons } from "@expo/vector-icons";
 import FormInput from "@/components/ui/FormInput";
+import SwipeableBottomSheet from "@/components/ui/SwipeableBottomSheet";
+import { AnimatedPressable } from "@/components/animated";
+import { haptic } from "@/utils/haptics";
+import { colors } from "@/theme/colors";
 import { findRegionAtPoint } from "@/utils/geo";
 import { useMapStore } from "@/stores/mapStore";
 import { useUserStore } from "@/stores/userStore";
@@ -176,7 +180,11 @@ export const FarmLocationSelector = forwardRef<
             {/* Location card */}
             <View className="bg-emerald-50 rounded-xl p-3.5 flex-row items-center">
               <View className="bg-emerald-100 rounded-full p-2 mr-3">
-                <Ionicons name="location" size={18} color="#059669" />
+                <Ionicons
+                  name="location"
+                  size={18}
+                  color={colors.primaryDark}
+                />
               </View>
               <View className="flex-1">
                 <Text className="text-emerald-800 font-semibold text-sm">
@@ -191,26 +199,37 @@ export const FarmLocationSelector = forwardRef<
 
             {/* Buttons */}
             <View className="flex-row mt-4 gap-3">
-              <TouchableOpacity
+              <AnimatedPressable
                 onPress={handleEdit}
+                hapticType="selection"
                 className="flex-1 bg-emerald-50 rounded-xl py-3 flex-row items-center justify-center"
-                activeOpacity={0.7}
               >
-                <Ionicons name="create-outline" size={18} color="#059669" />
+                <Ionicons
+                  name="create-outline"
+                  size={18}
+                  color={colors.primaryDark}
+                />
                 <Text className="text-emerald-700 font-semibold ml-1.5">
                   Modifier
                 </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleDelete}
+              </AnimatedPressable>
+              <AnimatedPressable
+                onPress={() => {
+                  haptic.warning();
+                  handleDelete();
+                }}
+                hapticType="none"
                 className="flex-1 bg-red-50 rounded-xl py-3 flex-row items-center justify-center"
-                activeOpacity={0.7}
               >
-                <Ionicons name="trash-outline" size={18} color="#dc2626" />
+                <Ionicons
+                  name="trash-outline"
+                  size={18}
+                  color={colors.danger}
+                />
                 <Text className="text-red-600 font-semibold ml-1.5">
                   Supprimer
                 </Text>
-              </TouchableOpacity>
+              </AnimatedPressable>
             </View>
           </View>
         </View>
@@ -219,138 +238,128 @@ export const FarmLocationSelector = forwardRef<
   }
 
   // ── State A: No farm saved, or editing ──
-  if (hidden) return null;
   return (
-    <View
-      className="absolute bottom-0 left-0 right-0"
-      style={{ maxHeight: "60%" }}
-    >
-      <View className="bg-white rounded-t-3xl shadow-2xl">
-        {/* Drag handle */}
-        <View className="items-center pt-3 pb-1">
-          <View className="w-10 h-1 rounded-full bg-gray-300" />
-        </View>
-
-        <ScrollView
-          className="px-5 pt-2 pb-4"
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Title */}
-          <View className="flex-row items-center mb-5">
-            <View className="bg-emerald-100 rounded-full p-2 mr-3">
-              <Ionicons name="location" size={20} color="#059669" />
-            </View>
-            <View>
-              <Text className="text-lg font-bold text-gray-800">
-                {isEditing
-                  ? "Modifier votre exploitation"
-                  : "Localiser votre exploitation"}
-              </Text>
-              <Text className="text-xs text-gray-400 mt-0.5">
-                Placez votre ferme sur la carte
-              </Text>
-            </View>
+    <SwipeableBottomSheet
+      visible={!hidden}
+      onDismiss={() => {
+        if (isEditing) setIsEditing(false);
+      }}
+      expandedHeight={0.55}
+      minimizedHeight={80}
+      showBackdrop={false}
+      minimizedContent={
+        <View className="flex-row items-center">
+          <View className="bg-primary/10 rounded-full p-2 mr-3">
+            <Ionicons name="location" size={18} color={colors.primary} />
           </View>
-
-          {/* Farm name */}
-          <Text className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
-            Nom de l&apos;exploitation
-          </Text>
-          <FormInput
-            label=""
-            value={farmName}
-            onChangeText={setFarmName}
-            placeholder="Ex: Ferme de Thiès"
-            containerClassName="mb-4"
-          />
-
-          {/* Location section */}
-          <Text className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
-            Emplacement
-          </Text>
-
-          {coordinates ? (
-            /* Pin placed — green confirmation card */
-            <View className="bg-emerald-50 rounded-xl p-4 mb-4 border border-emerald-200">
-              <View className="flex-row items-center">
-                <View className="bg-emerald-500 rounded-full p-1.5 mr-3">
-                  <Ionicons name="checkmark" size={16} color="white" />
-                </View>
-                <View className="flex-1">
-                  <Text className="text-emerald-800 font-semibold text-sm">
-                    {getLocationLabel(coordinates)}
-                  </Text>
-                  <Text className="text-emerald-600/70 text-xs mt-0.5">
-                    {coordinates.latitude.toFixed(4)}°N,{" "}
-                    {coordinates.longitude.toFixed(4)}°W
-                  </Text>
-                </View>
-              </View>
-              <TouchableOpacity
-                onPress={handlePlaceOnMap}
-                className="mt-3 flex-row items-center justify-center border border-emerald-300 rounded-lg py-2"
-                activeOpacity={0.7}
-              >
-                <Ionicons name="refresh" size={14} color="#059669" />
-                <Text className="text-emerald-700 font-medium text-xs ml-1.5">
-                  Repositionner
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            /* No pin yet — dashed prompt card */
-            <TouchableOpacity
-              onPress={handlePlaceOnMap}
-              className="mb-4"
-              activeOpacity={0.7}
-            >
-              <View className="border-2 border-dashed border-gray-300 rounded-xl py-6 items-center">
-                <View className="bg-gray-100 rounded-full p-3 mb-2">
-                  <Ionicons name="map-outline" size={28} color="#9ca3af" />
-                </View>
-                <Text className="text-gray-600 font-semibold text-sm">
-                  Placer sur la carte
-                </Text>
-                <Text className="text-gray-400 text-xs mt-1">
-                  Touchez pour positionner votre ferme
-                </Text>
-              </View>
-            </TouchableOpacity>
-          )}
-
-          {/* Save button */}
-          <TouchableOpacity
-            onPress={handleSave}
-            disabled={!canSave}
-            className={`rounded-xl py-4 flex-row items-center justify-center mb-4 ${
-              canSave ? "bg-emerald-500" : "bg-gray-200"
-            }`}
-            activeOpacity={0.7}
-          >
-            <Ionicons
-              name="checkmark-circle-outline"
-              size={20}
-              color={canSave ? "white" : "#9ca3af"}
-            />
-            <Text
-              className={`font-bold text-base ml-2 ${canSave ? "text-white" : "text-gray-400"}`}
-            >
-              Enregistrer
+          <View className="flex-1">
+            <Text className="text-sm font-bold text-gray-800">
+              {isEditing
+                ? "Modifier votre exploitation"
+                : "Localiser votre exploitation"}
             </Text>
-          </TouchableOpacity>
+            <Text className="text-xs text-muted-foreground">
+              Placez votre ferme sur la carte
+            </Text>
+          </View>
+        </View>
+      }
+    >
+      <ScrollView
+        className="px-5 pt-2 pb-4"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Farm name */}
+        <Text className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
+          Nom de l&apos;exploitation
+        </Text>
+        <FormInput
+          label=""
+          value={farmName}
+          onChangeText={setFarmName}
+          placeholder="Ex: Ferme de Thiès"
+          containerClassName="mb-4"
+        />
 
-          {/* Cancel edit button */}
-          {isEditing && (
-            <TouchableOpacity
-              onPress={() => setIsEditing(false)}
-              className="rounded-xl py-3 flex-row items-center justify-center mb-4"
-              activeOpacity={0.7}
+        {/* Location section */}
+        <Text className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
+          Emplacement
+        </Text>
+
+        {coordinates ? (
+          /* Pin placed — green confirmation card */
+          <View className="bg-emerald-50 rounded-xl p-4 mb-4 border border-emerald-200">
+            <View className="flex-row items-center">
+              <View className="bg-emerald-500 rounded-full p-1.5 mr-3">
+                <Ionicons name="checkmark" size={16} color="white" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-emerald-800 font-semibold text-sm">
+                  {getLocationLabel(coordinates)}
+                </Text>
+                <Text className="text-emerald-600/70 text-xs mt-0.5">
+                  {coordinates.latitude.toFixed(4)}°N,{" "}
+                  {coordinates.longitude.toFixed(4)}°W
+                </Text>
+              </View>
+            </View>
+            <AnimatedPressable
+              onPress={handlePlaceOnMap}
+              className="mt-3 flex-row items-center justify-center border border-emerald-300 rounded-lg py-2"
             >
-              <Text className="text-gray-500 font-semibold">Annuler</Text>
-            </TouchableOpacity>
-          )}
-        </ScrollView>
-      </View>
-    </View>
+              <Ionicons name="refresh" size={14} color={colors.primaryDark} />
+              <Text className="text-emerald-700 font-medium text-xs ml-1.5">
+                Repositionner
+              </Text>
+            </AnimatedPressable>
+          </View>
+        ) : (
+          /* No pin yet — dashed prompt card */
+          <AnimatedPressable onPress={handlePlaceOnMap} className="mb-4">
+            <View className="border-2 border-dashed border-gray-300 rounded-xl py-6 items-center">
+              <View className="bg-gray-100 rounded-full p-3 mb-2">
+                <Ionicons name="map-outline" size={28} color="#9ca3af" />
+              </View>
+              <Text className="text-gray-600 font-semibold text-sm">
+                Placer sur la carte
+              </Text>
+              <Text className="text-gray-400 text-xs mt-1">
+                Touchez pour positionner votre ferme
+              </Text>
+            </View>
+          </AnimatedPressable>
+        )}
+
+        {/* Save button */}
+        <AnimatedPressable
+          onPress={handleSave}
+          disabled={!canSave}
+          className={`rounded-xl py-4 flex-row items-center justify-center mb-4 ${
+            canSave ? "bg-emerald-500" : "bg-gray-200"
+          }`}
+        >
+          <Ionicons
+            name="checkmark-circle-outline"
+            size={20}
+            color={canSave ? "white" : "#9ca3af"}
+          />
+          <Text
+            className={`font-bold text-base ml-2 ${canSave ? "text-white" : "text-gray-400"}`}
+          >
+            Enregistrer
+          </Text>
+        </AnimatedPressable>
+
+        {/* Cancel edit button */}
+        {isEditing && (
+          <AnimatedPressable
+            onPress={() => setIsEditing(false)}
+            className="rounded-xl py-3 flex-row items-center justify-center mb-4"
+          >
+            <Text className="text-gray-500 font-semibold">Annuler</Text>
+          </AnimatedPressable>
+        )}
+      </ScrollView>
+    </SwipeableBottomSheet>
   );
 });

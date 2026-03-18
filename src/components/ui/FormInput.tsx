@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, TextInput, TextInputProps } from "react-native";
+import { colors } from "@/theme/colors";
 
 interface FormInputProps extends TextInputProps {
   label: string;
@@ -17,18 +18,18 @@ export default function FormInput({
 }: FormInputProps) {
   return (
     <View className={`mb-4 ${containerClassName}`}>
-      <Text className="text-gray-700 font-medium mb-2">
+      <Text className="text-sm font-medium text-foreground mb-2">
         {label}
-        {required && <Text className="text-red-500"> *</Text>}
+        {required && <Text className="text-danger"> *</Text>}
       </Text>
       <TextInput
-        className={`bg-white border rounded-lg px-4 py-3 text-base ${
-          error ? "border-red-500" : "border-gray-300"
+        className={`bg-gray-50 border rounded-xl px-4 py-3 text-base text-foreground ${
+          error ? "border-danger" : "border-border"
         }`}
-        placeholderTextColor="#9CA3AF"
+        placeholderTextColor={colors.placeholder}
         {...props}
       />
-      {error && <Text className="text-red-500 text-sm mt-1">{error}</Text>}
+      {error && <Text className="text-danger text-xs mt-1">{error}</Text>}
     </View>
   );
 }

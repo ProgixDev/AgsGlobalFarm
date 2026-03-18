@@ -52,7 +52,7 @@ export default function LessonViewerScreen() {
           Leçon introuvable
         </Text>
         <TouchableOpacity
-          className="bg-purple-600 px-6 py-3 rounded-lg mt-6"
+          className="bg-primary px-6 py-3 rounded-lg mt-6"
           onPress={() => router.back()}
         >
           <Text className="text-white font-semibold">Retour</Text>
@@ -183,9 +183,9 @@ export default function LessonViewerScreen() {
 
     return (
       <View className="px-6 pb-8">
-        <View className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-6">
+        <View className="bg-primary/5 border border-primary/20 rounded-xl p-4 mb-6">
           <View className="flex-row items-center mb-2">
-            <Ionicons name="help-circle" size={24} color="#7c3aed" />
+            <Ionicons name="help-circle" size={24} color="#16a34a" />
             <Text className="text-lg font-bold text-gray-800 ml-2">
               {lesson.quiz.title}
             </Text>
@@ -219,7 +219,7 @@ export default function LessonViewerScreen() {
                       : showWrong
                         ? "bg-red-50 border-red-500"
                         : isSelected
-                          ? "bg-purple-50 border-purple-500"
+                          ? "bg-primary/5 border-primary"
                           : "bg-white border-gray-200"
                   }`}
                   onPress={() =>
@@ -235,7 +235,7 @@ export default function LessonViewerScreen() {
                           : showWrong
                             ? "border-red-500 bg-red-500"
                             : isSelected
-                              ? "border-purple-500 bg-purple-500"
+                              ? "border-primary bg-primary/50"
                               : "border-gray-300"
                       }`}
                     >
@@ -260,7 +260,7 @@ export default function LessonViewerScreen() {
                           : showWrong
                             ? "text-red-700 font-semibold"
                             : isSelected
-                              ? "text-purple-700 font-semibold"
+                              ? "text-primary font-semibold"
                               : "text-gray-700"
                       }`}
                     >
@@ -324,7 +324,7 @@ export default function LessonViewerScreen() {
           <TouchableOpacity
             className={`py-4 rounded-xl items-center ${
               Object.keys(quizAnswers).length === lesson.quiz.questions.length
-                ? "bg-purple-600"
+                ? "bg-primary"
                 : "bg-gray-300"
             }`}
             onPress={handleSubmitQuiz}
@@ -340,7 +340,7 @@ export default function LessonViewerScreen() {
           <View className="space-y-3">
             {quizScore >= lesson.quiz.passingScore ? (
               <TouchableOpacity
-                className="bg-purple-600 py-4 rounded-xl items-center"
+                className="bg-primary py-4 rounded-xl items-center"
                 onPress={() => router.back()}
               >
                 <Text className="text-white font-bold text-base">
@@ -350,7 +350,7 @@ export default function LessonViewerScreen() {
             ) : (
               <>
                 <TouchableOpacity
-                  className="bg-purple-600 py-4 rounded-xl items-center"
+                  className="bg-primary py-4 rounded-xl items-center"
                   onPress={() => {
                     setQuizSubmitted(false);
                     setQuizAnswers({});
@@ -380,7 +380,7 @@ export default function LessonViewerScreen() {
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
-      <View className="bg-purple-600 pt-12 pb-4 px-6">
+      <View className="bg-primary pt-12 pb-4 px-6">
         <TouchableOpacity
           className="flex-row items-center mb-4"
           onPress={() => router.back()}
@@ -389,7 +389,7 @@ export default function LessonViewerScreen() {
           <Text className="text-white text-base ml-2">Retour au cours</Text>
         </TouchableOpacity>
         <Text className="text-white text-xl font-bold">{lesson.title}</Text>
-        <Text className="text-purple-100 text-sm mt-1">{course.title}</Text>
+        <Text className="text-white/70 text-sm mt-1">{course.title}</Text>
       </View>
 
       <ScrollView className="flex-1">
@@ -398,8 +398,8 @@ export default function LessonViewerScreen() {
             {/* Lesson Description */}
             <View className="px-6 py-6">
               <View className="flex-row items-center mb-4">
-                <View className="bg-purple-100 rounded-full p-2 mr-3">
-                  <Ionicons name="book" size={20} color="#7c3aed" />
+                <View className="bg-primary/10 rounded-full p-2 mr-3">
+                  <Ionicons name="book" size={20} color="#16a34a" />
                 </View>
                 <View className="flex-1">
                   <Text className="text-base text-gray-800 font-semibold">
@@ -435,7 +435,7 @@ export default function LessonViewerScreen() {
             <View className="px-6 pb-8">
               {!isCompleted && (
                 <TouchableOpacity
-                  className="bg-purple-600 py-4 rounded-xl items-center shadow-lg"
+                  className="bg-primary py-4 rounded-xl items-center shadow-lg"
                   onPress={handleCompleteLesson}
                 >
                   <Text className="text-white font-bold text-base">

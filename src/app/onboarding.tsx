@@ -7,12 +7,12 @@ import {
   Dimensions,
   NativeSyntheticEvent,
   NativeScrollEvent,
-  Animated,
   TouchableOpacity,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Button from "@/components/ui/button";
+import Button from "@/components/ui/Button";
 import { router } from "expo-router";
+import { haptic } from "@/utils/haptics";
 
 const { width, height } = Dimensions.get("window");
 
@@ -64,40 +64,19 @@ const slides: Slide[] = [
 export default function Onboarding() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
-  const fadeAnim = useRef(new Animated.Value(1)).current;
-  const slideAnim = useRef(new Animated.Value(0)).current;
-
-  React.useEffect(() => {
-    // Reset values first
-    fadeAnim.setValue(0);
-    slideAnim.setValue(30);
-
-    // Then animate
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        friction: 8,
-        tension: 40,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [currentIndex, fadeAnim, slideAnim]);
-
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const slideIndex = Math.round(event.nativeEvent.contentOffset.x / width);
-    setCurrentIndex(slideIndex);
+    if (slideIndex !== currentIndex) {
+      haptic.selection();
+      setCurrentIndex(slideIndex);
+    }
   };
 
   const goToNext = () => {
+    haptic.light();
     if (currentIndex < slides.length - 1) {
       const nextIndex = currentIndex + 1;
       scrollViewRef.current?.scrollTo({ x: nextIndex * width, animated: true });
-      setCurrentIndex(nextIndex);
     } else {
       completeOnboarding();
     }
@@ -107,7 +86,6 @@ export default function Onboarding() {
     if (currentIndex > 0) {
       const prevIndex = currentIndex - 1;
       scrollViewRef.current?.scrollTo({ x: prevIndex * width, animated: true });
-      setCurrentIndex(prevIndex);
     }
   };
 
@@ -149,15 +127,7 @@ export default function Onboarding() {
             className="flex-1 justify-center items-center px-6 py-16"
             style={{ width }}
           >
-            <Animated.View
-              style={{
-                opacity: currentIndex === index ? fadeAnim : 1,
-                transform: [
-                  { translateY: currentIndex === index ? slideAnim : 0 },
-                ],
-              }}
-              className="items-center w-full"
-            >
+            <View className="items-center w-full">
               {/* Bento-grid style image container */}
               <View className="mb-12 relative" style={{ height: height * 0.4 }}>
                 {index === 0 ? (
@@ -249,7 +219,7 @@ export default function Onboarding() {
                   {slide.description}
                 </Text>
               </View>
-            </Animated.View>
+            </View>
           </View>
         ))}
       </ScrollView>
@@ -270,7 +240,7 @@ export default function Onboarding() {
               }}
               activeOpacity={0.7}
             >
-              <Animated.View
+              <View
                 style={{
                   backgroundColor:
                     index === currentIndex ? slide.accentColor : "#00000020",

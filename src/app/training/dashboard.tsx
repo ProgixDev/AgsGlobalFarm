@@ -1,8 +1,11 @@
 import React from "react";
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useTrainingStore } from "@/stores/trainingStore";
+import ScreenHeader from "@/components/ui/ScreenHeader";
+import { AnimatedPressable, FadeInView } from "@/components/animated";
+import { colors } from "@/theme/colors";
 
 export default function StudentDashboardScreen() {
   const router = useRouter();
@@ -49,49 +52,34 @@ export default function StudentDashboardScreen() {
   return (
     <ScrollView className="flex-1 bg-gray-50">
       {/* Header */}
-      <View className="bg-purple-600 pt-12 pb-8 px-6">
-        <TouchableOpacity
-          className="flex-row items-center mb-4"
-          onPress={() => router.back()}
-        >
-          <Ionicons name="arrow-back" size={24} color="white" />
-          <Text className="text-white text-base ml-2">Retour</Text>
-        </TouchableOpacity>
-        <View className="flex-row items-center">
-          <View className="bg-white/20 p-3 rounded-full mr-4">
-            <Ionicons name="person" size={32} color="white" />
-          </View>
-          <View className="flex-1">
-            <Text className="text-white text-2xl font-bold">
-              Mon Tableau de Bord
-            </Text>
-            <Text className="text-purple-100 text-sm mt-1">
-              Vue d&apos;ensemble de votre progression
-            </Text>
-          </View>
-        </View>
-      </View>
+      <ScreenHeader
+        title="Mon Tableau de Bord"
+        subtitle="Vue d'ensemble de votre progression"
+        showBack
+      />
 
       {/* Stats Overview */}
-      <View className="px-6 mt-6">
-        <Text className="text-xl font-bold text-gray-800 mb-4">
+      <FadeInView className="px-6 mt-6">
+        <Text className="text-lg font-bold text-gray-800 mb-4">
           Statistiques
         </Text>
 
         <View className="flex-row flex-wrap gap-3 mb-6">
-          <View className="bg-white rounded-xl p-4 shadow-sm flex-1 min-w-[45%]">
+          <View className="bg-white rounded-2xl p-4 shadow-sm flex-1 min-w-[45%]">
             <View className="flex-row items-center justify-between mb-2">
-              <View className="bg-purple-100 p-2 rounded-lg">
-                <Ionicons name="book" size={24} color="#7c3aed" />
+              <View className="bg-primary/10 p-2 rounded-lg">
+                <Ionicons name="book" size={24} color={colors.primary} />
               </View>
-              <Text className="text-3xl font-bold text-purple-600">
+              <Text className="text-3xl font-bold text-primary">
                 {enrolledCourses.length}
               </Text>
             </View>
-            <Text className="text-sm text-gray-600">Cours Inscrits</Text>
+            <Text className="text-sm text-muted-foreground">
+              Cours Inscrits
+            </Text>
           </View>
 
-          <View className="bg-white rounded-xl p-4 shadow-sm flex-1 min-w-[45%]">
+          <View className="bg-white rounded-2xl p-4 shadow-sm flex-1 min-w-[45%]">
             <View className="flex-row items-center justify-between mb-2">
               <View className="bg-green-100 p-2 rounded-lg">
                 <Ionicons name="checkmark-circle" size={24} color="#16a34a" />
@@ -100,10 +88,12 @@ export default function StudentDashboardScreen() {
                 {totalLessonsCompleted}
               </Text>
             </View>
-            <Text className="text-sm text-gray-600">Leçons Complétées</Text>
+            <Text className="text-sm text-muted-foreground">
+              Leçons Complétées
+            </Text>
           </View>
 
-          <View className="bg-white rounded-xl p-4 shadow-sm flex-1 min-w-[45%]">
+          <View className="bg-white rounded-2xl p-4 shadow-sm flex-1 min-w-[45%]">
             <View className="flex-row items-center justify-between mb-2">
               <View className="bg-blue-100 p-2 rounded-lg">
                 <Ionicons name="time" size={24} color="#2563eb" />
@@ -112,10 +102,12 @@ export default function StudentDashboardScreen() {
                 {Math.round(totalHoursLearned)}h
               </Text>
             </View>
-            <Text className="text-sm text-gray-600">Heures d&apos;Étude</Text>
+            <Text className="text-sm text-muted-foreground">
+              Heures d&apos;Étude
+            </Text>
           </View>
 
-          <View className="bg-white rounded-xl p-4 shadow-sm flex-1 min-w-[45%]">
+          <View className="bg-white rounded-2xl p-4 shadow-sm flex-1 min-w-[45%]">
             <View className="flex-row items-center justify-between mb-2">
               <View className="bg-yellow-100 p-2 rounded-lg">
                 <Ionicons name="ribbon" size={24} color="#d97706" />
@@ -124,12 +116,12 @@ export default function StudentDashboardScreen() {
                 {certificates.length}
               </Text>
             </View>
-            <Text className="text-sm text-gray-600">Certificats</Text>
+            <Text className="text-sm text-muted-foreground">Certificats</Text>
           </View>
         </View>
 
         {/* Average Progress */}
-        <View className="bg-white rounded-xl p-5 shadow-sm mb-6">
+        <View className="bg-white rounded-2xl p-5 shadow-sm mb-6">
           <Text className="text-base font-bold text-gray-800 mb-3">
             Progression Moyenne
           </Text>
@@ -137,12 +129,12 @@ export default function StudentDashboardScreen() {
             <View className="flex-1 mr-4">
               <View className="bg-gray-200 h-3 rounded-full">
                 <View
-                  className="bg-purple-600 h-3 rounded-full"
+                  className="bg-primary h-3 rounded-full"
                   style={{ width: `${averageProgress}%` }}
                 />
               </View>
             </View>
-            <Text className="text-2xl font-bold text-purple-600">
+            <Text className="text-2xl font-bold text-primary">
               {Math.round(averageProgress)}%
             </Text>
           </View>
@@ -150,7 +142,7 @@ export default function StudentDashboardScreen() {
 
         {/* Quiz Performance */}
         {getAverageQuizScore() > 0 && (
-          <View className="bg-white rounded-xl p-5 shadow-sm mb-6">
+          <View className="bg-white rounded-2xl p-5 shadow-sm mb-6">
             <View className="flex-row items-center justify-between mb-3">
               <Text className="text-base font-bold text-gray-800">
                 Performance aux Quiz
@@ -161,17 +153,17 @@ export default function StudentDashboardScreen() {
                 </Text>
               </View>
             </View>
-            <Text className="text-sm text-gray-600">
+            <Text className="text-sm text-muted-foreground">
               Score moyen sur tous les quiz complétés
             </Text>
           </View>
         )}
-      </View>
+      </FadeInView>
 
       {/* Enrolled Courses Progress */}
       {enrolledCourses.length > 0 && (
-        <View className="px-6 mb-6">
-          <Text className="text-xl font-bold text-gray-800 mb-4">
+        <FadeInView className="px-6 mb-6" delay={100}>
+          <Text className="text-lg font-bold text-gray-800 mb-4">
             Mes Cours en Cours
           </Text>
 
@@ -181,9 +173,9 @@ export default function StudentDashboardScreen() {
             if (!course || !progress) return null;
 
             return (
-              <TouchableOpacity
+              <AnimatedPressable
                 key={course.id}
-                className="bg-white rounded-xl p-4 mb-3 shadow-sm"
+                className="bg-white rounded-2xl p-4 mb-4 shadow-sm"
                 onPress={() => router.push(`/training/${course.id}`)}
               >
                 <View className="flex-row items-start justify-between mb-3">
@@ -191,33 +183,33 @@ export default function StudentDashboardScreen() {
                     <Text className="text-base font-bold text-gray-800 mb-1">
                       {course.title}
                     </Text>
-                    <Text className="text-sm text-gray-600">
+                    <Text className="text-sm text-muted-foreground">
                       {progress.completedLessons} / {progress.totalLessons}{" "}
                       leçons
                     </Text>
                   </View>
-                  <View className="bg-purple-100 px-3 py-1 rounded-full">
-                    <Text className="text-purple-700 font-bold text-sm">
+                  <View className="bg-primary/10 px-3 py-1 rounded-full">
+                    <Text className="text-primary font-bold text-sm">
                       {progress.progressPercentage}%
                     </Text>
                   </View>
                 </View>
                 <View className="bg-gray-200 h-2 rounded-full">
                   <View
-                    className="bg-purple-600 h-2 rounded-full"
+                    className="bg-primary h-2 rounded-full"
                     style={{ width: `${progress.progressPercentage}%` }}
                   />
                 </View>
-              </TouchableOpacity>
+              </AnimatedPressable>
             );
           })}
-        </View>
+        </FadeInView>
       )}
 
       {/* Certificates */}
       {certificates.length > 0 && (
         <View className="px-6 mb-6">
-          <Text className="text-xl font-bold text-gray-800 mb-4">
+          <Text className="text-lg font-bold text-gray-800 mb-4">
             Mes Certificats
           </Text>
 
@@ -228,7 +220,7 @@ export default function StudentDashboardScreen() {
             return (
               <View
                 key={cert.id}
-                className="bg-gradient-to-r from-yellow-50 to-yellow-100 border border-yellow-200 rounded-xl p-4 mb-3"
+                className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 mb-4"
               >
                 <View className="flex-row items-start">
                   <View className="bg-yellow-200 p-3 rounded-full mr-4">
@@ -238,13 +230,17 @@ export default function StudentDashboardScreen() {
                     <Text className="text-base font-bold text-gray-800 mb-1">
                       {course.title}
                     </Text>
-                    <Text className="text-sm text-gray-600 mb-2">
+                    <Text className="text-sm text-muted-foreground mb-2">
                       Délivré le{" "}
                       {new Date(cert.issuedAt).toLocaleDateString("fr-FR")}
                     </Text>
                     <View className="flex-row items-center">
-                      <Ionicons name="key-outline" size={14} color="#6b7280" />
-                      <Text className="text-xs text-gray-500 ml-1">
+                      <Ionicons
+                        name="key-outline"
+                        size={14}
+                        color={colors.muted}
+                      />
+                      <Text className="text-xs text-muted-foreground ml-1">
                         {cert.verificationCode}
                       </Text>
                     </View>
@@ -258,31 +254,35 @@ export default function StudentDashboardScreen() {
 
       {/* Quick Actions */}
       <View className="px-6 mb-6">
-        <Text className="text-xl font-bold text-gray-800 mb-4">
+        <Text className="text-lg font-bold text-gray-800 mb-4">
           Actions Rapides
         </Text>
 
-        <View className="space-y-3">
-          <TouchableOpacity
-            className="bg-white rounded-xl p-4 shadow-sm flex-row items-center"
+        <View className="gap-3">
+          <AnimatedPressable
+            className="bg-white rounded-2xl p-4 shadow-sm flex-row items-center"
             onPress={() => router.push("/training")}
           >
-            <View className="bg-purple-100 p-3 rounded-full mr-4">
-              <Ionicons name="search" size={24} color="#7c3aed" />
+            <View className="bg-primary/10 p-3 rounded-full mr-4">
+              <Ionicons name="search" size={24} color={colors.primary} />
             </View>
             <View className="flex-1">
               <Text className="text-base font-semibold text-gray-800">
                 Explorer les Cours
               </Text>
-              <Text className="text-sm text-gray-600">
+              <Text className="text-sm text-muted-foreground">
                 Découvrir de nouveaux cours
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={24} color="#9ca3af" />
-          </TouchableOpacity>
+            <Ionicons
+              name="chevron-forward"
+              size={24}
+              color={colors.mutedLight}
+            />
+          </AnimatedPressable>
 
           {bookmarks.length > 0 && (
-            <TouchableOpacity className="bg-white rounded-xl p-4 shadow-sm flex-row items-center">
+            <AnimatedPressable className="bg-white rounded-2xl p-4 shadow-sm flex-row items-center">
               <View className="bg-blue-100 p-3 rounded-full mr-4">
                 <Ionicons name="bookmark" size={24} color="#2563eb" />
               </View>
@@ -290,16 +290,20 @@ export default function StudentDashboardScreen() {
                 <Text className="text-base font-semibold text-gray-800">
                   Mes Favoris
                 </Text>
-                <Text className="text-sm text-gray-600">
+                <Text className="text-sm text-muted-foreground">
                   {bookmarks.length} éléments sauvegardés
                 </Text>
               </View>
-              <Ionicons name="chevron-forward" size={24} color="#9ca3af" />
-            </TouchableOpacity>
+              <Ionicons
+                name="chevron-forward"
+                size={24}
+                color={colors.mutedLight}
+              />
+            </AnimatedPressable>
           )}
 
           {notes.length > 0 && (
-            <TouchableOpacity className="bg-white rounded-xl p-4 shadow-sm flex-row items-center">
+            <AnimatedPressable className="bg-white rounded-2xl p-4 shadow-sm flex-row items-center">
               <View className="bg-green-100 p-3 rounded-full mr-4">
                 <Ionicons name="document-text" size={24} color="#16a34a" />
               </View>
@@ -307,12 +311,16 @@ export default function StudentDashboardScreen() {
                 <Text className="text-base font-semibold text-gray-800">
                   Mes Notes
                 </Text>
-                <Text className="text-sm text-gray-600">
+                <Text className="text-sm text-muted-foreground">
                   {notes.length} notes enregistrées
                 </Text>
               </View>
-              <Ionicons name="chevron-forward" size={24} color="#9ca3af" />
-            </TouchableOpacity>
+              <Ionicons
+                name="chevron-forward"
+                size={24}
+                color={colors.mutedLight}
+              />
+            </AnimatedPressable>
           )}
         </View>
       </View>
@@ -320,24 +328,28 @@ export default function StudentDashboardScreen() {
       {/* Empty State */}
       {enrolledCourses.length === 0 && (
         <View className="px-6 py-12">
-          <View className="bg-white rounded-xl p-8 items-center shadow-sm">
+          <View className="bg-white rounded-2xl p-8 items-center shadow-sm">
             <View className="bg-gray-100 p-4 rounded-full mb-4">
-              <Ionicons name="school-outline" size={48} color="#9ca3af" />
+              <Ionicons
+                name="school-outline"
+                size={48}
+                color={colors.mutedLight}
+              />
             </View>
             <Text className="text-lg font-bold text-gray-800 mb-2 text-center">
               Commencez Votre Parcours
             </Text>
-            <Text className="text-sm text-gray-600 mb-6 text-center">
+            <Text className="text-sm text-muted-foreground mb-6 text-center">
               Inscrivez-vous à un cours pour commencer à apprendre
             </Text>
-            <TouchableOpacity
-              className="bg-purple-600 px-6 py-3 rounded-lg"
+            <AnimatedPressable
+              className="bg-primary px-6 py-3 rounded-xl"
               onPress={() => router.push("/training")}
             >
               <Text className="text-white font-semibold">
                 Explorer les Cours
               </Text>
-            </TouchableOpacity>
+            </AnimatedPressable>
           </View>
         </View>
       )}
