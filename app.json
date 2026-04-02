@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "ags-mobile",
+    "name": "AGS Mobile",
     "slug": "ags-mobile",
-    "version": "1.0.0",
+    "version": "0.2.0",
     "orientation": "portrait",
     "icon": "./assets/images/Logo.png",
     "scheme": "agsmobile",
