@@ -62,10 +62,10 @@ export default function PersonalInfoScreen() {
             />
           </View>
           <View className="flex-1">
-            <Text className="text-xs text-muted-foreground mb-0.5">
+            <Text className="text-xs font-sans text-muted-foreground mb-0.5">
               Type de compte
             </Text>
-            <Text className="text-sm font-semibold text-foreground">
+            <Text className="text-sm font-sans-semibold text-foreground">
               {userTypeLabel[currentUser?.userType ?? ""] ?? "—"}
             </Text>
           </View>
@@ -74,7 +74,9 @@ export default function PersonalInfoScreen() {
         {/* Form fields */}
         <View className="bg-white rounded-2xl shadow-sm overflow-hidden">
           <View className="px-4 pt-4 pb-3 border-b border-gray-100">
-            <Text className="text-xs text-muted-foreground mb-1">Prénom</Text>
+            <Text className="text-xs font-sans text-muted-foreground mb-1">
+              Prénom
+            </Text>
             <TextInput
               className="text-base text-foreground"
               value={formData.firstName}
@@ -88,7 +90,7 @@ export default function PersonalInfoScreen() {
           </View>
 
           <View className="px-4 pt-4 pb-3 border-b border-gray-100">
-            <Text className="text-xs text-muted-foreground mb-1">
+            <Text className="text-xs font-sans text-muted-foreground mb-1">
               Nom de famille
             </Text>
             <TextInput
@@ -104,7 +106,9 @@ export default function PersonalInfoScreen() {
           </View>
 
           <View className="px-4 pt-4 pb-3 border-b border-gray-100">
-            <Text className="text-xs text-muted-foreground mb-1">Email</Text>
+            <Text className="text-xs font-sans text-muted-foreground mb-1">
+              Email
+            </Text>
             <TextInput
               className="text-base text-foreground"
               value={formData.email}
@@ -117,11 +121,13 @@ export default function PersonalInfoScreen() {
           </View>
 
           <View className="px-4 pt-4 pb-3 border-b border-gray-100">
-            <Text className="text-xs text-muted-foreground mb-1">
+            <Text className="text-xs font-sans text-muted-foreground mb-1">
               Téléphone
             </Text>
             <View className="flex-row items-center">
-              <Text className="text-base text-muted-foreground mr-2">+221</Text>
+              <Text className="text-base font-sans text-muted-foreground mr-2">
+                +221
+              </Text>
               <TextInput
                 className="flex-1 text-base text-foreground"
                 value={formData.phone}
@@ -136,8 +142,10 @@ export default function PersonalInfoScreen() {
           </View>
 
           <View className="px-4 pt-4 pb-3">
-            <Text className="text-xs text-muted-foreground mb-1">Genre</Text>
-            <Text className="text-base text-foreground">
+            <Text className="text-xs font-sans text-muted-foreground mb-1">
+              Genre
+            </Text>
+            <Text className="text-base font-sans text-foreground">
               {genderLabel[formData.gender] ?? "—"}
             </Text>
           </View>

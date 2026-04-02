@@ -28,9 +28,9 @@ export default function FormPicker({
 }: FormPickerProps) {
   return (
     <View className={`mb-4 ${containerClassName}`}>
-      <Text className="text-sm font-medium text-foreground mb-2">
+      <Text className="text-sm font-sans-medium text-foreground mb-2">
         {label}
-        {required && <Text className="text-danger"> *</Text>}
+        {required && <Text className="text-danger font-sans"> *</Text>}
       </Text>
       <View
         className={`bg-gray-50 border rounded-xl overflow-hidden ${
@@ -59,7 +59,9 @@ export default function FormPicker({
           ))}
         </Picker>
       </View>
-      {error && <Text className="text-danger text-xs mt-1">{error}</Text>}
+      {error && (
+        <Text className="text-danger text-xs font-sans mt-1">{error}</Text>
+      )}
     </View>
   );
 }

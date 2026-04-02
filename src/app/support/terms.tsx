@@ -103,7 +103,7 @@ export default function TermsScreen() {
             color={colors.primary}
             style={{ marginTop: 1 }}
           />
-          <Text className="text-sm text-muted-foreground ml-2 flex-1 leading-relaxed">
+          <Text className="text-sm font-sans text-muted-foreground ml-2 flex-1 leading-relaxed">
             Veuillez lire attentivement les présentes conditions avant
             d&apos;utiliser AGS Mobile. En utilisant l&apos;application, vous
             acceptez l&apos;intégralité de ces conditions.
@@ -125,11 +125,11 @@ export default function TermsScreen() {
               >
                 <View className="flex-row items-center px-4 py-4">
                   <View className="w-7 h-7 rounded-full bg-primary/10 items-center justify-center mr-3">
-                    <Text className="text-xs font-bold text-primary">
+                    <Text className="text-xs font-sans-bold text-primary">
                       {section.id}
                     </Text>
                   </View>
-                  <Text className="flex-1 text-sm font-semibold text-foreground pr-2">
+                  <Text className="flex-1 text-sm font-sans-semibold text-foreground pr-2">
                     {section.title}
                   </Text>
                   <Ionicons
@@ -141,7 +141,7 @@ export default function TermsScreen() {
                 {isOpen && (
                   <View className="px-4 pb-4">
                     <View className="h-px bg-gray-100 mb-3" />
-                    <Text className="text-sm text-muted-foreground leading-relaxed">
+                    <Text className="text-sm font-sans text-muted-foreground leading-relaxed">
                       {section.content}
                     </Text>
                   </View>
@@ -157,10 +157,10 @@ export default function TermsScreen() {
             <Ionicons name="mail-outline" size={20} color={colors.primary} />
           </View>
           <View className="flex-1">
-            <Text className="text-sm font-semibold text-foreground">
+            <Text className="text-sm font-sans-semibold text-foreground">
               Des questions ?
             </Text>
-            <Text className="text-xs text-muted-foreground mt-0.5">
+            <Text className="text-xs font-sans text-muted-foreground mt-0.5">
               contact@agsmobile.sn
             </Text>
           </View>

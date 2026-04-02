@@ -1,5 +1,6 @@
 import type { ComponentProps } from "react";
 import type { Ionicons } from "@expo/vector-icons";
+import { colors } from "@/theme/colors";
 
 export interface IncidentCategoryConfig {
   id: IncidentCategory;
@@ -14,7 +15,7 @@ export const incidentCategories: IncidentCategoryConfig[] = [
     id: "crop_disease",
     label: "Maladie des cultures",
     icon: "bug",
-    color: "#ef4444",
+    color: colors.danger,
     description:
       "Maladies fongiques, bactériennes ou virales affectant les cultures",
   },
@@ -22,7 +23,7 @@ export const incidentCategories: IncidentCategoryConfig[] = [
     id: "pests",
     label: "Parasites & Ravageurs",
     icon: "warning",
-    color: "#f97316",
+    color: colors.warning,
     description:
       "Insectes nuisibles, rongeurs et autres ravageurs des cultures",
   },
@@ -30,35 +31,35 @@ export const incidentCategories: IncidentCategoryConfig[] = [
     id: "fire",
     label: "Incendie",
     icon: "flame",
-    color: "#dc2626",
+    color: colors.dangerDark,
     description: "Feux de brousse ou incendies affectant les zones agricoles",
   },
   {
     id: "flood",
     label: "Inondation",
     icon: "water",
-    color: "#3b82f6",
+    color: colors.info,
     description: "Inondations et montée des eaux dans les zones cultivées",
   },
   {
     id: "drought",
     label: "Sécheresse",
     icon: "sunny",
-    color: "#eab308",
+    color: colors.caution,
     description: "Périodes de sécheresse prolongée affectant les récoltes",
   },
   {
     id: "locusts",
     label: "Invasion acridienne",
     icon: "cellular",
-    color: "#a855f7",
+    color: colors.purple,
     description: "Essaims de criquets et sauteriaux dévastant les cultures",
   },
   {
     id: "storm",
     label: "Tempête / Vent violent",
     icon: "thunderstorm",
-    color: "#6366f1",
+    color: colors.indigo,
     description:
       "Tempêtes, vents violents et phénomènes météorologiques extrêmes",
   },
@@ -66,7 +67,7 @@ export const incidentCategories: IncidentCategoryConfig[] = [
     id: "other",
     label: "Autre",
     icon: "alert-circle",
-    color: "#6b7280",
+    color: colors.muted,
     description: "Autres incidents agricoles non classifiés",
   },
 ];

@@ -5,7 +5,25 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Geist", "system-ui", "sans-serif"],
+        sans: ["Figtree-Regular"],
+        "sans-medium": ["Figtree-Medium"],
+        "sans-semibold": ["Figtree-SemiBold"],
+        "sans-bold": ["Figtree-Bold"],
+        heading: ["DMSans-Bold"],
+        "heading-medium": ["DMSans-Medium"],
+        "heading-semibold": ["DMSans-SemiBold"],
+        "heading-bold": ["DMSans-Bold"],
+        "heading-extrabold": ["DMSans-ExtraBold"],
+      },
+      fontSize: {
+        xs: ["12px", { lineHeight: "16px" }],
+        sm: ["14px", { lineHeight: "20px" }],
+        base: ["16px", { lineHeight: "26px" }],
+        lg: ["18px", { lineHeight: "28px" }],
+        xl: ["20px", { lineHeight: "28px" }],
+        "2xl": ["24px", { lineHeight: "30px" }],
+        "3xl": ["30px", { lineHeight: "34px" }],
+        "4xl": ["36px", { lineHeight: "40px" }],
       },
       colors: {
         background: "hsl(var(--background))",

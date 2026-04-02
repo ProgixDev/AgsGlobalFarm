@@ -41,3 +41,22 @@ export function findRegionAtPoint(
   }
   return null;
 }
+
+/**
+ * Get the bounding box [ne, sw] for a region polygon.
+ * Returns { ne: [maxLng, maxLat], sw: [minLng, minLat] }.
+ */
+export function getRegionBounds(regionId: string): {
+  ne: [number, number];
+  sw: [number, number];
+} | null {
+  const region = senegalRegions.find((r) => r.properties.id === regionId);
+  if (!region) return null;
+  const coords = region.geometry.coordinates[0];
+  const lngs = coords.map((c: number[]) => c[0]);
+  const lats = coords.map((c: number[]) => c[1]);
+  return {
+    ne: [Math.max(...lngs), Math.max(...lats)],
+    sw: [Math.min(...lngs), Math.min(...lats)],
+  };
+}

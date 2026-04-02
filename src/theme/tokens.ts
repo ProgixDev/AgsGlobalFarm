@@ -6,11 +6,16 @@ export const SPACING = {
 } as const;
 
 export const TYPOGRAPHY = {
-  pageTitle: "text-2xl font-bold",
-  sectionTitle: "text-lg font-bold",
-  label: "text-sm font-medium",
-  caption: "text-xs",
-  body: "text-base",
+  pageTitle: "text-3xl font-heading-bold",
+  sectionTitle: "text-xl font-heading-semibold",
+  cardTitle: "text-lg font-heading-semibold",
+  body: "text-base font-sans",
+  bodyMedium: "text-base font-sans-medium",
+  secondary: "text-sm font-sans",
+  label: "text-sm font-sans-medium",
+  caption: "text-xs font-sans",
+  buttonText: "text-base font-sans-semibold",
+  hero: "text-4xl font-heading-extrabold",
 } as const;
 
 export const RADIUS = {

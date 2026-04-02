@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { DEV_ACCOUNTS, useUserStore } from "@/stores/userStore";
 import { haptic } from "@/utils/haptics";
 import { AnimatedPressable, FadeInView } from "@/components/animated";
+import { colors } from "@/theme/colors";
 
 type UserTypeTab = "job_seeker" | "farm_owner";
 
@@ -47,8 +48,8 @@ export default function DevLogin() {
   };
 
   const userTypeColor: Record<UserProfile["userType"], string> = {
-    job_seeker: "#10b981",
-    farm_owner: "#f59e0b",
+    job_seeker: colors.success,
+    farm_owner: colors.warning,
   };
 
   const userTypeIcon: Record<
@@ -69,15 +70,15 @@ export default function DevLogin() {
         <View className="mb-10">
           <View className="flex-row items-center mb-2">
             <View className="bg-yellow-400 rounded-lg px-2 py-0.5 mr-3">
-              <Text className="text-yellow-900 text-xs font-bold uppercase tracking-wider">
+              <Text className="text-yellow-900 text-xs font-sans-bold uppercase tracking-wider">
                 DEV
               </Text>
             </View>
-            <Text className="text-2xl font-bold text-foreground">
+            <Text className="text-2xl font-heading-bold text-foreground">
               Connexion rapide
             </Text>
           </View>
-          <Text className="text-muted-foreground text-sm">
+          <Text className="text-muted-foreground text-sm font-sans">
             Sélectionnez un compte prédéfini pour tester l&apos;application.
             Cette page n&apos;est disponible qu&apos;en mode développement.
           </Text>
@@ -99,10 +100,10 @@ export default function DevLogin() {
             <Ionicons
               name="person-outline"
               size={18}
-              color={activeTab === "job_seeker" ? "#fff" : "#6b7280"}
+              color={activeTab === "job_seeker" ? colors.white : colors.muted}
             />
             <Text
-              className={`ml-2 font-medium ${
+              className={`ml-2 font-sans-medium ${
                 activeTab === "job_seeker" ? "text-white" : "text-gray-600"
               }`}
             >
@@ -114,7 +115,7 @@ export default function DevLogin() {
               }`}
             >
               <Text
-                className={`text-xs font-semibold ${
+                className={`text-xs font-sans-semibold ${
                   activeTab === "job_seeker" ? "text-white" : "text-emerald-600"
                 }`}
               >
@@ -137,10 +138,10 @@ export default function DevLogin() {
             <Ionicons
               name="leaf-outline"
               size={18}
-              color={activeTab === "farm_owner" ? "#fff" : "#6b7280"}
+              color={activeTab === "farm_owner" ? colors.white : colors.muted}
             />
             <Text
-              className={`ml-2 font-medium ${
+              className={`ml-2 font-sans-medium ${
                 activeTab === "farm_owner" ? "text-white" : "text-gray-600"
               }`}
             >
@@ -152,7 +153,7 @@ export default function DevLogin() {
               }`}
             >
               <Text
-                className={`text-xs font-semibold ${
+                className={`text-xs font-sans-semibold ${
                   activeTab === "farm_owner" ? "text-white" : "text-amber-600"
                 }`}
               >
@@ -163,7 +164,7 @@ export default function DevLogin() {
         </View>
 
         {/* Account Cards */}
-        <Text className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+        <Text className="text-xs font-sans-semibold text-muted-foreground uppercase tracking-wider mb-3">
           {activeTab === "job_seeker"
             ? "Chercheurs d'emploi"
             : "Propriétaires de ferme / Recruteurs"}
@@ -172,8 +173,12 @@ export default function DevLogin() {
           <View className="gap-4 mb-10">
             {displayedUsers.length === 0 ? (
               <View className="bg-gray-50 rounded-2xl p-8 items-center">
-                <Ionicons name="people-outline" size={40} color="#d1d5db" />
-                <Text className="text-gray-500 mt-2 text-center">
+                <Ionicons
+                  name="people-outline"
+                  size={40}
+                  color={colors.mutedLighter}
+                />
+                <Text className="text-gray-500 mt-2 text-center font-sans">
                   Aucun compte{" "}
                   {activeTab === "job_seeker"
                     ? "chercheur d'emploi"
@@ -205,10 +210,10 @@ export default function DevLogin() {
 
                     {/* Info */}
                     <View className="flex-1">
-                      <Text className="text-base font-semibold text-foreground">
+                      <Text className="text-base font-sans-semibold text-foreground">
                         {account.firstName} {account.lastName}
                       </Text>
-                      <Text className="text-sm text-muted-foreground mb-1">
+                      <Text className="text-sm font-sans text-muted-foreground mb-1">
                         {account.email}
                       </Text>
                       <View
@@ -219,7 +224,7 @@ export default function DevLogin() {
                         }}
                       >
                         <Text
-                          className="text-xs font-medium"
+                          className="text-xs font-sans-medium"
                           style={{ color: userTypeColor[account.userType] }}
                         >
                           {userTypeLabel[account.userType]}
@@ -237,8 +242,12 @@ export default function DevLogin() {
                   {/* Extra details */}
                   <View className="flex-row mt-4 pt-4 border-t border-gray-100 gap-4">
                     <View className="flex-row items-center">
-                      <Ionicons name="call-outline" size={14} color="#9ca3af" />
-                      <Text className="text-xs text-muted-foreground ml-1">
+                      <Ionicons
+                        name="call-outline"
+                        size={14}
+                        color={colors.mutedLight}
+                      />
+                      <Text className="text-xs font-sans text-muted-foreground ml-1">
                         +221 {account.phone}
                       </Text>
                     </View>
@@ -247,9 +256,9 @@ export default function DevLogin() {
                         <Ionicons
                           name="person-outline"
                           size={14}
-                          color="#9ca3af"
+                          color={colors.mutedLight}
                         />
-                        <Text className="text-xs text-muted-foreground ml-1">
+                        <Text className="text-xs font-sans text-muted-foreground ml-1">
                           {account.gender === "male"
                             ? "Homme"
                             : account.gender === "female"
@@ -268,7 +277,9 @@ export default function DevLogin() {
         {/* Divider */}
         <View className="flex-row items-center mb-6">
           <View className="flex-1 h-px bg-gray-200" />
-          <Text className="text-xs text-muted-foreground mx-3">ou</Text>
+          <Text className="text-xs font-sans text-muted-foreground mx-3">
+            ou
+          </Text>
           <View className="flex-1 h-px bg-gray-200" />
         </View>
 
@@ -277,8 +288,8 @@ export default function DevLogin() {
           onPress={() => router.replace("/(auth)/login")}
           className="flex-row items-center justify-center border border-gray-200 rounded-2xl py-4"
         >
-          <Ionicons name="log-in-outline" size={18} color="#6b7280" />
-          <Text className="text-muted-foreground font-medium ml-2">
+          <Ionicons name="log-in-outline" size={18} color={colors.muted} />
+          <Text className="text-muted-foreground font-sans-medium ml-2">
             Aller à la page de connexion
           </Text>
         </AnimatedPressable>

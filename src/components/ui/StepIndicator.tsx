@@ -28,10 +28,12 @@ export default function StepIndicator({
                 }`}
               >
                 {index < currentStep ? (
-                  <Text className="text-white font-bold text-lg">✓</Text>
+                  <Text className="text-white font-heading-bold text-lg">
+                    ✓
+                  </Text>
                 ) : (
                   <Text
-                    className={`font-bold ${
+                    className={`font-heading-bold ${
                       index === currentStep ? "text-white" : "text-gray-600"
                     }`}
                   >
@@ -43,8 +45,8 @@ export default function StepIndicator({
                 <Text
                   className={`text-xs mt-1 text-center ${
                     index === currentStep
-                      ? "text-primary font-semibold"
-                      : "text-muted-foreground"
+                      ? "text-primary font-sans-semibold"
+                      : "text-muted-foreground font-sans"
                   }`}
                   numberOfLines={2}
                   style={{ maxWidth: 70 }}
@@ -65,7 +67,7 @@ export default function StepIndicator({
         ))}
       </View>
 
-      <Text className="text-center text-muted-foreground text-sm">
+      <Text className="text-center text-muted-foreground text-sm font-sans">
         Étape {currentStep + 1} sur {totalSteps}
       </Text>
     </View>

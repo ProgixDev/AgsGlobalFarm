@@ -10,6 +10,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTrainingStore } from "@/stores/trainingStore";
+import { colors } from "@/theme/colors";
 
 export default function LessonViewerScreen() {
   const router = useRouter();
@@ -47,15 +48,19 @@ export default function LessonViewerScreen() {
   if (!course || !lesson) {
     return (
       <View className="flex-1 bg-gray-50 justify-center items-center px-6">
-        <Ionicons name="alert-circle-outline" size={64} color="#9ca3af" />
-        <Text className="text-xl font-bold text-gray-400 mt-4">
+        <Ionicons
+          name="alert-circle-outline"
+          size={64}
+          color={colors.mutedLight}
+        />
+        <Text className="text-xl font-heading-bold text-gray-400 mt-4">
           Leçon introuvable
         </Text>
         <TouchableOpacity
           className="bg-primary px-6 py-3 rounded-lg mt-6"
           onPress={() => router.back()}
         >
-          <Text className="text-white font-semibold">Retour</Text>
+          <Text className="text-white font-sans-semibold">Retour</Text>
         </TouchableOpacity>
       </View>
     );
@@ -126,8 +131,8 @@ export default function LessonViewerScreen() {
             className="bg-black rounded-xl overflow-hidden mb-6"
           >
             <View className="aspect-video bg-gray-800 items-center justify-center">
-              <Ionicons name="play-circle" size={64} color="white" />
-              <Text className="text-white text-sm mt-2">
+              <Ionicons name="play-circle" size={64} color={colors.white} />
+              <Text className="text-white text-sm font-sans mt-2">
                 Vidéo - {Math.floor((content.duration || 0) / 60)} min
               </Text>
             </View>
@@ -137,7 +142,7 @@ export default function LessonViewerScreen() {
       case "text":
         return (
           <View key={index} className="mb-6">
-            <Text className="text-base text-gray-700 leading-7">
+            <Text className="text-base font-sans text-gray-700 leading-7">
               {content.text}
             </Text>
           </View>
@@ -160,16 +165,20 @@ export default function LessonViewerScreen() {
             key={index}
             className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex-row items-center"
           >
-            <Ionicons name="document-text" size={32} color="#dc2626" />
+            <Ionicons
+              name="document-text"
+              size={32}
+              color={colors.dangerDark}
+            />
             <View className="ml-4 flex-1">
-              <Text className="text-base font-semibold text-gray-800">
+              <Text className="text-base font-sans-semibold text-gray-800">
                 Document PDF
               </Text>
-              <Text className="text-sm text-gray-600 mt-1">
+              <Text className="text-sm font-sans text-gray-600 mt-1">
                 Appuyez pour ouvrir
               </Text>
             </View>
-            <Ionicons name="download-outline" size={24} color="#6b7280" />
+            <Ionicons name="download-outline" size={24} color={colors.muted} />
           </TouchableOpacity>
         );
 
@@ -185,12 +194,12 @@ export default function LessonViewerScreen() {
       <View className="px-6 pb-8">
         <View className="bg-primary/5 border border-primary/20 rounded-xl p-4 mb-6">
           <View className="flex-row items-center mb-2">
-            <Ionicons name="help-circle" size={24} color="#16a34a" />
-            <Text className="text-lg font-bold text-gray-800 ml-2">
+            <Ionicons name="help-circle" size={24} color={colors.primary} />
+            <Text className="text-lg font-heading-bold text-gray-800 ml-2">
               {lesson.quiz.title}
             </Text>
           </View>
-          <Text className="text-sm text-gray-600">
+          <Text className="text-sm font-sans text-gray-600">
             Score minimum requis : {lesson.quiz.passingScore}%
           </Text>
         </View>
@@ -200,7 +209,7 @@ export default function LessonViewerScreen() {
             key={question.id}
             className="bg-white rounded-xl p-4 mb-4 shadow-sm"
           >
-            <Text className="text-base font-semibold text-gray-800 mb-4">
+            <Text className="text-base font-sans-semibold text-gray-800 mb-4">
               {qIndex + 1}. {question.question}
             </Text>
 
@@ -249,19 +258,19 @@ export default function LessonViewerScreen() {
                                 : "checkmark"
                           }
                           size={16}
-                          color="white"
+                          color={colors.white}
                         />
                       )}
                     </View>
                     <Text
                       className={`flex-1 text-sm ${
                         showCorrect
-                          ? "text-green-700 font-semibold"
+                          ? "text-green-700 font-sans-semibold"
                           : showWrong
-                            ? "text-red-700 font-semibold"
+                            ? "text-red-700 font-sans-semibold"
                             : isSelected
-                              ? "text-primary font-semibold"
-                              : "text-gray-700"
+                              ? "text-primary font-sans-semibold"
+                              : "text-gray-700 font-sans"
                       }`}
                     >
                       {option}
@@ -277,9 +286,9 @@ export default function LessonViewerScreen() {
                   <Ionicons
                     name="information-circle"
                     size={20}
-                    color="#2563eb"
+                    color={colors.infoDark}
                   />
-                  <Text className="text-sm text-blue-700 ml-2 flex-1">
+                  <Text className="text-sm font-sans text-blue-700 ml-2 flex-1">
                     {question.explanation}
                   </Text>
                 </View>
@@ -305,13 +314,15 @@ export default function LessonViewerScreen() {
                 }
                 size={48}
                 color={
-                  quizScore >= lesson.quiz.passingScore ? "#16a34a" : "#dc2626"
+                  quizScore >= lesson.quiz.passingScore
+                    ? colors.primary
+                    : colors.dangerDark
                 }
               />
-              <Text className="text-2xl font-bold text-gray-800 mt-3">
+              <Text className="text-2xl font-heading-bold text-gray-800 mt-3">
                 Score : {quizScore}%
               </Text>
-              <Text className="text-base text-gray-600 mt-2 text-center">
+              <Text className="text-base font-sans text-gray-600 mt-2 text-center">
                 {quizScore >= lesson.quiz.passingScore
                   ? "Félicitations ! Vous avez réussi le quiz."
                   : "Vous n'avez pas atteint le score minimum. Révisez la leçon et réessayez."}
@@ -332,7 +343,7 @@ export default function LessonViewerScreen() {
               Object.keys(quizAnswers).length !== lesson.quiz.questions.length
             }
           >
-            <Text className="text-white font-bold text-base">
+            <Text className="text-white font-sans-bold text-base">
               Soumettre le Quiz
             </Text>
           </TouchableOpacity>
@@ -343,7 +354,7 @@ export default function LessonViewerScreen() {
                 className="bg-primary py-4 rounded-xl items-center"
                 onPress={() => router.back()}
               >
-                <Text className="text-white font-bold text-base">
+                <Text className="text-white font-sans-bold text-base">
                   Continuer
                 </Text>
               </TouchableOpacity>
@@ -357,7 +368,7 @@ export default function LessonViewerScreen() {
                     setQuizScore(0);
                   }}
                 >
-                  <Text className="text-white font-bold text-base">
+                  <Text className="text-white font-sans-bold text-base">
                     Réessayer
                   </Text>
                 </TouchableOpacity>
@@ -365,7 +376,7 @@ export default function LessonViewerScreen() {
                   className="bg-gray-200 py-4 rounded-xl items-center"
                   onPress={() => setShowQuiz(false)}
                 >
-                  <Text className="text-gray-700 font-bold text-base">
+                  <Text className="text-gray-700 font-sans-bold text-base">
                     Revoir la Leçon
                   </Text>
                 </TouchableOpacity>
@@ -385,11 +396,17 @@ export default function LessonViewerScreen() {
           className="flex-row items-center mb-4"
           onPress={() => router.back()}
         >
-          <Ionicons name="arrow-back" size={24} color="white" />
-          <Text className="text-white text-base ml-2">Retour au cours</Text>
+          <Ionicons name="arrow-back" size={24} color={colors.white} />
+          <Text className="text-white text-base font-sans ml-2">
+            Retour au cours
+          </Text>
         </TouchableOpacity>
-        <Text className="text-white text-xl font-bold">{lesson.title}</Text>
-        <Text className="text-white/70 text-sm mt-1">{course.title}</Text>
+        <Text className="text-white text-xl font-heading-bold">
+          {lesson.title}
+        </Text>
+        <Text className="text-white/70 text-sm font-sans mt-1">
+          {course.title}
+        </Text>
       </View>
 
       <ScrollView className="flex-1">
@@ -399,15 +416,19 @@ export default function LessonViewerScreen() {
             <View className="px-6 py-6">
               <View className="flex-row items-center mb-4">
                 <View className="bg-primary/10 rounded-full p-2 mr-3">
-                  <Ionicons name="book" size={20} color="#16a34a" />
+                  <Ionicons name="book" size={20} color={colors.primary} />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-base text-gray-800 font-semibold">
+                  <Text className="text-base text-gray-800 font-sans-semibold">
                     {lesson.description}
                   </Text>
                   <View className="flex-row items-center mt-1">
-                    <Ionicons name="time-outline" size={14} color="#9ca3af" />
-                    <Text className="text-sm text-gray-500 ml-1">
+                    <Ionicons
+                      name="time-outline"
+                      size={14}
+                      color={colors.mutedLight}
+                    />
+                    <Text className="text-sm font-sans text-gray-500 ml-1">
                       {lesson.duration} minutes
                     </Text>
                   </View>
@@ -417,7 +438,7 @@ export default function LessonViewerScreen() {
                     <Ionicons
                       name="checkmark-circle"
                       size={24}
-                      color="#16a34a"
+                      color={colors.primary}
                     />
                   </View>
                 )}
@@ -438,15 +459,19 @@ export default function LessonViewerScreen() {
                   className="bg-primary py-4 rounded-xl items-center shadow-lg"
                   onPress={handleCompleteLesson}
                 >
-                  <Text className="text-white font-bold text-base">
+                  <Text className="text-white font-sans-bold text-base">
                     {lesson.quiz ? "Passer au Quiz" : "Marquer comme Complété"}
                   </Text>
                 </TouchableOpacity>
               )}
               {isCompleted && (
                 <View className="bg-green-50 border border-green-200 rounded-xl p-4 items-center">
-                  <Ionicons name="checkmark-circle" size={32} color="#16a34a" />
-                  <Text className="text-green-700 font-semibold text-base mt-2">
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={32}
+                    color={colors.primary}
+                  />
+                  <Text className="text-green-700 font-sans-semibold text-base mt-2">
                     Leçon complétée
                   </Text>
                 </View>

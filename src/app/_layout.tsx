@@ -3,8 +3,10 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { View, ActivityIndicator } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 import * as SplashScreen from "expo-splash-screen";
 import { loadFonts } from "@/utils/loadFonts";
+import { colors } from "@/theme/colors";
 import "./global.css";
 
 SplashScreen.preventAutoHideAsync();
@@ -33,23 +35,25 @@ export default function RootLayout() {
           flex: 1,
           justifyContent: "center",
           alignItems: "center",
-          backgroundColor: "#16a34a",
+          backgroundColor: colors.primary,
         }}
       >
-        <ActivityIndicator size="large" color="#ffffff" />
+        <ActivityIndicator size="large" color={colors.white} />
       </View>
     );
   }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <StatusBar style="light" hidden={true} />
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          animation: "slide_from_right",
-        }}
-      />
+      <KeyboardProvider>
+        <StatusBar style="light" hidden={true} />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            animation: "slide_from_right",
+          }}
+        />
+      </KeyboardProvider>
     </GestureHandlerRootView>
   );
 }

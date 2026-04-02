@@ -22,13 +22,15 @@ import {
 import { useMapStore } from "@/stores/mapStore";
 import { useUserStore } from "@/stores/userStore";
 import { findRegionAtPoint } from "@/utils/geo";
+import { colors } from "@/theme/colors";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface IncidentReporterProps {
   visible: boolean;
   onClose: () => void;
-  initialCoordinates?: { longitude: number; latitude: number };
+  coordinates?: { longitude: number; latitude: number };
+  onEditLocation?: () => void;
 }
 
 interface FormErrors {
@@ -45,14 +47,14 @@ const SEVERITY_OPTIONS: {
   color: string;
   icon: React.ComponentProps<typeof Ionicons>["name"];
 }[] = [
-  { value: "low", label: "Faible", color: "#10b981", icon: "leaf" },
+  { value: "low", label: "Faible", color: colors.success, icon: "leaf" },
   {
     value: "medium",
     label: "Moyen",
-    color: "#f59e0b",
+    color: colors.warning,
     icon: "alert-circle",
   },
-  { value: "high", label: "Grave", color: "#ef4444", icon: "skull" },
+  { value: "high", label: "Grave", color: colors.danger, icon: "skull" },
 ];
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -60,7 +62,8 @@ const SEVERITY_OPTIONS: {
 export function IncidentReporter({
   visible,
   onClose,
-  initialCoordinates,
+  coordinates,
+  onEditLocation,
 }: IncidentReporterProps) {
   // ── Stores ────────────────────────────────────────────────────────────────
   const addIncident = useMapStore((s) => s.addIncident);
@@ -95,16 +98,16 @@ export function IncidentReporter({
   const categoryConfig = selectedCategory
     ? getCategoryConfig(selectedCategory)
     : null;
-  const headerColor = categoryConfig?.color ?? "#ef4444";
+  const headerColor = categoryConfig?.color ?? colors.danger;
 
   const regionName = useMemo(() => {
-    if (!initialCoordinates) return null;
+    if (!coordinates) return null;
     const region = findRegionAtPoint(
-      initialCoordinates.longitude,
-      initialCoordinates.latitude,
+      coordinates.longitude,
+      coordinates.latitude,
     );
     return region?.properties.name ?? null;
-  }, [initialCoordinates]);
+  }, [coordinates]);
 
   const isFormComplete =
     selectedCategory !== null &&
@@ -179,7 +182,7 @@ export function IncidentReporter({
       title: title.trim(),
       description: description.trim(),
       severity,
-      coordinates: initialCoordinates ?? {
+      coordinates: coordinates ?? {
         longitude: -14.4524,
         latitude: 14.4974,
       },
@@ -195,7 +198,7 @@ export function IncidentReporter({
     customCategory,
     title,
     description,
-    initialCoordinates,
+    coordinates,
     images,
     currentUser,
     addIncident,
@@ -214,7 +217,7 @@ export function IncidentReporter({
       visible={visible}
       onDismiss={onClose}
       expandedHeight={0.92}
-      minimizedHeight={70}
+      minimizedHeight={90}
       minimizedContent={
         <View className="flex-row items-center">
           <View
@@ -224,34 +227,44 @@ export function IncidentReporter({
             <Ionicons name="add-circle" size={20} color={headerColor} />
           </View>
           <View className="flex-1">
-            <Text className="text-base font-bold text-gray-800">
+            <Text className="text-base font-heading-bold text-gray-800">
               Signaler un incident
             </Text>
-            <Text className="text-xs text-gray-500">Nouveau signalement</Text>
+            <Text className="text-xs font-sans text-muted-foreground">
+              Nouveau signalement
+            </Text>
           </View>
+          <Ionicons name="chevron-up" size={20} color={colors.muted} />
         </View>
       }
     >
-      {/* ── Header ───────────────────────────────────────────── */}
-      <View style={[styles.header, { backgroundColor: headerColor }]}>
-        <View className="flex-row items-center justify-between">
-          <View className="flex-1 mr-3">
-            <Text className="text-white text-xl font-bold">
-              Signaler un incident
-            </Text>
-            <Text className="text-white/70 text-xs mt-1">
-              Aidez la communauté agricole en signalant les incidents
-            </Text>
+      {/* ── Header card ──────────────────────────────────────── */}
+      <View className="px-4 pt-1">
+        <View
+          className="rounded-2xl overflow-hidden"
+          style={{ backgroundColor: headerColor }}
+        >
+          <View className="px-4 pt-4 pb-3">
+            <View className="flex-row items-center justify-between">
+              <View className="flex-1 mr-3">
+                <Text className="text-white text-xl font-heading-bold">
+                  Signaler un incident
+                </Text>
+                <Text className="text-white/60 text-sm font-sans mt-1">
+                  Aidez la communauté agricole
+                </Text>
+              </View>
+              <AnimatedPressable
+                onPress={() => {
+                  haptic.light();
+                  onClose();
+                }}
+                className="w-10 h-10 rounded-full bg-white/15 items-center justify-center"
+              >
+                <Ionicons name="close" size={20} color={colors.white} />
+              </AnimatedPressable>
+            </View>
           </View>
-          <AnimatedPressable
-            onPress={() => {
-              haptic.light();
-              onClose();
-            }}
-            className="bg-white/20 rounded-full p-2"
-          >
-            <Ionicons name="close" size={20} color="white" />
-          </AnimatedPressable>
         </View>
       </View>
 
@@ -262,7 +275,7 @@ export function IncidentReporter({
         keyboardShouldPersistTaps="handled"
       >
         {/* 1. Category selector */}
-        <SectionTitle title="Type d'incident" />
+        <SectionTitle title="Type d'incident" icon="grid" tint={headerColor} />
         <View className="flex-row flex-wrap mb-1">
           {incidentCategories.map((cat) => (
             <CategoryCard
@@ -277,7 +290,9 @@ export function IncidentReporter({
           ))}
         </View>
         {errors.category && (
-          <Text className="text-red-500 text-sm mb-2">{errors.category}</Text>
+          <Text className="text-red-500 text-sm font-sans mb-2">
+            {errors.category}
+          </Text>
         )}
 
         {/* Custom category input */}
@@ -299,7 +314,7 @@ export function IncidentReporter({
         )}
 
         {/* 2. Title */}
-        <SectionTitle title="Titre" />
+        <SectionTitle title="Titre" icon="text" tint={headerColor} />
         <FormInput
           label=""
           value={title}
@@ -314,7 +329,11 @@ export function IncidentReporter({
         />
 
         {/* 3. Description */}
-        <SectionTitle title="Description détaillée" />
+        <SectionTitle
+          title="Description détaillée"
+          icon="document-text"
+          tint={headerColor}
+        />
         <FormInput
           label=""
           value={description}
@@ -330,12 +349,16 @@ export function IncidentReporter({
           error={errors.description}
           containerClassName="mb-1"
         />
-        <Text className="text-gray-400 text-xs text-right mb-5">
+        <Text className="text-gray-400 text-xs font-sans text-right mb-5">
           {description.length}/500
         </Text>
 
         {/* 4. Severity */}
-        <SectionTitle title="Niveau de gravité" />
+        <SectionTitle
+          title="Niveau de gravité"
+          icon="speedometer"
+          tint={headerColor}
+        />
         <View className="flex-row gap-2 mb-1">
           {SEVERITY_OPTIONS.map((opt) => {
             const isSelected = severity === opt.value;
@@ -358,11 +381,11 @@ export function IncidentReporter({
                 <Ionicons
                   name={opt.icon}
                   size={16}
-                  color={isSelected ? "white" : opt.color}
+                  color={isSelected ? colors.white : opt.color}
                 />
                 <Text
-                  className="ml-1.5 font-semibold text-sm"
-                  style={{ color: isSelected ? "white" : opt.color }}
+                  className="ml-1.5 font-sans-semibold text-sm"
+                  style={{ color: isSelected ? colors.white : opt.color }}
                 >
                   {opt.label}
                 </Text>
@@ -371,15 +394,24 @@ export function IncidentReporter({
           })}
         </View>
         {errors.severity && (
-          <Text className="text-red-500 text-sm mt-1 mb-4">
+          <Text className="text-red-500 text-sm font-sans mt-1 mb-4">
             {errors.severity}
           </Text>
         )}
         {!errors.severity && <View className="mb-5" />}
 
         {/* 5. Location */}
-        <SectionTitle title="Localisation" />
-        <View
+        <SectionTitle title="Localisation" icon="location" tint={headerColor} />
+        <TouchableOpacity
+          onPress={
+            onEditLocation
+              ? () => {
+                  haptic.light();
+                  onEditLocation();
+                }
+              : undefined
+          }
+          activeOpacity={onEditLocation ? 0.7 : 1}
           className="rounded-xl p-3.5 flex-row items-center mb-6"
           style={{ backgroundColor: `${headerColor}15` }}
         >
@@ -390,32 +422,50 @@ export function IncidentReporter({
             <Ionicons name="location" size={18} color={headerColor} />
           </View>
           <View className="flex-1">
-            {initialCoordinates ? (
+            {coordinates ? (
               <>
                 <Text
-                  className="font-semibold text-sm"
+                  className="font-sans-semibold text-sm"
                   style={{ color: headerColor }}
                 >
                   {regionName ? `Région de ${regionName}` : "Position signalée"}
                 </Text>
                 <Text
-                  className="text-xs mt-0.5"
+                  className="text-xs font-sans mt-0.5"
                   style={{ color: headerColor, opacity: 0.6 }}
                 >
-                  {formatCoord(initialCoordinates.latitude, "N", "S")},{" "}
-                  {formatCoord(initialCoordinates.longitude, "E", "W")}
+                  {formatCoord(coordinates.latitude, "N", "S")},{" "}
+                  {formatCoord(coordinates.longitude, "E", "W")}
                 </Text>
               </>
             ) : (
-              <Text className="text-gray-400 text-sm italic">
+              <Text className="text-gray-400 text-sm font-sans italic">
                 Aucune position sélectionnée
               </Text>
             )}
           </View>
-        </View>
+          {onEditLocation && (
+            <View
+              className="ml-2 px-3 py-1.5 rounded-lg flex-row items-center"
+              style={{ backgroundColor: `${headerColor}25` }}
+            >
+              <Ionicons name="pencil" size={12} color={headerColor} />
+              <Text
+                className="text-xs font-sans-semibold ml-1"
+                style={{ color: headerColor }}
+              >
+                Modifier
+              </Text>
+            </View>
+          )}
+        </TouchableOpacity>
 
         {/* 6. Images */}
-        <SectionTitle title="Photos (optionnel)" />
+        <SectionTitle
+          title="Photos (optionnel)"
+          icon="camera"
+          tint={headerColor}
+        />
         <View className="mb-6">
           {/* Thumbnails row */}
           {images.length > 0 && (
@@ -426,9 +476,10 @@ export function IncidentReporter({
                   <TouchableOpacity
                     onPress={() => removeImage(index)}
                     className="absolute -top-2 -right-2 bg-red-500 rounded-full w-6 h-6 items-center justify-center"
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     style={styles.imageRemoveBtn}
                   >
-                    <Ionicons name="close" size={14} color="white" />
+                    <Ionicons name="close" size={14} color={colors.white} />
                   </TouchableOpacity>
                 </View>
               ))}
@@ -441,13 +492,13 @@ export function IncidentReporter({
               onPress={pickImages}
               className="flex-row items-center justify-center border border-dashed border-gray-300 rounded-xl py-3"
             >
-              <Ionicons name="camera" size={20} color="#9CA3AF" />
-              <Text className="text-gray-500 text-sm ml-2 font-medium">
+              <Ionicons name="camera" size={20} color={colors.mutedLight} />
+              <Text className="text-gray-500 text-sm ml-2 font-sans-medium">
                 Ajouter des photos
               </Text>
             </TouchableOpacity>
           )}
-          <Text className="text-gray-400 text-xs mt-1.5 text-right">
+          <Text className="text-gray-400 text-xs font-sans mt-1.5 text-right">
             {images.length}/3 photos
           </Text>
         </View>
@@ -458,13 +509,13 @@ export function IncidentReporter({
           disabled={!isFormComplete || isSubmitting}
           className="rounded-xl py-4 items-center mb-3"
           style={{
-            backgroundColor: isFormComplete ? headerColor : "#d1d5db",
+            backgroundColor: isFormComplete ? headerColor : colors.mutedLighter,
           }}
         >
           {isSubmitting ? (
-            <ActivityIndicator color="white" />
+            <ActivityIndicator color={colors.white} />
           ) : (
-            <Text className="text-white font-bold text-base">
+            <Text className="text-white font-sans-bold text-base">
               Signaler l&apos;incident
             </Text>
           )}
@@ -477,7 +528,9 @@ export function IncidentReporter({
           }}
           className="bg-gray-200 rounded-xl py-4 items-center mb-8"
         >
-          <Text className="text-gray-600 font-semibold text-base">Annuler</Text>
+          <Text className="text-gray-600 font-sans-semibold text-base">
+            Annuler
+          </Text>
         </AnimatedPressable>
 
         {/* Bottom spacer */}
@@ -489,11 +542,28 @@ export function IncidentReporter({
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function SectionTitle({ title }: { title: string }) {
+function SectionTitle({
+  title,
+  icon,
+  tint,
+}: {
+  title: string;
+  icon: React.ComponentProps<typeof Ionicons>["name"];
+  tint?: string;
+}) {
+  const sectionColor = tint ?? colors.primary;
   return (
-    <Text className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
-      {title}
-    </Text>
+    <View className="flex-row items-center mb-2">
+      <View
+        className="w-7 h-7 rounded-lg items-center justify-center mr-2"
+        style={{ backgroundColor: sectionColor + "20" }}
+      >
+        <Ionicons name={icon} size={14} color={sectionColor} />
+      </View>
+      <Text className="text-sm font-heading-semibold text-gray-800">
+        {title}
+      </Text>
+    </View>
   );
 }
 
@@ -517,7 +587,7 @@ function CategoryCard({
       <View
         className="bg-white rounded-xl p-3 items-center border-2 relative"
         style={{
-          borderColor: selected ? category.color : "#f3f4f6",
+          borderColor: selected ? category.color : colors.borderLight,
         }}
       >
         {/* Icon circle */}
@@ -528,8 +598,8 @@ function CategoryCard({
           <Ionicons name={category.icon} size={20} color={category.color} />
         </View>
         <Text
-          className="text-xs font-semibold text-center"
-          style={{ color: selected ? category.color : "#374151" }}
+          className="text-xs font-sans-semibold text-center"
+          style={{ color: selected ? category.color : colors.textSecondary }}
           numberOfLines={2}
         >
           {category.label}
@@ -541,7 +611,7 @@ function CategoryCard({
             className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full items-center justify-center"
             style={{ backgroundColor: category.color }}
           >
-            <Ionicons name="checkmark" size={12} color="white" />
+            <Ionicons name="checkmark" size={12} color={colors.white} />
           </View>
         )}
       </View>
@@ -552,17 +622,12 @@ function CategoryCard({
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 16,
-  },
   severityPill: {
     borderWidth: 2,
   },
   imageRemoveBtn: {
     elevation: 3,
-    shadowColor: "#000",
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 2,

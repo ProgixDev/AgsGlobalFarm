@@ -81,8 +81,8 @@
     --color-mint: #d1fae5; /* Soft Mint for image backgrounds */
 
     /* Typography */
-    --font-family-base: "Geist", "system-ui", sans-serif;
-    --font-family-decorative: "Great Vibes", cursive;
+    --font-family-base: "Figtree-Regular", system-ui, sans-serif;
+    --font-family-heading: "DMSans-Bold", system-ui, sans-serif;
   }
 
   .dark {

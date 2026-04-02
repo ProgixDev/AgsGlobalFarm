@@ -13,7 +13,7 @@ export const tabBarScreenOptions = {
   },
   tabBarLabelStyle: {
     fontSize: 12,
-    fontWeight: "600" as const,
+    fontFamily: "Figtree-SemiBold",
   },
   headerShown: false,
 } as const;

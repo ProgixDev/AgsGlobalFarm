@@ -5,10 +5,10 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
-  KeyboardAvoidingView,
   Platform,
   Alert,
 } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
@@ -17,6 +17,7 @@ import { useJobsStore } from "@/stores/jobsStore";
 import { useUserStore } from "@/stores/userStore";
 import { senegalRegions, senegalDepartments } from "@/data/senegalData";
 import { colors } from "@/theme/colors";
+import { TAB_BAR_HEIGHT } from "@/components/ui/FloatingTabBar";
 
 const desiredPositions = [
   { label: "Ouvrier agricole", value: "Ouvrier agricole" },
@@ -192,12 +193,18 @@ export default function JobApplyScreen() {
             <TouchableOpacity onPress={() => router.back()} className="mr-3">
               <Ionicons name="arrow-back" size={24} color="white" />
             </TouchableOpacity>
-            <Text className="text-white text-lg font-bold">Candidature</Text>
+            <Text className="text-white text-lg font-heading-bold">
+              Candidature
+            </Text>
           </View>
         </View>
         <View className="flex-1 justify-center items-center px-6">
-          <Ionicons name="alert-circle-outline" size={64} color="#d1d5db" />
-          <Text className="text-gray-500 text-center mt-4">
+          <Ionicons
+            name="alert-circle-outline"
+            size={64}
+            color={colors.mutedLighter}
+          />
+          <Text className="text-gray-500 font-sans text-center mt-4">
             Offre introuvable
           </Text>
         </View>
@@ -207,10 +214,7 @@ export default function JobApplyScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className="flex-1"
-      >
+      <KeyboardAwareScrollView bottomOffset={20} className="flex-1">
         {/* Header */}
         <View className="bg-primary px-4 py-4">
           <View className="flex-row items-center">
@@ -218,25 +222,31 @@ export default function JobApplyScreen() {
               <Ionicons name="arrow-back" size={24} color="white" />
             </TouchableOpacity>
             <View className="flex-1">
-              <Text className="text-white text-lg font-bold">
+              <Text className="text-white text-lg font-heading-bold">
                 Formulaire de candidature
               </Text>
-              <Text className="text-white/80 text-sm" numberOfLines={1}>
+              <Text
+                className="text-white/80 text-sm font-sans"
+                numberOfLines={1}
+              >
                 {job.title} — {job.farmName}
               </Text>
             </View>
           </View>
         </View>
 
-        <ScrollView className="flex-1 px-4 py-6">
+        <ScrollView
+          className="flex-1 px-4 py-6"
+          contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT }}
+        >
           {/* Section: Informations personnelles */}
-          <Text className="text-base font-bold text-gray-800 mb-4">
+          <Text className="text-base font-heading-bold text-gray-800 mb-4">
             Informations personnelles
           </Text>
 
           {/* First Name */}
           <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-2">
+            <Text className="text-sm font-sans-medium text-gray-700 mb-2">
               Prénom <Text className="text-red-500">*</Text>
             </Text>
             <TextInput
@@ -246,7 +256,7 @@ export default function JobApplyScreen() {
               onChangeText={(v) => setField("firstName", v)}
             />
             {!!errors.firstName && (
-              <Text className="text-red-500 text-xs mt-1">
+              <Text className="text-red-500 text-xs font-sans mt-1">
                 {errors.firstName}
               </Text>
             )}
@@ -254,7 +264,7 @@ export default function JobApplyScreen() {
 
           {/* Last Name */}
           <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-2">
+            <Text className="text-sm font-sans-medium text-gray-700 mb-2">
               Nom <Text className="text-red-500">*</Text>
             </Text>
             <TextInput
@@ -264,7 +274,7 @@ export default function JobApplyScreen() {
               onChangeText={(v) => setField("lastName", v)}
             />
             {!!errors.lastName && (
-              <Text className="text-red-500 text-xs mt-1">
+              <Text className="text-red-500 text-xs font-sans mt-1">
                 {errors.lastName}
               </Text>
             )}
@@ -272,7 +282,7 @@ export default function JobApplyScreen() {
 
           {/* Address */}
           <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-2">
+            <Text className="text-sm font-sans-medium text-gray-700 mb-2">
               Adresse complète <Text className="text-red-500">*</Text>
             </Text>
             <TextInput
@@ -282,7 +292,7 @@ export default function JobApplyScreen() {
               onChangeText={(v) => setField("address", v)}
             />
             {!!errors.address && (
-              <Text className="text-red-500 text-xs mt-1">
+              <Text className="text-red-500 text-xs font-sans mt-1">
                 {errors.address}
               </Text>
             )}
@@ -290,7 +300,7 @@ export default function JobApplyScreen() {
 
           {/* Region */}
           <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-2">
+            <Text className="text-sm font-sans-medium text-gray-700 mb-2">
               Région <Text className="text-red-500">*</Text>
             </Text>
             <View className="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden">
@@ -316,14 +326,16 @@ export default function JobApplyScreen() {
               </Picker>
             </View>
             {!!errors.region && (
-              <Text className="text-red-500 text-xs mt-1">{errors.region}</Text>
+              <Text className="text-red-500 text-xs font-sans mt-1">
+                {errors.region}
+              </Text>
             )}
           </View>
 
           {/* Department */}
           {formData.region ? (
             <View className="mb-4">
-              <Text className="text-sm font-medium text-gray-700 mb-2">
+              <Text className="text-sm font-sans-medium text-gray-700 mb-2">
                 Département <Text className="text-red-500">*</Text>
               </Text>
               <View className="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden">
@@ -350,7 +362,7 @@ export default function JobApplyScreen() {
                 </Picker>
               </View>
               {!!errors.department && (
-                <Text className="text-red-500 text-xs mt-1">
+                <Text className="text-red-500 text-xs font-sans mt-1">
                   {errors.department}
                 </Text>
               )}
@@ -359,7 +371,7 @@ export default function JobApplyScreen() {
 
           {/* Phone */}
           <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-2">
+            <Text className="text-sm font-sans-medium text-gray-700 mb-2">
               Téléphone <Text className="text-red-500">*</Text>
             </Text>
             <TextInput
@@ -370,13 +382,15 @@ export default function JobApplyScreen() {
               keyboardType="phone-pad"
             />
             {!!errors.phone && (
-              <Text className="text-red-500 text-xs mt-1">{errors.phone}</Text>
+              <Text className="text-red-500 text-xs font-sans mt-1">
+                {errors.phone}
+              </Text>
             )}
           </View>
 
           {/* Email */}
           <View className="mb-6">
-            <Text className="text-sm font-medium text-gray-700 mb-2">
+            <Text className="text-sm font-sans-medium text-gray-700 mb-2">
               Email <Text className="text-red-500">*</Text>
             </Text>
             <TextInput
@@ -388,18 +402,20 @@ export default function JobApplyScreen() {
               autoCapitalize="none"
             />
             {!!errors.email && (
-              <Text className="text-red-500 text-xs mt-1">{errors.email}</Text>
+              <Text className="text-red-500 text-xs font-sans mt-1">
+                {errors.email}
+              </Text>
             )}
           </View>
 
           {/* Section: Profil professionnel */}
-          <Text className="text-base font-bold text-gray-800 mb-4">
+          <Text className="text-base font-heading-bold text-gray-800 mb-4">
             Profil professionnel
           </Text>
 
           {/* Education */}
           <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-2">
+            <Text className="text-sm font-sans-medium text-gray-700 mb-2">
               Niveau d&apos;études <Text className="text-red-500">*</Text>
             </Text>
             <View className="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden">
@@ -422,7 +438,7 @@ export default function JobApplyScreen() {
               </Picker>
             </View>
             {!!errors.education && (
-              <Text className="text-red-500 text-xs mt-1">
+              <Text className="text-red-500 text-xs font-sans mt-1">
                 {errors.education}
               </Text>
             )}
@@ -430,7 +446,7 @@ export default function JobApplyScreen() {
 
           {/* Experience */}
           <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-2">
+            <Text className="text-sm font-sans-medium text-gray-700 mb-2">
               Expérience professionnelle <Text className="text-red-500">*</Text>
             </Text>
             <TextInput
@@ -443,7 +459,7 @@ export default function JobApplyScreen() {
               textAlignVertical="top"
             />
             {!!errors.experience && (
-              <Text className="text-red-500 text-xs mt-1">
+              <Text className="text-red-500 text-xs font-sans mt-1">
                 {errors.experience}
               </Text>
             )}
@@ -451,7 +467,7 @@ export default function JobApplyScreen() {
 
           {/* Desired Position */}
           <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-2">
+            <Text className="text-sm font-sans-medium text-gray-700 mb-2">
               Poste souhaité <Text className="text-red-500">*</Text>
             </Text>
             <View className="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden">
@@ -474,7 +490,7 @@ export default function JobApplyScreen() {
               </Picker>
             </View>
             {!!errors.desiredPosition && (
-              <Text className="text-red-500 text-xs mt-1">
+              <Text className="text-red-500 text-xs font-sans mt-1">
                 {errors.desiredPosition}
               </Text>
             )}
@@ -482,7 +498,7 @@ export default function JobApplyScreen() {
 
           {/* Salary Expectation */}
           <View className="mb-6">
-            <Text className="text-sm font-medium text-gray-700 mb-2">
+            <Text className="text-sm font-sans-medium text-gray-700 mb-2">
               Prétentions salariales <Text className="text-red-500">*</Text>
             </Text>
             <TextInput
@@ -492,16 +508,16 @@ export default function JobApplyScreen() {
               onChangeText={(v) => setField("salaryExpectation", v)}
             />
             {!!errors.salaryExpectation && (
-              <Text className="text-red-500 text-xs mt-1">
+              <Text className="text-red-500 text-xs font-sans mt-1">
                 {errors.salaryExpectation}
               </Text>
             )}
           </View>
 
           {/* Section: Lettre de motivation */}
-          <Text className="text-base font-bold text-gray-800 mb-4">
+          <Text className="text-base font-heading-bold text-gray-800 mb-4">
             Lettre de motivation{" "}
-            <Text className="text-gray-400 text-sm font-normal">
+            <Text className="text-gray-400 text-sm font-sans">
               (facultatif)
             </Text>
           </Text>
@@ -526,12 +542,12 @@ export default function JobApplyScreen() {
             className="bg-primary rounded-xl py-4 flex-row items-center justify-center"
           >
             <Ionicons name="send" size={20} color="white" />
-            <Text className="text-white text-lg font-bold ml-2">
+            <Text className="text-white text-lg font-sans-bold ml-2">
               Envoyer ma candidature
             </Text>
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }

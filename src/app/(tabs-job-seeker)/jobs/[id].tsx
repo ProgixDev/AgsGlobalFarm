@@ -8,6 +8,7 @@ import { useUserStore } from "@/stores/userStore";
 import { AnimatedPressable } from "@/components/animated";
 import { haptic } from "@/utils/haptics";
 import { colors } from "@/theme/colors";
+import { TAB_BAR_HEIGHT } from "@/components/ui/FloatingTabBar";
 
 export default function JobSeekerJobDetailsScreen() {
   const router = useRouter();
@@ -29,14 +30,18 @@ export default function JobSeekerJobDetailsScreen() {
             <AnimatedPressable onPress={() => router.back()} className="mr-3">
               <Ionicons name="arrow-back" size={24} color="white" />
             </AnimatedPressable>
-            <Text className="flex-1 text-white text-lg font-bold">
+            <Text className="flex-1 text-white text-lg font-heading-bold">
               Détails de l&apos;offre
             </Text>
           </View>
         </View>
         <View className="flex-1 justify-center items-center px-6">
-          <Ionicons name="alert-circle-outline" size={64} color="#d1d5db" />
-          <Text className="text-gray-500 text-center mt-4">
+          <Ionicons
+            name="alert-circle-outline"
+            size={64}
+            color={colors.mutedLighter}
+          />
+          <Text className="text-gray-500 font-sans text-center mt-4">
             Offre non trouvée
           </Text>
         </View>
@@ -60,7 +65,7 @@ export default function JobSeekerJobDetailsScreen() {
           <AnimatedPressable onPress={() => router.back()} className="mr-3">
             <Ionicons name="arrow-back" size={24} color="white" />
           </AnimatedPressable>
-          <Text className="flex-1 text-white text-lg font-bold">
+          <Text className="flex-1 text-white text-lg font-heading-bold">
             Détails de l&apos;offre
           </Text>
           <AnimatedPressable>
@@ -69,12 +74,17 @@ export default function JobSeekerJobDetailsScreen() {
         </View>
       </View>
 
-      <ScrollView className="flex-1 px-4 py-6">
+      <ScrollView
+        className="flex-1 px-4 py-6"
+        contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT }}
+      >
         {/* Job Title and Company */}
-        <Text className="text-2xl font-bold text-gray-800 mb-2">
+        <Text className="text-2xl font-heading-bold text-gray-800 mb-2">
           {job.title}
         </Text>
-        <Text className="text-lg text-gray-600 mb-4">{job.farmName}</Text>
+        <Text className="text-lg font-sans text-gray-600 mb-4">
+          {job.farmName}
+        </Text>
 
         {/* Badges */}
         <View className="flex-row flex-wrap gap-2 mb-6">
@@ -90,7 +100,7 @@ export default function JobSeekerJobDetailsScreen() {
             }`}
           >
             <Text
-              className={`font-medium ${
+              className={`font-sans-medium ${
                 job.contractType === "CDI"
                   ? "text-green-700"
                   : job.contractType === "CDD"
@@ -104,8 +114,8 @@ export default function JobSeekerJobDetailsScreen() {
             </Text>
           </View>
           <View className="bg-blue-100 px-4 py-2 rounded-full flex-row items-center">
-            <Ionicons name="location" size={14} color="#1e40af" />
-            <Text className="text-blue-700 font-medium ml-1">
+            <Ionicons name="location" size={14} color={colors.infoDark} />
+            <Text className="text-blue-700 font-sans-medium ml-1">
               {job.location}
             </Text>
           </View>
@@ -115,11 +125,11 @@ export default function JobSeekerJobDetailsScreen() {
         <View className="bg-gray-50 rounded-2xl p-4 mb-6">
           <View className="flex-row items-center mb-2">
             <Ionicons name="cash" size={20} color={colors.primary} />
-            <Text className="text-base font-semibold text-gray-800 ml-2">
+            <Text className="text-base font-heading-semibold text-gray-800 ml-2">
               Salaire proposé
             </Text>
           </View>
-          <Text className="text-lg text-primary font-bold">
+          <Text className="text-lg text-primary font-sans-bold">
             {job.salaryRange}
           </Text>
         </View>
@@ -128,37 +138,39 @@ export default function JobSeekerJobDetailsScreen() {
         <View className="bg-gray-50 rounded-2xl p-4 mb-6">
           <View className="flex-row items-center mb-2">
             <Ionicons name="map" size={20} color={colors.primary} />
-            <Text className="text-base font-semibold text-gray-800 ml-2">
+            <Text className="text-base font-heading-semibold text-gray-800 ml-2">
               Localisation
             </Text>
           </View>
-          <Text className="text-base text-gray-700">
+          <Text className="text-base font-sans text-gray-700">
             {job.location}, {job.department}
           </Text>
-          <Text className="text-sm text-gray-600 mt-1">
+          <Text className="text-sm font-sans text-gray-600 mt-1">
             Région: {job.region}
           </Text>
         </View>
 
         {/* Description */}
         <View className="mb-6">
-          <Text className="text-lg font-bold text-gray-800 mb-3">
+          <Text className="text-lg font-heading-bold text-gray-800 mb-3">
             Description du poste
           </Text>
-          <Text className="text-base text-gray-700 leading-6">
+          <Text className="text-base font-sans text-gray-700 leading-6">
             {job.description}
           </Text>
         </View>
 
         {/* Requirements */}
         <View className="mb-6">
-          <Text className="text-lg font-bold text-gray-800 mb-3">
+          <Text className="text-lg font-heading-bold text-gray-800 mb-3">
             Exigences du poste
           </Text>
           {job.requirements.map((req, index) => (
             <View key={index} className="flex-row items-start mb-2">
               <View className="bg-primary w-2 h-2 rounded-full mt-2 mr-3" />
-              <Text className="flex-1 text-base text-gray-700">{req}</Text>
+              <Text className="flex-1 text-base font-sans text-gray-700">
+                {req}
+              </Text>
             </View>
           ))}
         </View>
@@ -172,14 +184,14 @@ export default function JobSeekerJobDetailsScreen() {
                 size={18}
                 color={colors.muted}
               />
-              <Text className="text-sm text-gray-600 ml-2">
+              <Text className="text-sm font-sans text-gray-600 ml-2">
                 Publié le {new Date(job.postedDate).toLocaleDateString("fr-FR")}
               </Text>
             </View>
           </View>
           <View className="flex-row items-center">
             <Ionicons name="people" size={18} color={colors.muted} />
-            <Text className="text-sm text-gray-600 ml-2">
+            <Text className="text-sm font-sans text-gray-600 ml-2">
               {job.applicantsCount} personne
               {job.applicantsCount > 1 ? "s" : ""} ont déjà postulé
             </Text>
@@ -196,7 +208,7 @@ export default function JobSeekerJobDetailsScreen() {
               size={20}
               color={colors.primary}
             />
-            <Text className="text-gray-600 text-lg font-bold ml-2">
+            <Text className="text-gray-600 text-lg font-sans-bold ml-2">
               Candidature envoyée
             </Text>
           </View>
@@ -206,7 +218,7 @@ export default function JobSeekerJobDetailsScreen() {
             className="bg-primary rounded-xl py-4 flex-row items-center justify-center"
           >
             <Ionicons name="send" size={20} color="white" />
-            <Text className="text-white text-lg font-bold ml-2">
+            <Text className="text-white text-lg font-sans-bold ml-2">
               Postuler maintenant
             </Text>
           </AnimatedPressable>

@@ -1,13 +1,22 @@
 import { Tabs, useRouter } from "expo-router";
 import { useEffect } from "react";
+import { Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import * as NavigationBar from "expo-navigation-bar";
 import { useUserStore } from "@/stores/userStore";
-import { tabBarScreenOptions } from "@/theme/tabBarConfig";
+import FloatingTabBar from "@/components/ui/FloatingTabBar";
 
 export default function TabsLayout() {
   const router = useRouter();
   const currentUser = useUserStore((state) => state.currentUser);
   const userType = useUserStore((state) => state.userType);
+
+  useEffect(() => {
+    if (Platform.OS === "android") {
+      NavigationBar.setVisibilityAsync("hidden");
+      NavigationBar.setBehaviorAsync("inset-touch");
+    }
+  }, []);
 
   useEffect(() => {
     if (!currentUser) {
@@ -25,7 +34,10 @@ export default function TabsLayout() {
   }
 
   return (
-    <Tabs screenOptions={tabBarScreenOptions}>
+    <Tabs
+      tabBar={(props) => <FloatingTabBar {...props} />}
+      screenOptions={{ headerShown: false }}
+    >
       <Tabs.Screen
         name="map"
         options={{

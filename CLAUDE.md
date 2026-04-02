@@ -70,3 +70,25 @@ Navigation uses React Navigation with bottom tabs. Path aliases: `@/*` maps to `
 - Types are centralized in `src/types.d.ts` (not co-located with components)
 - Form validation uses Zod schemas in `src/schemas/validation.ts`
 - Senegal region/department data is in `src/data/senegal-regions.ts`
+
+## Design Context
+
+### Users
+
+Agricultural job seekers and farm owners in Senegal — often in rural areas, potentially with limited tech experience. The interface must feel **warm and approachable** — friendly, welcoming, and easy to navigate.
+
+### Brand Personality
+
+**Grounded, Helpful, Local** — rooted in Senegalese agriculture, practical and community-oriented. A trusted local tool, not a flashy product.
+
+### Aesthetic Direction
+
+**Soft & organic** — rounded shapes, earth tones alongside greens/golds, gentle gradients. Avoid sharp edges and harsh contrasts.
+
+### Design Principles
+
+1. **Approachable first** — Inviting, not intimidating. Clear French labels, generous touch targets, forgiving interactions.
+2. **Rooted in place** — Reflect Senegalese agriculture. Green/gold palette evokes growth and harvest.
+3. **Gentle motion** — Animations serve comfort, not spectacle. Subtle fades, springs, and haptics.
+4. **Content over chrome** — UI recedes so content takes center stage. White space is a feature.
+5. **Accessible by default** — Large text, high-contrast actions, generous spacing, ≥44px touch targets.

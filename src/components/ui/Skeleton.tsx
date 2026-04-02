@@ -7,6 +7,7 @@ import Animated, {
   withTiming,
   Easing,
 } from "react-native-reanimated";
+import { colors } from "@/theme/colors";
 
 interface SkeletonProps {
   width?: number | string;
@@ -45,7 +46,7 @@ export function Skeleton({
           width: width as any,
           height,
           borderRadius,
-          backgroundColor: "#e5e7eb",
+          backgroundColor: colors.border,
         },
         animatedStyle,
         style,

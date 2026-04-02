@@ -1,11 +1,14 @@
 import * as Font from "expo-font";
 
-// Geist font loading - using local assets
 export const loadFonts = async (): Promise<void> => {
   return Font.loadAsync({
-    Geist: require("../../assets/fonts/geist-latin-400-normal.woff2"),
-    "Geist-Medium": require("../../assets/fonts/geist-latin-500-normal.woff2"),
-    "Geist-SemiBold": require("../../assets/fonts/geist-latin-600-normal.woff2"),
-    "Geist-Bold": require("../../assets/fonts/geist-latin-700-normal.woff2"),
+    "Figtree-Regular": require("../../assets/fonts/Figtree-Regular.ttf"),
+    "Figtree-Medium": require("../../assets/fonts/Figtree-Medium.ttf"),
+    "Figtree-SemiBold": require("../../assets/fonts/Figtree-SemiBold.ttf"),
+    "Figtree-Bold": require("../../assets/fonts/Figtree-Bold.ttf"),
+    "DMSans-Medium": require("../../assets/fonts/DMSans-Medium.ttf"),
+    "DMSans-SemiBold": require("../../assets/fonts/DMSans-SemiBold.ttf"),
+    "DMSans-Bold": require("../../assets/fonts/DMSans-Bold.ttf"),
+    "DMSans-ExtraBold": require("../../assets/fonts/DMSans-ExtraBold.ttf"),
   });
 };

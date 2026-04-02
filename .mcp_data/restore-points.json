@@ -1,0 +1,18 @@
+[
+  {
+    "id": "rp-1774665439807-lw3k7q",
+    "timestamp": 1774665439807,
+    "files": [
+      "src/__test_contextplus_delete_me.ts"
+    ],
+    "message": "Pre-commit: src/__test_contextplus_delete_me.ts"
+  },
+  {
+    "id": "rp-1774665456634-bkx4bw",
+    "timestamp": 1774665456635,
+    "files": [
+      "src/__test_contextplus_delete_me.ts"
+    ],
+    "message": "Pre-commit: src/__test_contextplus_delete_me.ts"
+  }
+]

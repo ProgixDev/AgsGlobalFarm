@@ -14,6 +14,7 @@ import { useJobsStore } from "@/stores/jobsStore";
 import { AnimatedPressable } from "@/components/animated";
 import { haptic } from "@/utils/haptics";
 import { colors } from "@/theme/colors";
+import { TAB_BAR_HEIGHT } from "@/components/ui/FloatingTabBar";
 
 type JobSeekerTab = "offres" | "candidatures";
 
@@ -119,10 +120,10 @@ export default function JobsScreen() {
       <View className="bg-primary px-4 py-4">
         <View className="flex-row justify-between items-center mb-4">
           <View>
-            <Text className="text-white text-2xl font-bold">
+            <Text className="text-white text-2xl font-heading-bold">
               Emplois Agricoles
             </Text>
-            <Text className="text-white/80 text-sm mt-1">
+            <Text className="text-white/80 text-sm font-sans mt-1">
               {isJobSeeker ? "Trouvez votre opportunité" : "Gérez vos offres"}
             </Text>
           </View>
@@ -132,7 +133,7 @@ export default function JobsScreen() {
               size={18}
               color="white"
             />
-            <Text className="text-white text-xs ml-2 font-medium">
+            <Text className="text-white text-xs ml-2 font-sans-medium">
               {isJobSeeker ? "Candidat" : "Recruteur"}
             </Text>
           </View>
@@ -149,7 +150,7 @@ export default function JobsScreen() {
               className={`flex-1 rounded-lg py-2 items-center ${jobSeekerTab === "offres" ? "bg-white" : ""}`}
             >
               <Text
-                className={`text-sm font-semibold ${jobSeekerTab === "offres" ? "text-primary" : "text-white"}`}
+                className={`text-sm font-sans-semibold ${jobSeekerTab === "offres" ? "text-primary" : "text-white"}`}
               >
                 Offres
               </Text>
@@ -162,7 +163,7 @@ export default function JobsScreen() {
               className={`flex-1 rounded-lg py-2 items-center flex-row justify-center gap-2 ${jobSeekerTab === "candidatures" ? "bg-white" : ""}`}
             >
               <Text
-                className={`text-sm font-semibold ${jobSeekerTab === "candidatures" ? "text-primary" : "text-white"}`}
+                className={`text-sm font-sans-semibold ${jobSeekerTab === "candidatures" ? "text-primary" : "text-white"}`}
               >
                 Mes candidatures
               </Text>
@@ -171,7 +172,7 @@ export default function JobsScreen() {
                   className={`rounded-full w-5 h-5 items-center justify-center ${jobSeekerTab === "candidatures" ? "bg-primary" : "bg-white/40"}`}
                 >
                   <Text
-                    className={`text-xs font-bold ${jobSeekerTab === "candidatures" ? "text-white" : "text-white"}`}
+                    className={`text-xs font-sans-bold ${jobSeekerTab === "candidatures" ? "text-white" : "text-white"}`}
                   >
                     {myApplications.length}
                   </Text>
@@ -189,13 +190,17 @@ export default function JobsScreen() {
               <TextInput
                 className="flex-1 ml-3 text-base text-gray-800"
                 placeholder="Rechercher un emploi..."
-                placeholderTextColor="#9ca3af"
+                placeholderTextColor={colors.placeholder}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
               />
               {searchQuery.length > 0 && (
                 <TouchableOpacity onPress={() => setSearchQuery("")}>
-                  <Ionicons name="close-circle" size={18} color="#9ca3af" />
+                  <Ionicons
+                    name="close-circle"
+                    size={18}
+                    color={colors.mutedLight}
+                  />
                 </TouchableOpacity>
               )}
             </View>
@@ -208,7 +213,7 @@ export default function JobsScreen() {
               className="bg-white/20 rounded-xl px-4 py-2 flex-row items-center justify-center"
             >
               <Ionicons name="options-outline" size={18} color="white" />
-              <Text className="text-white text-sm ml-2 font-medium">
+              <Text className="text-white text-sm ml-2 font-sans-medium">
                 Filtres
               </Text>
               {selectedContractType !== "all" && (
@@ -218,7 +223,7 @@ export default function JobsScreen() {
 
             {showFilters && (
               <View className="bg-white rounded-xl p-4 mt-3">
-                <Text className="text-sm font-semibold text-gray-800 mb-3">
+                <Text className="text-sm font-sans-semibold text-gray-800 mb-3">
                   Type de contrat
                 </Text>
                 <View className="flex-row flex-wrap gap-2">
@@ -232,7 +237,7 @@ export default function JobsScreen() {
                       className={`px-4 py-2 rounded-full ${selectedContractType === type ? "bg-primary" : "bg-gray-100"}`}
                     >
                       <Text
-                        className={`text-sm font-medium ${selectedContractType === type ? "text-white" : "text-gray-700"}`}
+                        className={`text-sm font-sans-medium ${selectedContractType === type ? "text-white" : "text-gray-700"}`}
                       >
                         {type === "all" ? "Tous" : type}
                       </Text>
@@ -247,8 +252,11 @@ export default function JobsScreen() {
 
       {/* ── Job seeker: Offres tab ── */}
       {isJobSeeker && jobSeekerTab === "offres" && (
-        <ScrollView className="flex-1 px-6 py-4">
-          <Text className="text-sm text-gray-500 mb-3">
+        <ScrollView
+          className="flex-1 px-6 py-4"
+          contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT }}
+        >
+          <Text className="text-sm font-sans text-gray-500 mb-3">
             {filteredJobs.length} offre{filteredJobs.length !== 1 ? "s" : ""}{" "}
             disponible{filteredJobs.length !== 1 ? "s" : ""}
           </Text>
@@ -266,17 +274,17 @@ export default function JobsScreen() {
                 className="bg-white rounded-2xl p-4 mb-3 border border-gray-200"
               >
                 <View className="flex-row justify-between items-start mb-1">
-                  <Text className="flex-1 text-base font-bold text-gray-800 mr-2">
+                  <Text className="flex-1 text-base font-heading-bold text-gray-800 mr-2">
                     {job.title}
                   </Text>
                   <View className={`px-2 py-0.5 rounded-full ${style.bg}`}>
-                    <Text className={`text-xs font-medium ${style.text}`}>
+                    <Text className={`text-xs font-sans-medium ${style.text}`}>
                       {job.contractType}
                     </Text>
                   </View>
                 </View>
 
-                <Text className="text-sm text-gray-500 mb-3">
+                <Text className="text-sm font-sans text-gray-500 mb-3">
                   {job.farmName}
                 </Text>
 
@@ -286,7 +294,7 @@ export default function JobsScreen() {
                     size={14}
                     color={colors.primary}
                   />
-                  <Text className="text-sm text-gray-600 ml-1">
+                  <Text className="text-sm font-sans text-gray-600 ml-1">
                     {job.location}
                   </Text>
                 </View>
@@ -296,7 +304,7 @@ export default function JobsScreen() {
                     size={14}
                     color={colors.primary}
                   />
-                  <Text className="text-sm text-gray-600 ml-1">
+                  <Text className="text-sm font-sans text-gray-600 ml-1">
                     {job.salaryRange}
                   </Text>
                 </View>
@@ -308,7 +316,7 @@ export default function JobsScreen() {
                       size={14}
                       color={colors.muted}
                     />
-                    <Text className="text-xs text-gray-400 ml-1">
+                    <Text className="text-xs font-sans text-gray-400 ml-1">
                       {job.applicantsCount} candidature
                       {job.applicantsCount !== 1 ? "s" : ""}
                     </Text>
@@ -321,7 +329,7 @@ export default function JobsScreen() {
                         size={14}
                         color={colors.primary}
                       />
-                      <Text className="text-green-700 text-xs font-medium ml-1">
+                      <Text className="text-green-700 text-xs font-sans-medium ml-1">
                         Candidature envoyée
                       </Text>
                     </View>
@@ -330,7 +338,7 @@ export default function JobsScreen() {
                       onPress={() => handleApply(job.id)}
                       className="bg-primary px-3 py-1.5 rounded-lg"
                     >
-                      <Text className="text-white text-xs font-semibold">
+                      <Text className="text-white text-xs font-sans-semibold">
                         Postuler
                       </Text>
                     </AnimatedPressable>
@@ -342,11 +350,15 @@ export default function JobsScreen() {
 
           {filteredJobs.length === 0 && (
             <View className="bg-white rounded-xl p-8 items-center mt-4">
-              <Ionicons name="search-outline" size={48} color="#d1d5db" />
-              <Text className="text-gray-500 text-center mt-4 font-medium">
+              <Ionicons
+                name="search-outline"
+                size={48}
+                color={colors.mutedLighter}
+              />
+              <Text className="text-gray-500 text-center mt-4 font-sans-medium">
                 Aucune offre trouvée
               </Text>
-              <Text className="text-gray-400 text-center text-sm mt-2">
+              <Text className="text-gray-400 text-center text-sm font-sans mt-2">
                 Modifiez vos critères de recherche
               </Text>
             </View>
@@ -358,10 +370,13 @@ export default function JobsScreen() {
 
       {/* ── Job seeker: Mes candidatures tab ── */}
       {isJobSeeker && jobSeekerTab === "candidatures" && (
-        <ScrollView className="flex-1 px-6 py-4">
+        <ScrollView
+          className="flex-1 px-6 py-4"
+          contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT }}
+        >
           {myApplications.length > 0 ? (
             <>
-              <Text className="text-sm text-gray-500 mb-3">
+              <Text className="text-sm font-sans text-gray-500 mb-3">
                 {myApplications.length} candidature
                 {myApplications.length !== 1 ? "s" : ""} soumise
                 {myApplications.length !== 1 ? "s" : ""}
@@ -387,10 +402,10 @@ export default function JobsScreen() {
                     {/* Status badge */}
                     <View className="flex-row justify-between items-start mb-3">
                       <View className="flex-1 mr-2">
-                        <Text className="text-base font-bold text-gray-800">
+                        <Text className="text-base font-heading-bold text-gray-800">
                           {job?.title ?? "Offre non disponible"}
                         </Text>
-                        <Text className="text-sm text-gray-500 mt-0.5">
+                        <Text className="text-sm font-sans text-gray-500 mt-0.5">
                           {job?.farmName}
                         </Text>
                       </View>
@@ -402,16 +417,16 @@ export default function JobsScreen() {
                           size={12}
                           color={
                             application.status === "accepted"
-                              ? "#15803d"
+                              ? colors.primaryDark
                               : application.status === "rejected"
-                                ? "#b91c1c"
+                                ? colors.dangerDarker
                                 : application.status === "reviewed"
-                                  ? "#1d4ed8"
-                                  : "#c2410c"
+                                  ? colors.infoDarker
+                                  : colors.warningDarker
                           }
                         />
                         <Text
-                          className={`text-xs font-medium ml-1 ${statusInfo.text}`}
+                          className={`text-xs font-sans-medium ml-1 ${statusInfo.text}`}
                         >
                           {statusInfo.label}
                         </Text>
@@ -424,7 +439,7 @@ export default function JobsScreen() {
                           className={`px-2 py-0.5 rounded-full ${contractStyle_.bg}`}
                         >
                           <Text
-                            className={`text-xs font-medium ${contractStyle_.text}`}
+                            className={`text-xs font-sans-medium ${contractStyle_.text}`}
                           >
                             {job.contractType}
                           </Text>
@@ -435,7 +450,7 @@ export default function JobsScreen() {
                             size={13}
                             color={colors.muted}
                           />
-                          <Text className="text-xs text-gray-500 ml-0.5">
+                          <Text className="text-xs font-sans text-gray-500 ml-0.5">
                             {job.location}
                           </Text>
                         </View>
@@ -449,7 +464,7 @@ export default function JobsScreen() {
                           size={13}
                           color={colors.mutedLight}
                         />
-                        <Text className="text-xs text-gray-400 ml-1">
+                        <Text className="text-xs font-sans text-gray-400 ml-1">
                           Envoyée le{" "}
                           {new Date(application.appliedDate).toLocaleDateString(
                             "fr-FR",
@@ -463,7 +478,7 @@ export default function JobsScreen() {
                             size={13}
                             color={colors.primary}
                           />
-                          <Text className="text-xs text-green-600 font-medium ml-1">
+                          <Text className="text-xs text-green-600 font-sans-medium ml-1">
                             Félicitations !
                           </Text>
                         </View>
@@ -475,13 +490,17 @@ export default function JobsScreen() {
             </>
           ) : (
             <View className="bg-white rounded-xl p-8 items-center mt-4">
-              <Ionicons name="document-outline" size={48} color="#d1d5db" />
-              <Text className="text-gray-500 text-center mt-4 font-medium">
+              <Ionicons
+                name="document-outline"
+                size={48}
+                color={colors.mutedLighter}
+              />
+              <Text className="text-gray-500 text-center mt-4 font-sans-medium">
                 Aucune candidature pour le moment
               </Text>
-              <Text className="text-gray-400 text-center text-sm mt-2">
+              <Text className="text-gray-400 text-center text-sm font-sans mt-2">
                 Parcourez les offres et postulez depuis l&apos;onglet{" "}
-                <Text className="text-primary font-medium">Offres</Text>
+                <Text className="text-primary font-sans-medium">Offres</Text>
               </Text>
               <AnimatedPressable
                 onPress={() => {
@@ -490,7 +509,7 @@ export default function JobsScreen() {
                 }}
                 className="mt-4 bg-primary px-6 py-2.5 rounded-xl"
               >
-                <Text className="text-white text-sm font-semibold">
+                <Text className="text-white text-sm font-sans-semibold">
                   Voir les offres
                 </Text>
               </AnimatedPressable>
@@ -503,26 +522,33 @@ export default function JobsScreen() {
 
       {/* ── Recruiter view ── */}
       {!isJobSeeker && (
-        <ScrollView className="flex-1 px-6 py-4">
+        <ScrollView
+          className="flex-1 px-6 py-4"
+          contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT }}
+        >
           {/* Stats */}
           <View className="flex-row gap-3 mb-4">
             <View className="flex-1 bg-white rounded-xl p-4 border border-gray-200">
               <View className="flex-row items-center justify-between mb-2">
                 <Ionicons name="briefcase" size={24} color={colors.primary} />
-                <Text className="text-2xl font-bold text-gray-800">
+                <Text className="text-2xl font-sans-bold text-gray-800">
                   {myJobs.length}
                 </Text>
               </View>
-              <Text className="text-sm text-gray-600">Offres actives</Text>
+              <Text className="text-sm font-sans text-gray-600">
+                Offres actives
+              </Text>
             </View>
             <View className="flex-1 bg-white rounded-xl p-4 border border-gray-200">
               <View className="flex-row items-center justify-between mb-2">
-                <Ionicons name="people" size={24} color="#3b82f6" />
-                <Text className="text-2xl font-bold text-gray-800">
+                <Ionicons name="people" size={24} color={colors.info} />
+                <Text className="text-2xl font-sans-bold text-gray-800">
                   {myJobs.reduce((sum, job) => sum + job.applicantsCount, 0)}
                 </Text>
               </View>
-              <Text className="text-sm text-gray-600">Candidatures</Text>
+              <Text className="text-sm font-sans text-gray-600">
+                Candidatures
+              </Text>
             </View>
           </View>
 
@@ -532,13 +558,13 @@ export default function JobsScreen() {
             className="bg-primary rounded-xl py-4 mb-4 flex-row items-center justify-center"
           >
             <Ionicons name="add-circle" size={24} color="white" />
-            <Text className="text-white text-lg font-bold ml-2">
+            <Text className="text-white text-lg font-sans-bold ml-2">
               Publier une offre
             </Text>
           </AnimatedPressable>
 
           {/* My Jobs */}
-          <Text className="text-lg font-bold text-gray-800 mb-3">
+          <Text className="text-lg font-heading-bold text-gray-800 mb-3">
             Mes offres publiées
           </Text>
 
@@ -552,10 +578,10 @@ export default function JobsScreen() {
                 >
                   <View className="flex-row justify-between items-start mb-3">
                     <View className="flex-1">
-                      <Text className="text-base font-bold text-gray-800 mb-1">
+                      <Text className="text-base font-heading-bold text-gray-800 mb-1">
                         {job.title}
                       </Text>
-                      <Text className="text-sm text-gray-500">
+                      <Text className="text-sm font-sans text-gray-500">
                         {job.farmName}
                       </Text>
                     </View>
@@ -563,13 +589,19 @@ export default function JobsScreen() {
 
                   <View className="flex-row flex-wrap gap-2 mb-3">
                     <View className={`px-3 py-1 rounded-full ${style.bg}`}>
-                      <Text className={`text-xs font-medium ${style.text}`}>
+                      <Text
+                        className={`text-xs font-sans-medium ${style.text}`}
+                      >
                         {job.contractType}
                       </Text>
                     </View>
                     <View className="bg-blue-100 px-3 py-1 rounded-full flex-row items-center">
-                      <Ionicons name="location" size={12} color="#1e40af" />
-                      <Text className="text-blue-700 text-xs font-medium ml-1">
+                      <Ionicons
+                        name="location"
+                        size={12}
+                        color={colors.infoDark}
+                      />
+                      <Text className="text-blue-700 text-xs font-sans-medium ml-1">
                         {job.location}
                       </Text>
                     </View>
@@ -581,7 +613,7 @@ export default function JobsScreen() {
                       size={16}
                       color={colors.muted}
                     />
-                    <Text className="text-sm text-gray-600 ml-1">
+                    <Text className="text-sm font-sans text-gray-600 ml-1">
                       {job.salaryRange}
                     </Text>
                   </View>
@@ -593,7 +625,7 @@ export default function JobsScreen() {
                         size={16}
                         color={colors.muted}
                       />
-                      <Text className="text-xs text-gray-500 ml-1">
+                      <Text className="text-xs font-sans text-gray-500 ml-1">
                         {job.applicantsCount} candidature
                         {job.applicantsCount !== 1 ? "s" : ""}
                       </Text>
@@ -604,7 +636,7 @@ export default function JobsScreen() {
                         size={14}
                         color={colors.muted}
                       />
-                      <Text className="text-xs text-gray-500 ml-1">
+                      <Text className="text-xs font-sans text-gray-500 ml-1">
                         {new Date(job.postedDate).toLocaleDateString("fr-FR")}
                       </Text>
                     </View>
@@ -617,7 +649,7 @@ export default function JobsScreen() {
                     >
                       <Ionicons name="eye-outline" size={18} color="white" />
                       <Text
-                        className="text-white text-sm font-medium ml-2"
+                        className="text-white text-sm font-sans-medium ml-2"
                         numberOfLines={1}
                       >
                         Candidatures
@@ -650,11 +682,15 @@ export default function JobsScreen() {
             })
           ) : (
             <View className="bg-white rounded-xl p-8 items-center">
-              <Ionicons name="briefcase-outline" size={48} color="#d1d5db" />
-              <Text className="text-gray-500 text-center mt-4">
+              <Ionicons
+                name="briefcase-outline"
+                size={48}
+                color={colors.mutedLighter}
+              />
+              <Text className="text-gray-500 font-sans text-center mt-4">
                 Aucune offre publiée
               </Text>
-              <Text className="text-gray-400 text-center text-sm mt-2">
+              <Text className="text-gray-400 text-center text-sm font-sans mt-2">
                 Commencez par publier votre première offre
               </Text>
             </View>

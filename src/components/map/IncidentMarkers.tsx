@@ -2,10 +2,11 @@ import React, { useMemo } from "react";
 import { View } from "react-native";
 import { PointAnnotation } from "@rnmapbox/maps";
 import { Ionicons } from "@expo/vector-icons";
-import { useMapStore } from "@/stores/mapStore";
 import { getCategoryColor, getCategoryIcon } from "@/data/incident-categories";
+import { colors } from "@/theme/colors";
 
 interface IncidentMarkersProps {
+  incidents: IncidentReport[];
   onMarkerPress: (incident: IncidentReport) => void;
   selectedIncidentId?: string;
 }
@@ -23,12 +24,10 @@ const SEVERITY_ICON_SIZE: Record<IncidentSeverity, number> = {
 };
 
 export function IncidentMarkers({
+  incidents,
   onMarkerPress,
   selectedIncidentId,
 }: IncidentMarkersProps) {
-  const getActiveIncidents = useMapStore((s) => s.getActiveIncidents);
-  const incidents = getActiveIncidents();
-
   const markerData = useMemo(
     () =>
       incidents.map((incident) => ({
@@ -65,15 +64,17 @@ export function IncidentMarkers({
                 alignItems: "center",
                 justifyContent: "center",
                 borderWidth: isSelected ? 3 : 1.5,
-                borderColor: isSelected ? "white" : "rgba(255,255,255,0.5)",
-                shadowColor: "#000",
+                borderColor: isSelected
+                  ? colors.white
+                  : "rgba(255,255,255,0.5)",
+                shadowColor: colors.black,
                 shadowOffset: { width: 0, height: 2 },
                 shadowOpacity: 0.25,
                 shadowRadius: 3,
                 elevation: 5,
               }}
             >
-              <Ionicons name={icon} size={iconSize} color="white" />
+              <Ionicons name={icon} size={iconSize} color={colors.white} />
             </View>
           </PointAnnotation>
         );

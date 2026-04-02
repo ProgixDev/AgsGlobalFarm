@@ -72,14 +72,18 @@ export default function Button({
           {icon}
           {children ? (
             typeof children === "string" ? (
-              <Text className={`${text} ${textSize} font-semibold text-center`}>
+              <Text
+                className={`${text} ${textSize} font-sans-semibold text-center`}
+              >
                 {children}
               </Text>
             ) : (
               children
             )
           ) : (
-            <Text className={`${text} ${textSize} font-semibold text-center`}>
+            <Text
+              className={`${text} ${textSize} font-sans-semibold text-center`}
+            >
               {title}
             </Text>
           )}

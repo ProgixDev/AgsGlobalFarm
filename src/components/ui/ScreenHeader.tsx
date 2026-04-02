@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import AnimatedPressable from "@/components/animated/AnimatedPressable";
+import { colors } from "@/theme/colors";
 
 interface ScreenHeaderProps {
   title: string;
@@ -34,15 +35,19 @@ export default function ScreenHeader({
             <AnimatedPressable
               onPress={() => router.back()}
               hapticType="light"
-              className="w-9 h-9 rounded-full bg-white/20 items-center justify-center"
+              className="w-11 h-11 rounded-full bg-white/20 items-center justify-center"
             >
-              <Ionicons name="arrow-back" size={20} color="#ffffff" />
+              <Ionicons name="arrow-back" size={20} color={colors.white} />
             </AnimatedPressable>
           )}
           <View className="flex-1">
-            <Text className="text-white text-2xl font-bold">{title}</Text>
+            <Text className="text-white text-2xl font-heading-bold">
+              {title}
+            </Text>
             {subtitle && (
-              <Text className="text-white/70 text-sm mt-0.5">{subtitle}</Text>
+              <Text className="text-white/70 text-sm font-sans mt-0.5">
+                {subtitle}
+              </Text>
             )}
           </View>
         </View>

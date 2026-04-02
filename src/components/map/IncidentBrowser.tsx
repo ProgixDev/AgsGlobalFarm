@@ -28,20 +28,23 @@ interface IncidentBrowserProps {
   selectedIncident: IncidentReport | null;
   onSelectIncident: (incident: IncidentReport | null) => void;
   onCameraMove?: (coordinates: [number, number]) => void;
+  onDismiss?: () => void;
+  visible?: boolean;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const IMAGE_WIDTH = SCREEN_WIDTH - 40;
+const IMAGE_HEIGHT = Math.round(IMAGE_WIDTH * 0.56); // 16:9 aspect ratio
 
 const SEVERITY_CONFIG: Record<
   IncidentSeverity,
   { label: string; color: string; bg: string }
 > = {
-  low: { label: "Faible", color: "#10b981", bg: "#d1fae5" },
-  medium: { label: "Moyen", color: "#f59e0b", bg: "#fef3c7" },
-  high: { label: "Grave", color: "#ef4444", bg: "#fee2e2" },
+  low: { label: "Faible", color: colors.success, bg: colors.successLight },
+  medium: { label: "Moyen", color: colors.warning, bg: colors.warningLight },
+  high: { label: "Grave", color: colors.danger, bg: colors.dangerLight },
 };
 
 function getTimeAgo(dateString: string): string {
@@ -95,6 +98,8 @@ export function IncidentBrowser({
   selectedIncident,
   onSelectIncident,
   onCameraMove,
+  onDismiss,
+  visible = true,
 }: IncidentBrowserProps) {
   const [activeFilter, setActiveFilter] = useState<IncidentCategory | "all">(
     "all",
@@ -164,32 +169,97 @@ export function IncidentBrowser({
 
   return (
     <SwipeableBottomSheet
-      visible={true}
-      onDismiss={() => {}}
-      expandedHeight={0.45}
-      minimizedHeight={80}
+      visible={visible}
+      onDismiss={onDismiss ?? (() => {})}
+      expandedHeight={0.6}
+      minimizedHeight={90}
       showBackdrop={false}
       minimizedContent={
-        <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center">
-            <Ionicons name="warning" size={18} color={colors.primary} />
-            <Text className="text-sm font-bold text-gray-800 ml-2">
+        <View className="flex-row items-center">
+          <View
+            className="w-10 h-10 rounded-full items-center justify-center mr-3"
+            style={{ backgroundColor: colors.warningLight }}
+          >
+            <Ionicons name="warning" size={20} color={colors.warning} />
+          </View>
+          <View className="flex-1">
+            <Text className="text-base font-heading-bold text-gray-800">
               Incidents
             </Text>
-          </View>
-          <View className="bg-primary/10 rounded-full px-2.5 py-0.5">
-            <Text className="text-xs font-bold text-primary">
-              {activeIncidents.length}
+            <Text className="text-xs font-sans text-muted-foreground">
+              {activeIncidents.length} incident
+              {activeIncidents.length !== 1 ? "s" : ""} actif
+              {activeIncidents.length !== 1 ? "s" : ""}
             </Text>
           </View>
+          <Ionicons name="chevron-up" size={20} color={colors.muted} />
         </View>
       }
     >
+      {/* Header card */}
+      <View className="px-4 pt-1">
+        <View
+          className="rounded-2xl overflow-hidden"
+          style={{ backgroundColor: colors.warning }}
+        >
+          <View className="px-4 pt-3 pb-2">
+            <Text className="text-white text-lg font-heading-bold">
+              Incidents signalés
+            </Text>
+            <Text className="text-white/60 text-xs font-sans mt-0.5">
+              Surveillez les incidents agricoles de votre zone
+            </Text>
+          </View>
+
+          {/* Quick stats row */}
+          <View className="flex-row px-3 pb-3 gap-2">
+            <View className="flex-row items-center bg-white/20 rounded-full px-3 py-1.5">
+              <Ionicons name="warning" size={13} color={colors.white} />
+              <Text className="text-white text-sm font-sans-bold ml-1.5">
+                {activeIncidents.length}
+              </Text>
+              <Text className="text-white/70 text-xs font-sans ml-1">
+                actif{activeIncidents.length !== 1 ? "s" : ""}
+              </Text>
+            </View>
+            <View className="flex-row items-center bg-white/20 rounded-full px-3 py-1.5">
+              <Ionicons name="grid" size={13} color={colors.white} />
+              <Text className="text-white text-sm font-sans-bold ml-1.5">
+                {activeCategories.length}
+              </Text>
+              <Text className="text-white/70 text-xs font-sans ml-1">
+                catégorie{activeCategories.length !== 1 ? "s" : ""}
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+
+      {/* Filter section */}
+      <View className="mx-5 mt-3">
+        <View className="flex-row items-center mb-2">
+          <View
+            className="w-7 h-7 rounded-lg items-center justify-center mr-2"
+            style={{ backgroundColor: colors.warningLight }}
+          >
+            <Ionicons name="filter" size={14} color={colors.warning} />
+          </View>
+          <Text className="text-sm font-heading-semibold text-gray-800">
+            Filtrer
+          </Text>
+          <View className="ml-2 bg-gray-100 rounded-full px-2 py-0.5">
+            <Text className="text-xs font-sans-medium text-muted-foreground">
+              {filteredIncidents.length}
+            </Text>
+          </View>
+        </View>
+      </View>
+
       {/* Filter chips */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        className="px-4 py-2"
+        className="px-4 pb-2"
         contentContainerStyle={{ paddingRight: 16 }}
       >
         {/* "Tous" chip */}
@@ -214,20 +284,15 @@ export function IncidentBrowser({
         ))}
       </ScrollView>
 
-      {/* List header */}
-      <View className="px-4 pb-2">
-        <Text className="text-xs text-gray-500 font-medium">
-          {filteredIncidents.length} incident
-          {filteredIncidents.length !== 1 ? "s" : ""} signalé
-          {filteredIncidents.length !== 1 ? "s" : ""}
-        </Text>
-      </View>
-
       {/* Incident list */}
       {filteredIncidents.length === 0 ? (
         <View className="flex-1 items-center justify-center pb-8">
-          <Ionicons name="alert-circle-outline" size={40} color="#9ca3af" />
-          <Text className="text-gray-400 text-sm mt-2 font-medium">
+          <Ionicons
+            name="alert-circle-outline"
+            size={40}
+            color={colors.mutedLight}
+          />
+          <Text className="text-gray-400 text-sm mt-2 font-sans-medium">
             Aucun incident signalé
           </Text>
         </View>
@@ -272,18 +337,22 @@ function FilterChip({
       style={[
         styles.chip,
         {
-          backgroundColor: active ? color : "#f3f4f6",
+          backgroundColor: active ? color : colors.borderLight,
         },
       ]}
       activeOpacity={0.7}
     >
-      <Ionicons name={icon} size={14} color={active ? "white" : "#4b5563"} />
+      <Ionicons
+        name={icon}
+        size={14}
+        color={active ? colors.white : colors.muted}
+      />
       <Text
         style={{
           fontSize: 12,
           fontWeight: "600",
           marginLeft: 4,
-          color: active ? "white" : "#4b5563",
+          color: active ? colors.white : colors.muted,
         }}
         numberOfLines={1}
       >
@@ -296,14 +365,14 @@ function FilterChip({
           paddingHorizontal: 6,
           minWidth: 18,
           alignItems: "center",
-          backgroundColor: active ? "rgba(255,255,255,0.3)" : "#e5e7eb",
+          backgroundColor: active ? "rgba(255,255,255,0.3)" : colors.border,
         }}
       >
         <Text
           style={{
             fontSize: 10,
             fontWeight: "700",
-            color: active ? "white" : "#6b7280",
+            color: active ? colors.white : colors.muted,
           }}
         >
           {count}
@@ -336,21 +405,27 @@ function IncidentCard({
         className="w-8 h-8 rounded-full items-center justify-center mr-3"
         style={{ backgroundColor: catConfig.color }}
       >
-        <Ionicons name={catConfig.icon} size={16} color="white" />
+        <Ionicons name={catConfig.icon} size={16} color={colors.white} />
       </View>
 
       {/* Center: text */}
       <View className="flex-1 mr-3">
-        <Text className="font-semibold text-gray-800 text-sm" numberOfLines={1}>
+        <Text
+          className="font-sans-semibold text-gray-800 text-sm"
+          numberOfLines={1}
+        >
           {incident.title}
         </Text>
-        <Text className="text-xs text-gray-500 mt-0.5" numberOfLines={1}>
+        <Text
+          className="text-xs font-sans text-gray-500 mt-0.5"
+          numberOfLines={1}
+        >
           {findRegionAtPoint(
             incident.coordinates.longitude,
             incident.coordinates.latitude,
           )?.properties.name ?? "Position signalée"}
         </Text>
-        <Text className="text-xs text-gray-400 mt-0.5">
+        <Text className="text-xs font-sans text-gray-400 mt-0.5">
           {getTimeAgo(incident.createdAt)}
         </Text>
       </View>
@@ -362,7 +437,7 @@ function IncidentCard({
           style={{ backgroundColor: severity.bg }}
         >
           <Text
-            className="text-[10px] font-bold"
+            className="text-[10px] font-sans-bold"
             style={{ color: severity.color }}
           >
             {severity.label}
@@ -433,54 +508,74 @@ function IncidentDetail({
           </View>
           <View className="flex-1">
             <Text
-              className="text-base font-bold text-gray-800"
+              className="text-base font-heading-bold text-gray-800"
               numberOfLines={1}
             >
               {incident.title}
             </Text>
-            <Text className="text-xs text-muted-foreground">
+            <Text className="text-xs font-sans text-muted-foreground">
               {catConfig.label}
             </Text>
           </View>
+          <Ionicons name="chevron-up" size={20} color={colors.muted} />
         </View>
       }
     >
-      {/* Header */}
-      <View
-        className="px-5 pt-5 pb-4"
-        style={{ backgroundColor: catConfig.color }}
-      >
-        <View className="flex-row items-start justify-between">
-          <View className="flex-1 mr-3">
-            <View className="flex-row items-center mb-2">
-              <Ionicons name={catConfig.icon} size={24} color="white" />
-              <Text className="text-white/80 text-sm ml-2 font-medium">
-                {catConfig.label}
+      {/* Header card */}
+      <View className="px-4 pt-1">
+        <View
+          className="rounded-2xl overflow-hidden"
+          style={{ backgroundColor: catConfig.color }}
+        >
+          <View className="px-4 pt-4 pb-3">
+            <View className="flex-row items-start justify-between">
+              <View className="flex-1 mr-3">
+                <View className="flex-row items-center mb-2">
+                  <Ionicons
+                    name={catConfig.icon}
+                    size={24}
+                    color={colors.white}
+                  />
+                  <Text className="text-white/80 text-sm ml-2 font-sans-medium">
+                    {catConfig.label}
+                  </Text>
+                </View>
+                <Text className="text-white text-xl font-heading-bold">
+                  {incident.title}
+                </Text>
+              </View>
+              <AnimatedPressable
+                onPress={() => {
+                  haptic.light();
+                  onClose();
+                }}
+                className="w-10 h-10 rounded-full bg-white/15 items-center justify-center"
+              >
+                <Ionicons name="close" size={20} color={colors.white} />
+              </AnimatedPressable>
+            </View>
+          </View>
+
+          {/* Quick stats row */}
+          <View className="flex-row px-3 pb-3 gap-2">
+            <View className="flex-row items-center bg-white/20 rounded-full px-3 py-1.5">
+              <Ionicons name="shield" size={13} color={colors.white} />
+              <Text className="text-white text-sm font-sans-bold ml-1.5">
+                {severity.label}
               </Text>
             </View>
-            <Text className="text-white text-xl font-bold">
-              {incident.title}
-            </Text>
-          </View>
-          <View className="items-end">
-            <AnimatedPressable
-              onPress={() => {
-                haptic.light();
-                onClose();
-              }}
-              className="bg-white/20 rounded-full p-2 mb-2"
-            >
-              <Ionicons name="close" size={20} color="white" />
-            </AnimatedPressable>
-            <View
-              className="rounded-full px-2.5 py-1"
-              style={{ backgroundColor: "rgba(255,255,255,0.9)" }}
-            >
-              <Text
-                className="text-xs font-bold"
-                style={{ color: severity.color }}
-              >
-                {severity.label}
+            <View className="flex-row items-center bg-white/20 rounded-full px-3 py-1.5">
+              <Ionicons
+                name={
+                  incident.status === "active"
+                    ? "radio-button-on"
+                    : "checkmark-circle"
+                }
+                size={13}
+                color={colors.white}
+              />
+              <Text className="text-white text-sm font-sans-bold ml-1.5">
+                {incident.status === "active" ? "Actif" : "Résolu"}
               </Text>
             </View>
           </View>
@@ -488,7 +583,11 @@ function IncidentDetail({
       </View>
 
       {/* Scrollable content */}
-      <ScrollView className="px-5 py-4" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="flex-1 px-5 pt-4"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 32 }}
+      >
         {/* Image carousel */}
         {incident.images.length > 0 && (
           <View className="mb-5">
@@ -508,7 +607,7 @@ function IncidentDetail({
                   source={{ uri }}
                   style={{
                     width: IMAGE_WIDTH,
-                    height: 200,
+                    height: IMAGE_HEIGHT,
                     borderRadius: 12,
                   }}
                   contentFit="cover"
@@ -526,7 +625,7 @@ function IncidentDetail({
                       backgroundColor:
                         index === activeImageIndex
                           ? catConfig.color
-                          : "#d1d5db",
+                          : colors.mutedLighter,
                     }}
                   />
                 ))}
@@ -536,14 +635,22 @@ function IncidentDetail({
         )}
 
         {/* Description */}
-        <DetailSection title="Description">
-          <Text className="text-gray-700 leading-relaxed text-sm">
+        <DetailSection
+          title="Description"
+          icon="document-text"
+          tint={catConfig.color}
+        >
+          <Text className="text-gray-700 leading-relaxed text-sm font-sans">
             {incident.description}
           </Text>
         </DetailSection>
 
         {/* Details */}
-        <DetailSection title="Détails">
+        <DetailSection
+          title="Détails"
+          icon="information-circle"
+          tint={catConfig.color}
+        >
           <DetailRow
             label="Catégorie"
             value={
@@ -554,7 +661,7 @@ function IncidentDetail({
                   color={catConfig.color}
                 />
                 <Text
-                  className="text-sm font-medium ml-1"
+                  className="text-sm font-sans-medium ml-1"
                   style={{ color: catConfig.color }}
                 >
                   {catConfig.label}
@@ -570,7 +677,7 @@ function IncidentDetail({
                 style={{ backgroundColor: severity.bg }}
               >
                 <Text
-                  className="text-xs font-bold"
+                  className="text-xs font-sans-bold"
                   style={{ color: severity.color }}
                 >
                   {severity.label}
@@ -585,13 +692,18 @@ function IncidentDetail({
                 className="rounded-full px-2.5 py-0.5"
                 style={{
                   backgroundColor:
-                    incident.status === "active" ? "#d1fae5" : "#f3f4f6",
+                    incident.status === "active"
+                      ? colors.successLight
+                      : colors.borderLight,
                 }}
               >
                 <Text
-                  className="text-xs font-bold"
+                  className="text-xs font-sans-bold"
                   style={{
-                    color: incident.status === "active" ? "#059669" : "#6b7280",
+                    color:
+                      incident.status === "active"
+                        ? colors.primaryDark
+                        : colors.muted,
                   }}
                 >
                   {incident.status === "active" ? "Actif" : "Résolu"}
@@ -602,7 +714,7 @@ function IncidentDetail({
           <DetailRow
             label="Signalé par"
             value={
-              <Text className="text-sm text-gray-800 font-medium">
+              <Text className="text-sm text-gray-800 font-sans-medium">
                 {incident.reporterName}
               </Text>
             }
@@ -610,7 +722,7 @@ function IncidentDetail({
           <DetailRow
             label="Date"
             value={
-              <Text className="text-sm text-gray-800 font-medium">
+              <Text className="text-sm text-gray-800 font-sans-medium">
                 {formatDate(incident.createdAt)}
               </Text>
             }
@@ -630,13 +742,13 @@ function IncidentDetail({
             </View>
             <View className="flex-1">
               <Text
-                className="font-semibold text-sm"
+                className="font-sans-semibold text-sm"
                 style={{ color: catConfig.color }}
               >
                 {regionName ? `Région de ${regionName}` : "Position signalée"}
               </Text>
               <Text
-                className="text-xs mt-0.5"
+                className="text-xs font-sans mt-0.5"
                 style={{ color: catConfig.color, opacity: 0.6 }}
               >
                 {formatCoord(incident.coordinates.latitude, "N", "S")},{" "}
@@ -656,7 +768,7 @@ function IncidentDetail({
               }}
               className="bg-emerald-500 rounded-xl py-4 items-center mb-3"
             >
-              <Text className="text-white font-bold text-base">
+              <Text className="text-white font-sans-bold text-base">
                 Marquer comme résolu
               </Text>
             </AnimatedPressable>
@@ -668,7 +780,7 @@ function IncidentDetail({
             }}
             className="bg-gray-200 rounded-xl py-4 items-center"
           >
-            <Text className="text-gray-600 font-semibold text-base">
+            <Text className="text-gray-600 font-sans-semibold text-base">
               Fermer
             </Text>
           </AnimatedPressable>
@@ -684,16 +796,29 @@ function IncidentDetail({
 
 function DetailSection({
   title,
+  icon,
+  tint,
   children,
 }: {
   title: string;
+  icon: React.ComponentProps<typeof Ionicons>["name"];
+  tint?: string;
   children: React.ReactNode;
 }) {
+  const sectionColor = tint ?? colors.primary;
   return (
     <View className="mb-5">
-      <Text className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
-        {title}
-      </Text>
+      <View className="flex-row items-center mb-2">
+        <View
+          className="w-7 h-7 rounded-lg items-center justify-center mr-2"
+          style={{ backgroundColor: sectionColor + "20" }}
+        >
+          <Ionicons name={icon} size={14} color={sectionColor} />
+        </View>
+        <Text className="text-sm font-heading-semibold text-gray-800">
+          {title}
+        </Text>
+      </View>
       <View className="bg-white rounded-2xl p-4 border border-gray-100">
         {children}
       </View>
@@ -716,7 +841,7 @@ function DetailRow({
         !isLast ? "border-b border-gray-50" : ""
       }`}
     >
-      <Text className="text-sm text-gray-500">{label}</Text>
+      <Text className="text-sm font-sans text-gray-500">{label}</Text>
       <View>{value}</View>
     </View>
   );

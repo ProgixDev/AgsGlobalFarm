@@ -10,9 +10,11 @@ import {
   TouchableOpacity,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Button from "@/components/ui/Button";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import AnimatedPressable from "@/components/animated/AnimatedPressable";
 import { router } from "expo-router";
 import { haptic } from "@/utils/haptics";
+import { colors } from "@/theme/colors";
 
 const { width, height } = Dimensions.get("window");
 
@@ -29,39 +31,40 @@ const slides: Slide[] = [
     description:
       "Connectez les acteurs du secteur agricole sénégalais à travers une plateforme interactive.",
     image: require("@/assets/images/Logo.png"),
-    accentColor: "#22c55e",
+    accentColor: colors.success,
   },
   {
     title: "Carte Interactive",
     description:
       "Explorez les fermes à travers le Sénégal, consultez les profils et filtrez par type de production.",
     image: require("@/assets/images/Drone.png"),
-    accentColor: "#3b82f6",
+    accentColor: colors.info,
   },
   {
     title: "Conseils Personnalisés",
     description:
       "Obtenez des recommandations adaptées pour la fertilisation et les traitements phytosanitaires.",
     image: require("@/assets/images/BlackManExplaining.png"),
-    accentColor: "#f97316",
+    accentColor: colors.warning,
   },
   {
     title: "Emploi Agricole",
     description:
       "Trouvez des emplois ou recrutez des talents dans le secteur agricole.",
     image: require("@/assets/images/TwoBlackPplTalking.png"),
-    accentColor: "#8b5cf6",
+    accentColor: colors.purple,
   },
   {
     title: "Formation Agricole",
     description:
       "Apprenez les meilleures pratiques pour les cultures, les maladies et les techniques durables.",
     image: require("@/assets/images/formation.jpg"),
-    accentColor: "#ec4899",
+    accentColor: colors.danger,
   },
 ];
 
 export default function Onboarding() {
+  const insets = useSafeAreaInsets();
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -124,8 +127,8 @@ export default function Onboarding() {
         {slides.map((slide, index) => (
           <View
             key={index}
-            className="flex-1 justify-center items-center px-6 py-16"
-            style={{ width }}
+            className="flex-1 justify-center items-center px-6"
+            style={{ width, paddingTop: insets.top + 16 }}
           >
             <View className="items-center w-full">
               {/* Bento-grid style image container */}
@@ -208,14 +211,14 @@ export default function Onboarding() {
 
               {/* Text content */}
               <View className="items-center px-4">
-                <Text className="text-3xl font-bold text-foreground text-center mb-4 leading-10">
+                <Text className="text-3xl font-heading-bold text-foreground text-center mb-4 leading-10">
                   {slide.title}
                 </Text>
                 <View
                   className="w-16 h-1 rounded-full mb-6"
                   style={{ backgroundColor: slide.accentColor }}
                 />
-                <Text className="text-lg text-muted-foreground text-center leading-7 px-4">
+                <Text className="text-lg font-sans text-muted-foreground text-center leading-7 px-4">
                   {slide.description}
                 </Text>
               </View>
@@ -225,7 +228,10 @@ export default function Onboarding() {
       </ScrollView>
 
       {/* Bottom section */}
-      <View className="px-6 pb-10">
+      <View
+        className="px-6"
+        style={{ paddingBottom: Math.max(insets.bottom, 24) }}
+      >
         {/* Indicators */}
         <View className="flex-row justify-center mb-8">
           {slides.map((slide, index) => (
@@ -239,11 +245,15 @@ export default function Onboarding() {
                 setCurrentIndex(index);
               }}
               activeOpacity={0.7}
+              hitSlop={{ top: 12, bottom: 12, left: 6, right: 6 }}
+              className="py-3"
             >
               <View
                 style={{
                   backgroundColor:
-                    index === currentIndex ? slide.accentColor : "#00000020",
+                    index === currentIndex
+                      ? slide.accentColor
+                      : `${colors.black}20`,
                 }}
                 className={`h-2.5 rounded-full mx-1.5 ${
                   index === currentIndex ? "w-10" : "w-2.5"
@@ -255,15 +265,22 @@ export default function Onboarding() {
 
         {/* Navigation */}
         <View className="gap-4">
-          <Button variant="primary" onPress={goToNext}>
-            {currentIndex === slides.length - 1 ? "Commencer" : "Suivant"}
-          </Button>
+          <AnimatedPressable
+            onPress={goToNext}
+            hapticType="light"
+            className="rounded-xl items-center justify-center py-4 px-6"
+            style={{ backgroundColor: slides[currentIndex].accentColor }}
+          >
+            <Text className="text-white text-base font-sans-semibold text-center">
+              {currentIndex === slides.length - 1 ? "Commencer" : "Suivant"}
+            </Text>
+          </AnimatedPressable>
 
           <View className="flex-row justify-between items-center px-2">
             {currentIndex > 0 ? (
               <TouchableOpacity onPress={goToPrev} activeOpacity={0.7}>
                 <Text
-                  className="font-semibold text-base"
+                  className="font-sans-semibold text-base"
                   style={{ color: slides[currentIndex].accentColor }}
                 >
                   ← Précédent
@@ -275,7 +292,7 @@ export default function Onboarding() {
 
             {currentIndex < slides.length - 1 && (
               <TouchableOpacity onPress={skip} activeOpacity={0.7}>
-                <Text className="text-muted-foreground font-medium text-base">
+                <Text className="text-muted-foreground font-sans-medium text-base">
                   Passer
                 </Text>
               </TouchableOpacity>

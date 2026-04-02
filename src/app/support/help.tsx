@@ -133,7 +133,7 @@ export default function HelpScreen() {
             }`}
           >
             <Text
-              className={`text-sm font-medium ${
+              className={`text-sm font-sans-medium ${
                 activeCategory === null ? "text-white" : "text-foreground"
               }`}
             >
@@ -155,7 +155,7 @@ export default function HelpScreen() {
               }`}
             >
               <Text
-                className={`text-sm font-medium ${
+                className={`text-sm font-sans-medium ${
                   activeCategory === cat ? "text-white" : "text-foreground"
                 }`}
               >
@@ -186,7 +186,7 @@ export default function HelpScreen() {
                       color={colors.primary}
                     />
                   </View>
-                  <Text className="flex-1 text-sm font-semibold text-foreground pr-2">
+                  <Text className="flex-1 text-sm font-sans-semibold text-foreground pr-2">
                     {item.question}
                   </Text>
                   <Ionicons
@@ -198,7 +198,7 @@ export default function HelpScreen() {
                 {isOpen && (
                   <View className="px-4 pb-4 pt-0">
                     <View className="h-px bg-gray-100 mb-3" />
-                    <Text className="text-sm text-muted-foreground leading-relaxed">
+                    <Text className="text-sm font-sans text-muted-foreground leading-relaxed">
                       {item.answer}
                     </Text>
                   </View>
@@ -216,15 +216,15 @@ export default function HelpScreen() {
               size={20}
               color={colors.primary}
             />
-            <Text className="text-base font-semibold text-foreground ml-2">
+            <Text className="text-base font-sans-semibold text-foreground ml-2">
               Toujours besoin d&apos;aide ?
             </Text>
           </View>
-          <Text className="text-sm text-muted-foreground mb-4">
+          <Text className="text-sm font-sans text-muted-foreground mb-4">
             Notre équipe est disponible pour répondre à vos questions.
           </Text>
           <AnimatedPressable className="bg-primary rounded-xl py-3 items-center">
-            <Text className="text-white font-semibold text-sm">
+            <Text className="text-white font-sans-semibold text-sm">
               Contacter le support
             </Text>
           </AnimatedPressable>

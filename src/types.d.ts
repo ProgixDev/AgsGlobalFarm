@@ -69,14 +69,36 @@ interface AdviceFormErrors {
 type MapMode = "explorer" | "farm" | "incidents";
 
 // Farm Location Types
+type FarmArea = "less_1ha" | "1ha" | "2ha" | "other";
+type FarmType =
+  | "maraicher"
+  | "avicole"
+  | "fruitier"
+  | "elevage"
+  | "agroecologie"
+  | "cerealiculture"
+  | "aquaculture"
+  | "autre";
+
 interface FarmLocation {
   id: string;
   userId: string;
   name: string;
-  coordinates: {
+  geometryType: "point" | "polygon";
+  coordinates?: {
     longitude: number;
     latitude: number;
   };
+  boundaryCoordinates?: {
+    longitude: number;
+    latitude: number;
+  }[];
+  surfaceHectares?: number;
+  area?: FarmArea;
+  farmType?: FarmType;
+  currentCrops?: string;
+  contact?: string;
+  hidePersonalInfo?: boolean;
   createdAt: string;
   updatedAt: string;
 }

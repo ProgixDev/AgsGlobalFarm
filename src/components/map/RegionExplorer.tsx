@@ -1,9 +1,24 @@
-import React from "react";
-import { View, Text, ScrollView } from "react-native";
+import React, { useState, useCallback } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  LayoutAnimation,
+  Platform,
+  UIManager,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { RegionAgriInfo } from "@/data/senegal-regions";
 import SwipeableBottomSheet from "@/components/ui/SwipeableBottomSheet";
 import { colors } from "@/theme/colors";
+
+if (
+  Platform.OS === "android" &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -21,6 +36,7 @@ interface RegionExplorerProps {
   selectedRegion: SelectedRegion | null;
   visible: boolean;
   onClose: () => void;
+  onRefocus?: () => void;
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -29,8 +45,26 @@ export function RegionExplorer({
   selectedRegion,
   visible,
   onClose,
+  onRefocus,
 }: RegionExplorerProps) {
+  const [sheetExpanded, setSheetExpanded] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(
+    new Set(["climate", "crops"]),
+  );
+
+  const toggleSection = useCallback((key: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpandedSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }, []);
+
   if (!selectedRegion) return null;
+
+  const agri = selectedRegion.agriInfo;
 
   return (
     <SwipeableBottomSheet
@@ -38,208 +72,359 @@ export function RegionExplorer({
       onDismiss={onClose}
       expandedHeight={0.85}
       minimizedHeight={90}
+      initialState="minimized"
       expandTrigger={selectedRegion.id}
+      showBackdrop={false}
+      onStateChange={(state) => setSheetExpanded(state === "expanded")}
       minimizedContent={
         <View className="flex-row items-center">
           <View
             className="w-10 h-10 rounded-full items-center justify-center mr-3"
-            style={{ backgroundColor: selectedRegion.color + "20" }}
+            style={{ backgroundColor: colors.primaryLight }}
           >
-            <Ionicons name="map" size={20} color={selectedRegion.color} />
+            <Ionicons name="map" size={20} color={colors.primary} />
           </View>
           <View className="flex-1">
-            <Text className="text-base font-bold text-gray-800">
+            <Text className="text-base font-heading-bold text-gray-800">
               {selectedRegion.name}
             </Text>
-            <Text className="text-xs text-muted-foreground">
+            <Text className="text-xs font-sans text-muted-foreground">
               Capitale : {selectedRegion.capital}
             </Text>
           </View>
-          <Ionicons name="chevron-up" size={20} color={colors.mutedLight} />
+          <Ionicons
+            name={sheetExpanded ? "chevron-down" : "chevron-up"}
+            size={20}
+            color={colors.muted}
+          />
         </View>
       }
     >
-      {/* Coloured header */}
-      <View
-        className="px-5 pt-2 pb-5"
-        style={{ backgroundColor: selectedRegion.color }}
-      >
-        <View className="flex-row items-center justify-between">
-          <View className="flex-1 mr-3">
-            <Text className="text-white text-2xl font-bold">
-              {selectedRegion.name}
-            </Text>
-            <Text className="text-white/80 text-sm mt-0.5">
-              Capitale : {selectedRegion.capital}
-            </Text>
+      {/* Header card */}
+      <View className="px-4 pt-1">
+        <View
+          className="rounded-2xl overflow-hidden"
+          style={{ backgroundColor: colors.primary }}
+        >
+          <View className="px-4 pt-4 pb-3">
+            <View className="flex-row items-center justify-between">
+              <View className="flex-1 mr-3">
+                <Text className="text-white text-2xl font-heading-bold">
+                  {selectedRegion.name}
+                </Text>
+                <Text className="text-white/60 text-sm font-sans mt-1">
+                  Capitale : {selectedRegion.capital}
+                </Text>
+              </View>
+              {onRefocus && (
+                <TouchableOpacity
+                  onPress={onRefocus}
+                  activeOpacity={0.7}
+                  className="w-10 h-10 rounded-full bg-white/15 items-center justify-center"
+                >
+                  <Ionicons
+                    name="locate-outline"
+                    size={20}
+                    color={colors.white}
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+
+          {/* Quick stats row */}
+          <View className="flex-row px-3 pb-3 gap-2">
+            {selectedRegion.population && (
+              <StatPill
+                icon="people"
+                value={`${(selectedRegion.population / 1_000_000).toFixed(1)}M`}
+                label="hab."
+              />
+            )}
+            {agri && (
+              <>
+                <StatPill
+                  icon="leaf"
+                  value={String(agri.mainCrops.length)}
+                  label="cultures"
+                />
+                <StatPill
+                  icon="water"
+                  value={agri.rainfall.split("–")[0] || agri.rainfall}
+                  label="mm/an"
+                />
+              </>
+            )}
           </View>
         </View>
-        {selectedRegion.population && (
-          <View className="flex-row items-center mt-3 bg-white/20 rounded-xl px-3 py-1.5 self-start">
-            <Ionicons name="people" size={14} color="white" />
-            <Text className="text-white text-sm ml-1.5 font-medium">
-              {selectedRegion.population.toLocaleString("fr-FR")} hab.
-            </Text>
-          </View>
-        )}
       </View>
 
-      <ScrollView className="px-5 py-4" showsVerticalScrollIndicator={false}>
-        {selectedRegion.agriInfo && (
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 32 }}
+      >
+        {agri && (
           <>
-            {/* Climate */}
-            <InfoSection
+            {/* Climate & Rainfall */}
+            <CollapsibleSection
+              sectionKey="climate"
               icon="partly-sunny"
               title="Climat & Pluviométrie"
-              color={selectedRegion.color}
+              expanded={expandedSections.has("climate")}
+              onToggle={toggleSection}
             >
-              <InfoRow label="Climat" value={selectedRegion.agriInfo.climate} />
-              <InfoRow
-                label="Pluviométrie"
-                value={selectedRegion.agriInfo.rainfall}
-              />
-            </InfoSection>
+              <View className="flex-row gap-3">
+                <DataCard
+                  icon="thermometer-outline"
+                  label="Climat"
+                  value={agri.climate}
+                  tint={colors.warning}
+                />
+                <DataCard
+                  icon="rainy-outline"
+                  label="Pluviométrie"
+                  value={agri.rainfall}
+                  tint={colors.info}
+                />
+              </View>
+            </CollapsibleSection>
 
             {/* Soil */}
-            <InfoSection
+            <CollapsibleSection
+              sectionKey="soil"
               icon="layers"
               title="Types de Sols"
-              color={selectedRegion.color}
+              expanded={expandedSections.has("soil")}
+              onToggle={toggleSection}
             >
-              <View className="flex-row flex-wrap gap-2 mb-2">
-                {selectedRegion.agriInfo.soilInfo.mainSoilTypes.map((soil) => (
+              <View className="flex-row flex-wrap gap-2 mb-3">
+                {agri.soilInfo.mainSoilTypes.map((soil) => (
                   <View
                     key={soil}
-                    className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-1"
+                    className="flex-row items-center bg-amber-50 rounded-full px-3 py-1.5"
                   >
-                    <Text className="text-amber-800 text-sm font-medium">
+                    <View className="w-2 h-2 rounded-full bg-amber-400 mr-1.5" />
+                    <Text className="text-amber-800 text-sm font-sans-medium">
                       {soil}
                     </Text>
                   </View>
                 ))}
               </View>
-              <Text className="text-muted-foreground text-sm leading-5 mt-1">
-                {selectedRegion.agriInfo.soilInfo.soilDescription}
+
+              <Text className="text-gray-600 text-sm font-sans leading-5 mb-3">
+                {agri.soilInfo.soilDescription}
               </Text>
-              <View className="flex-row gap-3 mt-3">
-                <View className="flex-1 bg-gray-50 rounded-xl p-3">
-                  <Text className="text-xs text-muted-foreground mb-0.5">
+
+              <View className="flex-row gap-2">
+                <View className="flex-1 bg-gray-50 rounded-xl p-3 items-center">
+                  <Text className="text-xs font-sans text-muted-foreground">
                     pH
                   </Text>
-                  <Text className="text-sm font-semibold text-gray-800">
-                    {selectedRegion.agriInfo.soilInfo.pH}
+                  <Text className="text-lg font-heading-bold text-gray-800 mt-0.5">
+                    {agri.soilInfo.pH}
                   </Text>
                 </View>
-                <View className="flex-1 bg-gray-50 rounded-xl p-3">
-                  <Text className="text-xs text-muted-foreground mb-0.5">
+                <View className="flex-1 bg-gray-50 rounded-xl p-3 items-center">
+                  <Text className="text-xs font-sans text-muted-foreground">
                     Drainage
                   </Text>
-                  <Text className="text-sm font-semibold text-gray-800">
-                    {selectedRegion.agriInfo.soilInfo.drainage}
+                  <Text className="text-sm font-heading-semibold text-gray-800 mt-1 text-center">
+                    {agri.soilInfo.drainage}
                   </Text>
                 </View>
               </View>
-            </InfoSection>
+            </CollapsibleSection>
 
             {/* Crops */}
-            <InfoSection
+            <CollapsibleSection
+              sectionKey="crops"
               icon="leaf"
               title="Cultures principales"
-              color={selectedRegion.color}
+              count={agri.mainCrops.length}
+              expanded={expandedSections.has("crops")}
+              onToggle={toggleSection}
             >
-              {selectedRegion.agriInfo.mainCrops.map((crop) => (
-                <View key={crop} className="flex-row items-start mb-1">
-                  <Text className="text-green-500 mr-2 mt-0.5">•</Text>
-                  <Text className="text-gray-700 text-sm flex-1">{crop}</Text>
-                </View>
-              ))}
-            </InfoSection>
+              <View className="flex-row flex-wrap gap-2">
+                {agri.mainCrops.map((crop) => (
+                  <View
+                    key={crop}
+                    className="flex-row items-center bg-green-50 rounded-full px-3 py-1.5"
+                  >
+                    <Text className="text-primary text-xs mr-1.5">●</Text>
+                    <Text className="text-green-800 text-sm font-sans-medium">
+                      {crop}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </CollapsibleSection>
 
             {/* Livestock */}
-            <InfoSection
+            <CollapsibleSection
+              sectionKey="livestock"
               icon="paw"
               title="Élevage & Activités"
-              color={selectedRegion.color}
+              count={agri.mainLivestock.length}
+              expanded={expandedSections.has("livestock")}
+              onToggle={toggleSection}
             >
-              {selectedRegion.agriInfo.mainLivestock.map((item) => (
-                <View key={item} className="flex-row items-start mb-1">
-                  <Text className="text-blue-500 mr-2 mt-0.5">•</Text>
-                  <Text className="text-gray-700 text-sm flex-1">{item}</Text>
-                </View>
-              ))}
-            </InfoSection>
+              <View className="flex-row flex-wrap gap-2">
+                {agri.mainLivestock.map((item) => (
+                  <View
+                    key={item}
+                    className="flex-row items-center bg-blue-50 rounded-full px-3 py-1.5"
+                  >
+                    <Text className="text-blue-500 text-xs mr-1.5">●</Text>
+                    <Text className="text-blue-800 text-sm font-sans-medium">
+                      {item}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </CollapsibleSection>
 
             {/* Notes */}
-            <InfoSection
-              icon="information-circle"
+            <CollapsibleSection
+              sectionKey="notes"
+              icon="document-text"
               title="Notes agricoles"
-              color={selectedRegion.color}
+              expanded={expandedSections.has("notes")}
+              onToggle={toggleSection}
             >
-              <Text className="text-muted-foreground text-sm leading-5">
-                {selectedRegion.agriInfo.agriculturalNotes}
+              <Text className="text-gray-600 text-sm font-sans leading-6">
+                {agri.agriculturalNotes}
               </Text>
-            </InfoSection>
+            </CollapsibleSection>
           </>
         )}
 
         {/* Departments */}
         {selectedRegion.departments.length > 0 && (
-          <InfoSection
+          <CollapsibleSection
+            sectionKey="departments"
             icon="location"
             title="Départements"
-            color={selectedRegion.color}
+            count={selectedRegion.departments.length}
+            expanded={expandedSections.has("departments")}
+            onToggle={toggleSection}
           >
             <View className="flex-row flex-wrap gap-2">
               {selectedRegion.departments.map((dept) => (
-                <View key={dept} className="bg-gray-100 rounded-lg px-3 py-1">
-                  <Text className="text-gray-700 text-sm">{dept}</Text>
+                <View
+                  key={dept}
+                  className="bg-gray-200 rounded-full px-3 py-1.5"
+                >
+                  <Text className="text-gray-800 text-base font-sans-semibold">
+                    {dept}
+                  </Text>
                 </View>
               ))}
             </View>
-          </InfoSection>
+          </CollapsibleSection>
         )}
-
-        <View className="h-8" />
       </ScrollView>
     </SwipeableBottomSheet>
   );
 }
 
-// ── Reusable sub-components ───────────────────────────────────────────────────
+// ── Sub-components ────────────────────────────────────────────────────────────
 
-function InfoSection({
+function StatPill({
   icon,
-  title,
-  color,
-  children,
+  value,
+  label,
 }: {
   icon: React.ComponentProps<typeof Ionicons>["name"];
-  title: string;
-  color: string;
-  children: React.ReactNode;
+  value: string;
+  label: string;
 }) {
   return (
-    <View className="mb-5">
-      <View className="flex-row items-center mb-2">
-        <Ionicons name={icon} size={15} color={color} />
-        <Text className="text-xs font-bold text-gray-800 ml-1.5 uppercase tracking-wide">
-          {title}
-        </Text>
-      </View>
-      <View className="bg-white rounded-2xl p-3 border border-gray-100">
-        {children}
-      </View>
+    <View className="flex-row items-center bg-white/20 rounded-full px-3 py-1.5">
+      <Ionicons name={icon} size={13} color={colors.white} />
+      <Text className="text-white text-sm font-sans-bold ml-1.5">{value}</Text>
+      <Text className="text-white/70 text-xs font-sans ml-1">{label}</Text>
     </View>
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
+function DataCard({
+  icon,
+  label,
+  value,
+  tint,
+}: {
+  icon: React.ComponentProps<typeof Ionicons>["name"];
+  label: string;
+  value: string;
+  tint: string;
+}) {
   return (
-    <View className="flex-row justify-between py-0.5">
-      <Text className="text-muted-foreground text-sm">{label}</Text>
-      <Text className="text-gray-800 text-sm font-medium text-right flex-1 ml-4">
+    <View className="flex-1 bg-white rounded-2xl p-3 border border-gray-100">
+      <View
+        className="w-8 h-8 rounded-full items-center justify-center mb-2"
+        style={{ backgroundColor: tint + "18" }}
+      >
+        <Ionicons name={icon} size={16} color={tint} />
+      </View>
+      <Text className="text-xs font-sans text-muted-foreground">{label}</Text>
+      <Text className="text-sm font-heading-semibold text-gray-800 mt-0.5">
         {value}
       </Text>
+    </View>
+  );
+}
+
+function CollapsibleSection({
+  sectionKey,
+  icon,
+  title,
+  count,
+  expanded,
+  onToggle,
+  children,
+}: {
+  sectionKey: string;
+  icon: React.ComponentProps<typeof Ionicons>["name"];
+  title: string;
+  count?: number;
+  expanded: boolean;
+  onToggle: (key: string) => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <View className="mx-5 mt-4">
+      <TouchableOpacity
+        onPress={() => onToggle(sectionKey)}
+        activeOpacity={0.6}
+        className="flex-row items-center justify-between py-2"
+      >
+        <View className="flex-row items-center flex-1">
+          <View
+            className="w-7 h-7 rounded-lg items-center justify-center mr-2"
+            style={{ backgroundColor: colors.primaryLight }}
+          >
+            <Ionicons name={icon} size={14} color={colors.primary} />
+          </View>
+          <Text className="text-sm font-heading-semibold text-gray-800">
+            {title}
+          </Text>
+          {count != null && (
+            <View className="ml-2 bg-gray-100 rounded-full px-2 py-0.5">
+              <Text className="text-xs font-sans-medium text-muted-foreground">
+                {count}
+              </Text>
+            </View>
+          )}
+        </View>
+        <Ionicons
+          name={expanded ? "chevron-up" : "chevron-down"}
+          size={18}
+          color={colors.muted}
+        />
+      </TouchableOpacity>
+
+      {expanded && <View className="pt-2 pb-1">{children}</View>}
     </View>
   );
 }

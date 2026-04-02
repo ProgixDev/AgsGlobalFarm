@@ -91,7 +91,7 @@ export default function NotificationsScreen() {
             }}
             className="flex-1 bg-white border border-border rounded-xl py-3 items-center"
           >
-            <Text className="text-sm font-medium text-foreground">
+            <Text className="text-sm font-sans-medium text-foreground">
               Tout activer
             </Text>
           </AnimatedPressable>
@@ -104,7 +104,7 @@ export default function NotificationsScreen() {
             }}
             className="flex-1 bg-white border border-border rounded-xl py-3 items-center"
           >
-            <Text className="text-sm font-medium text-foreground">
+            <Text className="text-sm font-sans-medium text-foreground">
               Tout désactiver
             </Text>
           </AnimatedPressable>
@@ -127,10 +127,10 @@ export default function NotificationsScreen() {
                 />
               </View>
               <View className="flex-1 mr-3">
-                <Text className="text-sm font-semibold text-foreground">
+                <Text className="text-sm font-sans-semibold text-foreground">
                   {setting.label}
                 </Text>
-                <Text className="text-xs text-muted-foreground mt-0.5">
+                <Text className="text-xs font-sans text-muted-foreground mt-0.5">
                   {setting.description}
                 </Text>
               </View>

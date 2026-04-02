@@ -4,10 +4,10 @@ import {
   Text,
   ScrollView,
   TextInput,
-  KeyboardAvoidingView,
   Platform,
   Alert,
 } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
@@ -22,6 +22,7 @@ import { AnimatedPressable } from "@/components/animated";
 import { haptic } from "@/utils/haptics";
 import { colors } from "@/theme/colors";
 import ScreenHeader from "@/components/ui/ScreenHeader";
+import { TAB_BAR_HEIGHT } from "@/components/ui/FloatingTabBar";
 
 export default function JobPostScreen() {
   const router = useRouter();
@@ -186,20 +187,20 @@ export default function JobPostScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className="flex-1"
-      >
+      <KeyboardAwareScrollView bottomOffset={20} className="flex-1">
         {/* Header */}
         <ScreenHeader
           title={isEditing ? "Modifier l'offre" : "Publier une offre"}
           showBack
         />
 
-        <ScrollView className="flex-1 px-4 py-6">
+        <ScrollView
+          className="flex-1 px-4 py-6"
+          contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT }}
+        >
           {/* Title */}
           <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-2">
+            <Text className="text-sm font-sans-medium text-gray-700 mb-2">
               Titre du poste <Text className="text-red-500">*</Text>
             </Text>
             <TextInput
@@ -213,7 +214,7 @@ export default function JobPostScreen() {
               }}
             />
             {jobFormErrors.title ? (
-              <Text className="text-red-500 text-xs mt-1">
+              <Text className="text-red-500 text-xs font-sans mt-1">
                 {jobFormErrors.title}
               </Text>
             ) : null}
@@ -221,7 +222,7 @@ export default function JobPostScreen() {
 
           {/* Farm Name */}
           <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-2">
+            <Text className="text-sm font-sans-medium text-gray-700 mb-2">
               Nom de la ferme/entreprise <Text className="text-red-500">*</Text>
             </Text>
             <TextInput
@@ -235,7 +236,7 @@ export default function JobPostScreen() {
               }}
             />
             {jobFormErrors.farmName ? (
-              <Text className="text-red-500 text-xs mt-1">
+              <Text className="text-red-500 text-xs font-sans mt-1">
                 {jobFormErrors.farmName}
               </Text>
             ) : null}
@@ -243,7 +244,7 @@ export default function JobPostScreen() {
 
           {/* Region */}
           <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-2">
+            <Text className="text-sm font-sans-medium text-gray-700 mb-2">
               Région <Text className="text-red-500">*</Text>
             </Text>
             <View className="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden">
@@ -278,7 +279,7 @@ export default function JobPostScreen() {
               </Picker>
             </View>
             {jobFormErrors.region ? (
-              <Text className="text-red-500 text-xs mt-1">
+              <Text className="text-red-500 text-xs font-sans mt-1">
                 {jobFormErrors.region}
               </Text>
             ) : null}
@@ -287,7 +288,7 @@ export default function JobPostScreen() {
           {/* Department */}
           {jobFormData.region && (
             <View className="mb-4">
-              <Text className="text-sm font-medium text-gray-700 mb-2">
+              <Text className="text-sm font-sans-medium text-gray-700 mb-2">
                 Département <Text className="text-red-500">*</Text>
               </Text>
               <View className="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden">
@@ -318,7 +319,7 @@ export default function JobPostScreen() {
                 </Picker>
               </View>
               {jobFormErrors.department ? (
-                <Text className="text-red-500 text-xs mt-1">
+                <Text className="text-red-500 text-xs font-sans mt-1">
                   {jobFormErrors.department}
                 </Text>
               ) : null}
@@ -327,7 +328,7 @@ export default function JobPostScreen() {
 
           {/* Location */}
           <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-2">
+            <Text className="text-sm font-sans-medium text-gray-700 mb-2">
               Localité précise <Text className="text-red-500">*</Text>
             </Text>
             <TextInput
@@ -341,7 +342,7 @@ export default function JobPostScreen() {
               }}
             />
             {jobFormErrors.location ? (
-              <Text className="text-red-500 text-xs mt-1">
+              <Text className="text-red-500 text-xs font-sans mt-1">
                 {jobFormErrors.location}
               </Text>
             ) : null}
@@ -349,7 +350,7 @@ export default function JobPostScreen() {
 
           {/* Contract Type */}
           <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-2">
+            <Text className="text-sm font-sans-medium text-gray-700 mb-2">
               Type de contrat <Text className="text-red-500">*</Text>
             </Text>
             <View className="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden">
@@ -380,7 +381,7 @@ export default function JobPostScreen() {
               </Picker>
             </View>
             {jobFormErrors.contractType ? (
-              <Text className="text-red-500 text-xs mt-1">
+              <Text className="text-red-500 text-xs font-sans mt-1">
                 {jobFormErrors.contractType}
               </Text>
             ) : null}
@@ -388,7 +389,7 @@ export default function JobPostScreen() {
 
           {/* Salary Range */}
           <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-2">
+            <Text className="text-sm font-sans-medium text-gray-700 mb-2">
               Salaire proposé <Text className="text-red-500">*</Text>
             </Text>
             <TextInput
@@ -402,7 +403,7 @@ export default function JobPostScreen() {
               }}
             />
             {jobFormErrors.salaryRange ? (
-              <Text className="text-red-500 text-xs mt-1">
+              <Text className="text-red-500 text-xs font-sans mt-1">
                 {jobFormErrors.salaryRange}
               </Text>
             ) : null}
@@ -410,7 +411,7 @@ export default function JobPostScreen() {
 
           {/* Description */}
           <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-2">
+            <Text className="text-sm font-sans-medium text-gray-700 mb-2">
               Description du poste <Text className="text-red-500">*</Text>
             </Text>
             <TextInput
@@ -427,7 +428,7 @@ export default function JobPostScreen() {
               textAlignVertical="top"
             />
             {jobFormErrors.description ? (
-              <Text className="text-red-500 text-xs mt-1">
+              <Text className="text-red-500 text-xs font-sans mt-1">
                 {jobFormErrors.description}
               </Text>
             ) : null}
@@ -435,10 +436,10 @@ export default function JobPostScreen() {
 
           {/* Requirements */}
           <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-2">
+            <Text className="text-sm font-sans-medium text-gray-700 mb-2">
               Exigences du poste <Text className="text-red-500">*</Text>
             </Text>
-            <Text className="text-xs text-gray-500 mb-2">
+            <Text className="text-xs font-sans text-gray-500 mb-2">
               Séparez chaque exigence par une nouvelle ligne
             </Text>
             <TextInput
@@ -455,7 +456,7 @@ export default function JobPostScreen() {
               textAlignVertical="top"
             />
             {jobFormErrors.requirements ? (
-              <Text className="text-red-500 text-xs mt-1">
+              <Text className="text-red-500 text-xs font-sans mt-1">
                 {jobFormErrors.requirements}
               </Text>
             ) : null}
@@ -469,12 +470,12 @@ export default function JobPostScreen() {
             className="bg-primary rounded-xl py-4 flex-row items-center justify-center"
           >
             <Ionicons name="checkmark-circle" size={20} color="white" />
-            <Text className="text-white text-lg font-bold ml-2">
+            <Text className="text-white text-lg font-sans-bold ml-2">
               {isEditing ? "Enregistrer les modifications" : "Publier l'offre"}
             </Text>
           </AnimatedPressable>
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }

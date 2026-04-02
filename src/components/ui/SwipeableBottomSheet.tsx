@@ -7,12 +7,14 @@ import Animated, {
   runOnJS,
 } from "react-native-reanimated";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { haptic } from "@/utils/haptics";
+import { colors } from "@/theme/colors";
+import { TAB_BAR_HEIGHT } from "@/components/ui/FloatingTabBar";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 const SPRING_CONFIG = { damping: 20, stiffness: 200, mass: 0.5 };
-const TAB_BAR_HEIGHT = 60;
 
 type SheetState = "expanded" | "minimized" | "dismissed";
 
@@ -24,7 +26,7 @@ interface SwipeableBottomSheetProps {
   expandedHeight?: number;
   /** Height when minimized in pixels (default 80) */
   minimizedHeight?: number;
-  /** Bottom inset to account for tab bar (default 60) */
+  /** Bottom inset to account for tab bar (default TAB_BAR_HEIGHT) */
   bottomInset?: number;
   /** Show backdrop overlay (default true) */
   showBackdrop?: boolean;
@@ -32,6 +34,12 @@ interface SwipeableBottomSheetProps {
   minimizedContent?: React.ReactNode;
   /** When this value changes while visible, the sheet re-expands */
   expandTrigger?: string | number | null;
+  /** When this value changes while visible, the sheet minimizes */
+  minimizeTrigger?: string | number | null;
+  /** Initial state when becoming visible (default "expanded") */
+  initialState?: "expanded" | "minimized";
+  /** Called when the sheet state changes */
+  onStateChange?: (state: SheetState) => void;
 }
 
 export default function SwipeableBottomSheet({
@@ -40,11 +48,17 @@ export default function SwipeableBottomSheet({
   children,
   expandedHeight = 0.85,
   minimizedHeight = 80,
-  bottomInset = TAB_BAR_HEIGHT,
+  bottomInset: bottomInsetProp,
   showBackdrop = true,
   minimizedContent,
   expandTrigger,
+  minimizeTrigger,
+  initialState = "expanded",
+  onStateChange,
 }: SwipeableBottomSheetProps) {
+  const insets = useSafeAreaInsets();
+  const bottomInset = bottomInsetProp ?? TAB_BAR_HEIGHT + insets.bottom;
+
   // The sheet content height when expanded
   const sheetContentHeight = SCREEN_HEIGHT * expandedHeight;
   // Y positions are absolute from top of screen
@@ -58,24 +72,47 @@ export default function SwipeableBottomSheet({
 
   useEffect(() => {
     if (visible) {
-      sheetState.value = "expanded";
-      translateY.value = withSpring(expandedY, SPRING_CONFIG);
+      const targetState = initialState;
+      const targetY = targetState === "minimized" ? minimizedY : expandedY;
+      sheetState.value = targetState;
+      translateY.value = withSpring(targetY, SPRING_CONFIG);
+      onStateChange?.(targetState);
     } else {
       sheetState.value = "dismissed";
       translateY.value = withSpring(dismissedY, SPRING_CONFIG);
+      onStateChange?.("dismissed");
     }
-  }, [visible, expandedY, dismissedY, translateY, sheetState]);
+  }, [visible, expandedY, minimizedY, dismissedY, translateY, sheetState]);
 
   useEffect(() => {
     if (visible && expandTrigger != null) {
-      sheetState.value = "expanded";
-      translateY.value = withSpring(expandedY, SPRING_CONFIG);
+      const targetState =
+        initialState === "minimized" ? "minimized" : "expanded";
+      const targetY = targetState === "minimized" ? minimizedY : expandedY;
+      sheetState.value = targetState;
+      translateY.value = withSpring(targetY, SPRING_CONFIG);
+      onStateChange?.(targetState);
     }
   }, [expandTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (visible && minimizeTrigger != null) {
+      sheetState.value = "minimized";
+      translateY.value = withSpring(minimizedY, SPRING_CONFIG);
+      onStateChange?.("minimized");
+    }
+  }, [minimizeTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fireHaptic = useCallback(() => {
     haptic.light();
   }, []);
+
+  const fireStateChange = useCallback(
+    (s: SheetState) => {
+      onStateChange?.(s);
+    },
+    [onStateChange],
+  );
 
   const fireDismiss = useCallback(() => {
     onDismiss();
@@ -98,10 +135,12 @@ export default function SwipeableBottomSheet({
           sheetState.value = "minimized";
           translateY.value = withSpring(minimizedY, SPRING_CONFIG);
           runOnJS(fireHaptic)();
+          runOnJS(fireStateChange)("minimized");
         } else {
           sheetState.value = "dismissed";
           translateY.value = withSpring(dismissedY, SPRING_CONFIG);
           runOnJS(fireHaptic)();
+          runOnJS(fireStateChange)("dismissed");
           runOnJS(fireDismiss)();
         }
         return;
@@ -111,6 +150,7 @@ export default function SwipeableBottomSheet({
         sheetState.value = "expanded";
         translateY.value = withSpring(expandedY, SPRING_CONFIG);
         runOnJS(fireHaptic)();
+        runOnJS(fireStateChange)("expanded");
         return;
       }
 
@@ -120,14 +160,17 @@ export default function SwipeableBottomSheet({
       if (currentY < midExpMin) {
         sheetState.value = "expanded";
         translateY.value = withSpring(expandedY, SPRING_CONFIG);
+        runOnJS(fireStateChange)("expanded");
       } else if (currentY < midMinDis) {
         sheetState.value = "minimized";
         translateY.value = withSpring(minimizedY, SPRING_CONFIG);
         runOnJS(fireHaptic)();
+        runOnJS(fireStateChange)("minimized");
       } else {
         sheetState.value = "dismissed";
         translateY.value = withSpring(dismissedY, SPRING_CONFIG);
         runOnJS(fireHaptic)();
+        runOnJS(fireStateChange)("dismissed");
         runOnJS(fireDismiss)();
       }
     });
@@ -137,6 +180,7 @@ export default function SwipeableBottomSheet({
       sheetState.value = "expanded";
       translateY.value = withSpring(expandedY, SPRING_CONFIG);
       runOnJS(fireHaptic)();
+      runOnJS(fireStateChange)("expanded");
     }
   });
 
@@ -158,16 +202,20 @@ export default function SwipeableBottomSheet({
   }
 
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-      {/* Backdrop */}
+    <>
+      {/* Backdrop — only blocks touches when visible */}
       {showBackdrop && (
-        <Animated.View style={[StyleSheet.absoluteFill, backdropStyle]}>
+        <Animated.View
+          style={[StyleSheet.absoluteFill, backdropStyle]}
+          pointerEvents="box-none"
+        >
           <Pressable
             style={StyleSheet.absoluteFill}
             onPress={() => {
               haptic.light();
               sheetState.value = "minimized";
               translateY.value = withSpring(minimizedY, SPRING_CONFIG);
+              onStateChange?.("minimized");
             }}
           >
             <View
@@ -177,31 +225,34 @@ export default function SwipeableBottomSheet({
         </Animated.View>
       )}
 
-      {/* Sheet */}
+      {/* Sheet — positioned at bottom, doesn't cover the whole screen */}
       <Animated.View
         style={[styles.sheet, { height: sheetContentHeight }, sheetStyle]}
         pointerEvents="box-none"
       >
         <GestureDetector gesture={Gesture.Race(panGesture, tapToExpand)}>
           <Animated.View>
-            {/* Drag handle */}
-            <View className="items-center pt-3 pb-2">
+            <View
+              className="items-center justify-center"
+              style={{ minHeight: 44 }}
+            >
               <View className="w-10 h-1.5 rounded-full bg-gray-300" />
             </View>
 
-            {/* Header / minimized preview content */}
             {minimizedContent && (
               <View className="px-5 pb-2">{minimizedContent}</View>
             )}
           </Animated.View>
         </GestureDetector>
 
-        {/* Full content */}
-        <View style={{ flex: 1 }} pointerEvents="auto">
+        <View
+          style={{ flex: 1, paddingBottom: insets.bottom }}
+          pointerEvents="auto"
+        >
           {children}
         </View>
       </Animated.View>
-    </View>
+    </>
   );
 }
 
@@ -210,10 +261,10 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 0,
     right: 0,
-    backgroundColor: "#f9fafb",
+    backgroundColor: colors.backgroundMuted,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
-    shadowColor: "#000",
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,

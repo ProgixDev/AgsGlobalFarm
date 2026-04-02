@@ -117,15 +117,15 @@ const mockIncidents: IncidentReport[] = [
 
 interface MapStore {
   // Farm
-  farmLocation: FarmLocation | null;
+  farmLocations: FarmLocation[];
 
   // Incidents
   incidents: IncidentReport[];
 
   // Farm actions
-  setFarmLocation: (farm: FarmLocation) => void;
-  updateFarmLocation: (updates: Partial<FarmLocation>) => void;
-  deleteFarmLocation: () => void;
+  addFarmLocation: (farm: FarmLocation) => void;
+  updateFarmLocation: (farm: FarmLocation) => void;
+  deleteFarmLocation: (id: string) => void;
 
   // Incident actions
   addIncident: (
@@ -140,24 +140,26 @@ interface MapStore {
 export const useMapStore = create<MapStore>()(
   persist(
     (set, get) => ({
-      farmLocation: null,
+      farmLocations: [],
       incidents: mockIncidents,
 
-      setFarmLocation: (farm: FarmLocation) => set({ farmLocation: farm }),
+      addFarmLocation: (farm: FarmLocation) =>
+        set((state) => ({ farmLocations: [farm, ...state.farmLocations] })),
 
-      updateFarmLocation: (updates: Partial<FarmLocation>) => {
+      updateFarmLocation: (farm: FarmLocation) => {
         set((state) => ({
-          farmLocation: state.farmLocation
-            ? {
-                ...state.farmLocation,
-                ...updates,
-                updatedAt: new Date().toISOString(),
-              }
-            : null,
+          farmLocations: state.farmLocations.map((existing) =>
+            existing.id === farm.id
+              ? { ...farm, updatedAt: new Date().toISOString() }
+              : existing,
+          ),
         }));
       },
 
-      deleteFarmLocation: () => set({ farmLocation: null }),
+      deleteFarmLocation: (id: string) =>
+        set((state) => ({
+          farmLocations: state.farmLocations.filter((farm) => farm.id !== id),
+        })),
 
       addIncident: (incidentData) => {
         const newIncident: IncidentReport = {
@@ -202,8 +204,48 @@ export const useMapStore = create<MapStore>()(
     {
       name: "@ags_map_storage",
       storage: createJSONStorage(() => AsyncStorage),
+      migrate: (persistedState: any) => {
+        if (!persistedState || typeof persistedState !== "object") {
+          return persistedState;
+        }
+
+        if (Array.isArray((persistedState as MapStore).farmLocations)) {
+          return {
+            ...persistedState,
+            farmLocations: (persistedState.farmLocations as FarmLocation[]).map(
+              (farm) => ({
+                ...farm,
+                geometryType:
+                  farm.geometryType ??
+                  ((farm.boundaryCoordinates?.length ?? 0) >= 3
+                    ? "polygon"
+                    : "point"),
+              }),
+            ),
+          };
+        }
+
+        const legacyFarmLocation = persistedState.farmLocation as
+          | FarmLocation
+          | null
+          | undefined;
+
+        const migratedFarmLocations = legacyFarmLocation
+          ? [
+              {
+                ...legacyFarmLocation,
+                geometryType: legacyFarmLocation.geometryType ?? "point",
+              },
+            ]
+          : [];
+
+        return {
+          ...persistedState,
+          farmLocations: migratedFarmLocations,
+        };
+      },
       partialize: (state) => ({
-        farmLocation: state.farmLocation,
+        farmLocations: state.farmLocations,
         incidents: state.incidents,
       }),
     },
