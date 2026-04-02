@@ -19,6 +19,7 @@ export const mockJobs: Job[] = [
     ],
     postedDate: "2024-01-15",
     applicantsCount: 12,
+    status: "active",
   },
   {
     id: "2",
@@ -39,6 +40,7 @@ export const mockJobs: Job[] = [
     ],
     postedDate: "2024-01-14",
     applicantsCount: 8,
+    status: "active",
   },
   {
     id: "3",
@@ -60,6 +62,7 @@ export const mockJobs: Job[] = [
     ],
     postedDate: "2024-01-13",
     applicantsCount: 15,
+    status: "active",
   },
   {
     id: "4",
@@ -80,6 +83,7 @@ export const mockJobs: Job[] = [
     ],
     postedDate: "2024-01-12",
     applicantsCount: 25,
+    status: "active",
   },
   {
     id: "5",
@@ -100,6 +104,7 @@ export const mockJobs: Job[] = [
     ],
     postedDate: "2024-01-11",
     applicantsCount: 6,
+    status: "active",
   },
   {
     id: "6",
@@ -121,6 +126,7 @@ export const mockJobs: Job[] = [
     ],
     postedDate: "2024-01-10",
     applicantsCount: 10,
+    status: "active",
   },
   {
     id: "7",
@@ -141,6 +147,7 @@ export const mockJobs: Job[] = [
     ],
     postedDate: "2024-01-09",
     applicantsCount: 18,
+    status: "active",
   },
   {
     id: "8",
@@ -161,6 +168,7 @@ export const mockJobs: Job[] = [
     ],
     postedDate: "2024-01-08",
     applicantsCount: 9,
+    status: "active",
   },
 ];
 
@@ -183,6 +191,8 @@ export const mockMyJobs: Job[] = [
     ],
     postedDate: "2024-01-14",
     applicantsCount: 7,
+    status: "active",
+    createdBy: "farm-owner-1",
   },
   {
     id: "102",
@@ -202,6 +212,8 @@ export const mockMyJobs: Job[] = [
     ],
     postedDate: "2024-01-10",
     applicantsCount: 5,
+    status: "active",
+    createdBy: "farm-owner-1",
   },
 ];
 

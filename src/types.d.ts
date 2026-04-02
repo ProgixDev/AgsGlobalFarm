@@ -169,6 +169,8 @@ interface Job {
   requirements: string[];
   postedDate: string;
   applicantsCount: number;
+  status: "active" | "paused" | "closed" | "expired";
+  createdBy?: string;
 }
 
 interface JobApplication {
@@ -228,6 +230,7 @@ interface JobPostingFormData {
   region: string;
   department: string;
   contractType: "CDI" | "CDD" | "Saisonnier" | "Stage" | "";
+  status: "active" | "paused" | "closed" | "expired" | "";
   salaryRange: string;
   description: string;
   requirements: string;
@@ -240,6 +243,7 @@ interface JobPostingFormErrors {
   region: string;
   department: string;
   contractType: string;
+  status: string;
   salaryRange: string;
   description: string;
   requirements: string;

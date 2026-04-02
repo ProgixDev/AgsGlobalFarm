@@ -34,6 +34,13 @@ interface JobsStore {
   getMyApplications: (applicantId: string) => JobApplication[];
   getAcceptedJobsForUser: (applicantId: string) => Job[];
   hasApplied: (jobId: string, applicantId: string) => boolean;
+
+  // New unified selectors
+  getAllJobs: () => Job[];
+  getPublicActiveJobs: () => Job[];
+  getRecruiterJobs: (recruiterId: string) => Job[];
+  getRecruiterActiveOffersCount: (recruiterId: string) => number;
+  getRecruiterApplications: (recruiterId: string) => JobApplication[];
 }
 
 export const useJobsStore = create<JobsStore>()(
@@ -51,12 +58,16 @@ export const useJobsStore = create<JobsStore>()(
           id: `job-${Date.now()}`,
           postedDate: new Date().toISOString().split("T")[0],
           applicantsCount: 0,
+          status: jobData.status ?? "active",
         };
         set((state) => ({ myJobs: [newJob, ...state.myJobs] }));
       },
 
       updateJob: (id: string, jobData: Partial<Job>) => {
         set((state) => ({
+          allJobs: state.allJobs.map((job) =>
+            job.id === id ? { ...job, ...jobData } : job,
+          ),
           myJobs: state.myJobs.map((job) =>
             job.id === id ? { ...job, ...jobData } : job,
           ),
@@ -65,6 +76,7 @@ export const useJobsStore = create<JobsStore>()(
 
       deleteJob: (id: string) => {
         set((state) => ({
+          allJobs: state.allJobs.filter((job) => job.id !== id),
           myJobs: state.myJobs.filter((job) => job.id !== id),
         }));
       },
@@ -79,6 +91,7 @@ export const useJobsStore = create<JobsStore>()(
           title: `${jobToDuplicate.title} (Copie)`,
           postedDate: new Date().toISOString().split("T")[0],
           applicantsCount: 0,
+          status: "active",
         };
         set((state) => ({ myJobs: [newJob, ...state.myJobs] }));
       },
@@ -92,15 +105,33 @@ export const useJobsStore = create<JobsStore>()(
       },
 
       submitApplication: (applicationData) => {
+        if (
+          applicationData.applicantId &&
+          get().hasApplied(applicationData.jobId, applicationData.applicantId)
+        ) {
+          return;
+        }
+
         const newApplication: JobApplication = {
           ...applicationData,
           id: `app-${Date.now()}`,
           appliedDate: new Date().toISOString().split("T")[0],
           status: "pending",
         };
+
         set((state) => {
           const existing = state.applications[applicationData.jobId] ?? [];
           return {
+            allJobs: state.allJobs.map((job) =>
+              job.id === applicationData.jobId
+                ? { ...job, applicantsCount: (job.applicantsCount ?? 0) + 1 }
+                : job,
+            ),
+            myJobs: state.myJobs.map((job) =>
+              job.id === applicationData.jobId
+                ? { ...job, applicantsCount: (job.applicantsCount ?? 0) + 1 }
+                : job,
+            ),
             applications: {
               ...state.applications,
               [applicationData.jobId]: [...existing, newApplication],
@@ -157,6 +188,41 @@ export const useJobsStore = create<JobsStore>()(
         return [...state.allJobs, ...state.myJobs].filter((job) =>
           acceptedJobIds.includes(job.id),
         );
+      },
+
+      getAllJobs: () => {
+        const state = get();
+        const byId = new Map<string, Job>();
+        state.allJobs.forEach((job) => byId.set(job.id, job));
+        state.myJobs.forEach((job) => byId.set(job.id, job));
+        return Array.from(byId.values());
+      },
+
+      getPublicActiveJobs: () => {
+        return get()
+          .getAllJobs()
+          .filter((job) => job.status === "active");
+      },
+
+      getRecruiterJobs: (recruiterId: string) => {
+        return get().myJobs.filter((job) => job.createdBy === recruiterId);
+      },
+
+      getRecruiterActiveOffersCount: (recruiterId: string) => {
+        return get()
+          .getRecruiterJobs(recruiterId)
+          .filter((job) => job.status === "active").length;
+      },
+
+      getRecruiterApplications: (recruiterId: string) => {
+        const recruiterJobIds = new Set(
+          get()
+            .getRecruiterJobs(recruiterId)
+            .map((job) => job.id),
+        );
+        return Object.entries(get().applications)
+          .filter(([jobId]) => recruiterJobIds.has(jobId))
+          .flatMap(([, apps]) => apps);
       },
     }),
     {

@@ -13,6 +13,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useJobsStore } from "@/stores/jobsStore";
+import { useUserStore } from "@/stores/userStore";
+import { useMapStore } from "@/stores/mapStore";
 import {
   senegalRegions,
   senegalDepartments,
@@ -21,8 +23,8 @@ import {
 import { AnimatedPressable } from "@/components/animated";
 import { haptic } from "@/utils/haptics";
 import { colors } from "@/theme/colors";
-import ScreenHeader from "@/components/ui/ScreenHeader";
 import { TAB_BAR_HEIGHT } from "@/components/ui/FloatingTabBar";
+import { useHideTabBar } from "@/hooks/useHideTabBar";
 
 export default function JobPostScreen() {
   const router = useRouter();
@@ -30,6 +32,10 @@ export default function JobPostScreen() {
   const createJob = useJobsStore((state) => state.createJob);
   const updateJob = useJobsStore((state) => state.updateJob);
   const getJobById = useJobsStore((state) => state.getJobById);
+  const currentUser = useUserStore((state) => state.currentUser);
+  const farmLocations = useMapStore((state) => state.farmLocations);
+
+  useHideTabBar();
 
   const jobId = params.id as string | undefined;
   const isEditing = !!jobId;
@@ -42,6 +48,7 @@ export default function JobPostScreen() {
     region: "",
     department: "",
     contractType: "",
+    status: "active",
     salaryRange: "",
     description: "",
     requirements: "",
@@ -54,16 +61,25 @@ export default function JobPostScreen() {
     region: "",
     department: "",
     contractType: "",
+    status: "",
     salaryRange: "",
     description: "",
     requirements: "",
   });
+
+  const [salaryMin, setSalaryMin] = useState("");
+  const [salaryMax, setSalaryMax] = useState("");
+
+  const recruiterFarmLocations = farmLocations.filter(
+    (farm) => farm.userId === currentUser?.id,
+  );
 
   // Load job data if editing
   useEffect(() => {
     if (isEditing && jobId) {
       const job = getJobById(jobId);
       if (job) {
+        const salaryNumbers = (job.salaryRange.match(/\d+/g) ?? []).slice(0, 2);
         setJobFormData({
           title: job.title,
           farmName: job.farmName,
@@ -71,13 +87,39 @@ export default function JobPostScreen() {
           region: job.region,
           department: job.department,
           contractType: job.contractType,
+          status: job.status,
           salaryRange: job.salaryRange,
           description: job.description,
           requirements: job.requirements.join("\n"),
         });
+        setSalaryMin(salaryNumbers[0] ?? "");
+        setSalaryMax(salaryNumbers[1] ?? "");
       }
     }
   }, [jobId, isEditing, getJobById]);
+
+  const updateSalaryRange = (minValue: string, maxValue: string) => {
+    const cleanMin = minValue.replace(/\D/g, "");
+    const cleanMax = maxValue.replace(/\D/g, "");
+
+    if (cleanMin && cleanMax) {
+      setJobFormData((prev) => ({
+        ...prev,
+        salaryRange: `${Number(cleanMin).toLocaleString("fr-FR")} - ${Number(cleanMax).toLocaleString("fr-FR")} FCFA/mois`,
+      }));
+      return;
+    }
+
+    if (cleanMin) {
+      setJobFormData((prev) => ({
+        ...prev,
+        salaryRange: `A partir de ${Number(cleanMin).toLocaleString("fr-FR")} FCFA/mois`,
+      }));
+      return;
+    }
+
+    setJobFormData((prev) => ({ ...prev, salaryRange: "" }));
+  };
 
   // Validate form
   const validateForm = (): boolean => {
@@ -88,6 +130,7 @@ export default function JobPostScreen() {
       region: "",
       department: "",
       contractType: "",
+      status: "",
       salaryRange: "",
       description: "",
       requirements: "",
@@ -122,6 +165,11 @@ export default function JobPostScreen() {
 
     if (!jobFormData.contractType) {
       errors.contractType = "Le type de contrat est requis";
+      isValid = false;
+    }
+
+    if (!jobFormData.status) {
+      errors.status = "Le statut de publication est requis";
       isValid = false;
     }
 
@@ -163,6 +211,7 @@ export default function JobPostScreen() {
         region: jobFormData.region,
         department: jobFormData.department,
         contractType: jobFormData.contractType as any,
+        status: jobFormData.status as any,
         salaryRange: jobFormData.salaryRange,
         description: jobFormData.description,
         requirements: requirementsArray,
@@ -175,9 +224,11 @@ export default function JobPostScreen() {
         region: jobFormData.region,
         department: jobFormData.department,
         contractType: jobFormData.contractType as any,
+        status: jobFormData.status as any,
         salaryRange: jobFormData.salaryRange,
         description: jobFormData.description,
         requirements: requirementsArray,
+        createdBy: currentUser?.id,
       });
     }
 
@@ -188,16 +239,27 @@ export default function JobPostScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <KeyboardAwareScrollView bottomOffset={20} className="flex-1">
-        {/* Header */}
-        <ScreenHeader
-          title={isEditing ? "Modifier l'offre" : "Publier une offre"}
-          showBack
-        />
-
         <ScrollView
-          className="flex-1 px-4 py-6"
+          className="flex-1 px-4 py-4"
           contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT }}
         >
+          <View className="flex-row items-center mb-4">
+            <AnimatedPressable
+              onPress={() => router.back()}
+              className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center"
+            >
+              <Ionicons name="arrow-back" size={20} color={colors.muted} />
+            </AnimatedPressable>
+            <View className="ml-3">
+              <Text className="text-lg font-heading-bold text-gray-900">
+                {isEditing ? "Modifier l'offre" : "Publier une offre"}
+              </Text>
+              <Text className="text-xs font-sans text-gray-500">
+                Renseignez les informations de votre recrutement
+              </Text>
+            </View>
+          </View>
+
           {/* Title */}
           <View className="mb-4">
             <Text className="text-sm font-sans-medium text-gray-700 mb-2">
@@ -331,16 +393,42 @@ export default function JobPostScreen() {
             <Text className="text-sm font-sans-medium text-gray-700 mb-2">
               Localité précise <Text className="text-red-500">*</Text>
             </Text>
-            <TextInput
-              className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-base"
-              placeholder="Ex: Thiès"
-              value={jobFormData.location}
-              onChangeText={(text) => {
-                setJobFormData({ ...jobFormData, location: text });
-                if (jobFormErrors.location)
-                  setJobFormErrors({ ...jobFormErrors, location: "" });
-              }}
-            />
+            <View className="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden">
+              <Picker
+                selectedValue={jobFormData.location}
+                onValueChange={(value) => {
+                  setJobFormData({ ...jobFormData, location: value });
+                  if (jobFormErrors.location)
+                    setJobFormErrors({ ...jobFormErrors, location: "" });
+                }}
+                style={{
+                  height: Platform.OS === "ios" ? 180 : 50,
+                  color: colors.black,
+                }}
+              >
+                <Picker.Item
+                  label={
+                    recruiterFarmLocations.length > 0
+                      ? "Selectionnez une localite"
+                      : "Ajoutez d'abord une ferme sur la carte"
+                  }
+                  value=""
+                  color={colors.placeholder}
+                />
+                {recruiterFarmLocations.map((farm) => (
+                  <Picker.Item
+                    key={farm.id}
+                    label={farm.name}
+                    value={farm.name}
+                  />
+                ))}
+              </Picker>
+            </View>
+            {recruiterFarmLocations.length === 0 && (
+              <Text className="text-amber-600 text-xs font-sans mt-1">
+                Aucune localite de ferme disponible sur votre compte.
+              </Text>
+            )}
             {jobFormErrors.location ? (
               <Text className="text-red-500 text-xs font-sans mt-1">
                 {jobFormErrors.location}
@@ -387,21 +475,89 @@ export default function JobPostScreen() {
             ) : null}
           </View>
 
+          {/* Publication Status */}
+          <View className="mb-4">
+            <Text className="text-sm font-sans-medium text-gray-700 mb-2">
+              Statut de publication <Text className="text-red-500">*</Text>
+            </Text>
+            <View className="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden">
+              <Picker
+                selectedValue={jobFormData.status}
+                onValueChange={(value) => {
+                  setJobFormData({ ...jobFormData, status: value });
+                  if (jobFormErrors.status)
+                    setJobFormErrors({ ...jobFormErrors, status: "" });
+                }}
+                style={{
+                  height: Platform.OS === "ios" ? 180 : 50,
+                  color: colors.black,
+                }}
+              >
+                <Picker.Item label="Offre active" value="active" />
+                <Picker.Item label="Offre en pause" value="paused" />
+                <Picker.Item label="Offre cloturee" value="closed" />
+                <Picker.Item label="Offre expiree" value="expired" />
+              </Picker>
+            </View>
+            {jobFormErrors.status ? (
+              <Text className="text-red-500 text-xs font-sans mt-1">
+                {jobFormErrors.status}
+              </Text>
+            ) : null}
+          </View>
+
           {/* Salary Range */}
           <View className="mb-4">
             <Text className="text-sm font-sans-medium text-gray-700 mb-2">
               Salaire proposé <Text className="text-red-500">*</Text>
             </Text>
-            <TextInput
-              className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-base"
-              placeholder="Ex: 150 000 - 200 000 FCFA/mois"
-              value={jobFormData.salaryRange}
-              onChangeText={(text) => {
-                setJobFormData({ ...jobFormData, salaryRange: text });
-                if (jobFormErrors.salaryRange)
-                  setJobFormErrors({ ...jobFormErrors, salaryRange: "" });
-              }}
-            />
+            <View className="flex-row gap-2">
+              <View className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
+                <Text className="text-xs text-gray-500 font-sans mb-1">
+                  Minimum
+                </Text>
+                <TextInput
+                  className="text-base font-sans text-gray-900"
+                  placeholder="150000"
+                  keyboardType="number-pad"
+                  value={salaryMin}
+                  onChangeText={(text) => {
+                    const clean = text.replace(/\D/g, "");
+                    setSalaryMin(clean);
+                    updateSalaryRange(clean, salaryMax);
+                    if (jobFormErrors.salaryRange)
+                      setJobFormErrors({ ...jobFormErrors, salaryRange: "" });
+                  }}
+                />
+              </View>
+              <View className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
+                <Text className="text-xs text-gray-500 font-sans mb-1">
+                  Maximum
+                </Text>
+                <TextInput
+                  className="text-base font-sans text-gray-900"
+                  placeholder="200000"
+                  keyboardType="number-pad"
+                  value={salaryMax}
+                  onChangeText={(text) => {
+                    const clean = text.replace(/\D/g, "");
+                    setSalaryMax(clean);
+                    updateSalaryRange(salaryMin, clean);
+                    if (jobFormErrors.salaryRange)
+                      setJobFormErrors({ ...jobFormErrors, salaryRange: "" });
+                  }}
+                />
+              </View>
+            </View>
+            <View className="mt-2 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2">
+              <Text className="text-xs font-sans text-emerald-700">
+                Apercu candidat
+              </Text>
+              <Text className="text-sm font-sans-semibold text-emerald-900 mt-0.5">
+                {jobFormData.salaryRange ||
+                  "Renseignez au moins un salaire minimum"}
+              </Text>
+            </View>
             {jobFormErrors.salaryRange ? (
               <Text className="text-red-500 text-xs font-sans mt-1">
                 {jobFormErrors.salaryRange}

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { Alert, View, Text, TextInput, TouchableOpacity } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -22,6 +22,7 @@ interface ChangePasswordErrors {
 
 export default function ChangePasswordScreen() {
   const router = useRouter();
+  const [submitError, setSubmitError] = useState("");
 
   const [formData, setFormData] = useState<ChangePasswordForm>({
     currentPassword: "",
@@ -87,12 +88,42 @@ export default function ChangePasswordScreen() {
   );
 
   const handleSubmit = () => {
+    setSubmitError("");
     if (!validate()) return;
-    // TODO: implement password change with Supabase
-    console.log("Change password", formData);
-    haptic.success();
-    router.back();
+
+    haptic.medium();
+    Alert.alert(
+      "Bientot disponible",
+      "Le workflow technique sera branche juste apres la validation UX.",
+      [{ text: "OK", onPress: () => router.back() }],
+    );
   };
+
+  const checks = [
+    {
+      label: "Au moins 8 caracteres",
+      ok: formData.newPassword.length >= 8,
+    },
+    {
+      label: "Different du mot de passe actuel",
+      ok:
+        formData.newPassword.length > 0 &&
+        formData.newPassword !== formData.currentPassword,
+    },
+    {
+      label: "Confirmation identique",
+      ok:
+        formData.confirmPassword.length > 0 &&
+        formData.newPassword === formData.confirmPassword,
+    },
+  ];
+
+  const passedChecks = checks.filter((item) => item.ok).length;
+  const strengthPct = (passedChecks / checks.length) * 100;
+  const strengthLabel =
+    passedChecks <= 1 ? "Faible" : passedChecks === 2 ? "Moyen" : "Fort";
+  const strengthColor =
+    passedChecks <= 1 ? "#EF4444" : passedChecks === 2 ? "#F59E0B" : "#16A34A";
 
   return (
     <KeyboardAwareScrollView
@@ -101,12 +132,21 @@ export default function ChangePasswordScreen() {
       contentContainerStyle={{ flexGrow: 1 }}
       keyboardShouldPersistTaps="handled"
     >
-      {/* Header */}
       <ScreenHeader title="Changer le mot de passe" showBack />
 
       <View className="px-6 py-6 gap-4">
+        <View className="bg-white border border-gray-100 rounded-2xl p-4">
+          <Text className="text-sm font-sans-semibold text-foreground">
+            Securite du compte
+          </Text>
+          <Text className="text-xs font-sans text-muted-foreground mt-1">
+            Pour confirmer ce changement, saisissez d&apos;abord votre mot de
+            passe actuel.
+          </Text>
+        </View>
+
         {/* Error Summary */}
-        {hasErrors ? (
+        {hasErrors || !!submitError ? (
           <View className="flex-row items-center bg-red-50 border border-red-200 rounded-xl px-4 py-3">
             <Ionicons
               name="alert-circle-outline"
@@ -114,7 +154,8 @@ export default function ChangePasswordScreen() {
               color={colors.danger}
             />
             <Text className="text-red-600 text-sm font-sans ml-2 flex-1">
-              Veuillez corriger les erreurs ci-dessous avant de continuer.
+              {submitError ||
+                "Veuillez corriger les erreurs ci-dessous avant de continuer."}
             </Text>
           </View>
         ) : null}
@@ -265,25 +306,40 @@ export default function ChangePasswordScreen() {
           </View>
         </View>
 
-        {/* Password rules hint */}
-        <View className="bg-primary/5 border border-primary/20 rounded-2xl p-4 gap-2">
-          <Text className="text-xs font-sans-semibold text-primary mb-1">
-            Règles du mot de passe
-          </Text>
-          {[
-            "Au moins 8 caractères",
-            "Différent de votre mot de passe actuel",
-            "Utilisez des lettres, chiffres et symboles pour plus de sécurité",
-          ].map((rule) => (
-            <View key={rule} className="flex-row items-start">
+        <View className="bg-white border border-gray-100 rounded-2xl p-4">
+          <View className="flex-row items-center justify-between mb-2">
+            <Text className="text-xs font-sans text-muted-foreground">
+              Robustesse du mot de passe
+            </Text>
+            <Text
+              className="text-xs font-sans-semibold"
+              style={{ color: strengthColor }}
+            >
+              {strengthLabel}
+            </Text>
+          </View>
+          <View className="h-2 rounded-full bg-gray-100 overflow-hidden mb-3">
+            <View
+              style={{
+                width: `${strengthPct}%`,
+                backgroundColor: strengthColor,
+              }}
+              className="h-full"
+            />
+          </View>
+
+          {checks.map((rule) => (
+            <View key={rule.label} className="flex-row items-center mb-1.5">
               <Ionicons
-                name="checkmark-circle-outline"
+                name={rule.ok ? "checkmark-circle" : "ellipse-outline"}
                 size={14}
-                color={colors.primary}
-                style={{ marginTop: 1 }}
+                color={rule.ok ? "#16A34A" : colors.mutedLight}
               />
-              <Text className="text-xs font-sans text-muted-foreground ml-2 flex-1">
-                {rule}
+              <Text
+                className="text-xs font-sans ml-2"
+                style={{ color: rule.ok ? "#166534" : colors.muted }}
+              >
+                {rule.label}
               </Text>
             </View>
           ))}

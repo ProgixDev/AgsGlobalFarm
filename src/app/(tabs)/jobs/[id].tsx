@@ -1,14 +1,44 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, Alert } from "react-native";
+import { View, Text, ScrollView, Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useJobsStore } from "@/stores/jobsStore";
 import { useUserStore } from "@/stores/userStore";
+import { useMapStore } from "@/stores/mapStore";
 import { AnimatedPressable } from "@/components/animated";
 import { haptic } from "@/utils/haptics";
 import { colors } from "@/theme/colors";
 import { TAB_BAR_HEIGHT } from "@/components/ui/FloatingTabBar";
+import JobsHeroHeader from "@/components/jobs/JobsHeroHeader";
+import { useHideTabBar } from "@/hooks/useHideTabBar";
+import Mapbox, { Camera, MapView, PointAnnotation } from "@rnmapbox/maps";
+
+Mapbox.setAccessToken(
+  process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN || "YOUR_MAPBOX_ACCESS_TOKEN",
+);
+
+function normalizeText(value?: string) {
+  return (value ?? "").trim().toLowerCase();
+}
+
+function getFarmCenter(farm: FarmLocation) {
+  if (farm.geometryType === "point" && farm.coordinates)
+    return farm.coordinates;
+  const points = farm.boundaryCoordinates ?? [];
+  if (points.length < 3) return null;
+  const total = points.reduce(
+    (acc, point) => ({
+      longitude: acc.longitude + point.longitude,
+      latitude: acc.latitude + point.latitude,
+    }),
+    { longitude: 0, latitude: 0 },
+  );
+  return {
+    longitude: total.longitude / points.length,
+    latitude: total.latitude / points.length,
+  };
+}
 
 export default function JobDetailsScreen() {
   const router = useRouter();
@@ -19,16 +49,60 @@ export default function JobDetailsScreen() {
   const hasApplied = useJobsStore((state) => state.hasApplied);
   const userType = useUserStore((state) => state.userType);
   const currentUser = useUserStore((state) => state.currentUser);
+  const farmLocations = useMapStore((state) => state.farmLocations);
+
+  useHideTabBar();
 
   const jobId = params.id as string;
   const job = getJobById(jobId);
 
   const [showActionMenu, setShowActionMenu] = useState(false);
+  const [showStatsModal, setShowStatsModal] = useState(false);
 
   const isRecruiter = (currentUser?.userType ?? userType) === "farm_owner";
-  const isMyJob = job && isRecruiter;
+  const isMyJob =
+    !!job &&
+    isRecruiter &&
+    (!!currentUser?.id ? job.createdBy === currentUser.id : false);
   const alreadyApplied =
     !isRecruiter && !!currentUser && hasApplied(jobId, currentUser.id);
+  const isJobSeeker = !isRecruiter;
+
+  const candidateFarms = farmLocations.filter((farm) => {
+    if (!job?.createdBy) return true;
+    return farm.userId === job.createdBy;
+  });
+
+  const farmMatch = (() => {
+    if (!job) return null;
+    const farmName = normalizeText(job.farmName);
+    const location = normalizeText(job.location);
+
+    const exactName = candidateFarms.find(
+      (farm) => normalizeText(farm.name) === farmName,
+    );
+    if (exactName) return exactName;
+
+    const exactLocation = candidateFarms.find(
+      (farm) => normalizeText(farm.name) === location,
+    );
+    if (exactLocation) return exactLocation;
+
+    const partialMatch = candidateFarms.find((farm) => {
+      const name = normalizeText(farm.name);
+      return (
+        (farmName.length > 0 &&
+          (name.includes(farmName) || farmName.includes(name))) ||
+        (location.length > 0 &&
+          (name.includes(location) || location.includes(name)))
+      );
+    });
+    if (partialMatch) return partialMatch;
+
+    return candidateFarms.find((farm) => getFarmCenter(farm) !== null) ?? null;
+  })();
+
+  const farmCenter = farmMatch ? getFarmCenter(farmMatch) : null;
 
   if (!job) {
     return (
@@ -85,38 +159,58 @@ export default function JobDetailsScreen() {
   };
 
   const handleStatistics = () => {
-    Alert.alert(
-      "Statistiques",
-      `Vues: 127\nCandidatures: ${job.applicantsCount}\nTaux de conversion: ${((job.applicantsCount / 127) * 100).toFixed(1)}%`,
-      [{ text: "OK" }],
-    );
+    setShowStatsModal(true);
   };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      {/* Header */}
-      <View className="bg-primary px-4 py-4">
-        <View className="flex-row items-center justify-between">
+      <View className="bg-white border-b border-gray-100">
+        <View className="flex-row items-center justify-between px-4 py-3">
           <View className="flex-row items-center flex-1">
-            <AnimatedPressable onPress={() => router.back()} className="mr-3">
-              <Ionicons name="arrow-back" size={24} color="white" />
+            <AnimatedPressable
+              onPress={() => router.back()}
+              className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center"
+            >
+              <Ionicons name="arrow-back" size={20} color={colors.muted} />
             </AnimatedPressable>
-            <Text className="flex-1 text-white text-lg font-heading-bold">
-              Détails de l&apos;offre
-            </Text>
+            <View className="ml-3 flex-1">
+              <Text
+                className="text-base font-heading-bold text-gray-900"
+                numberOfLines={1}
+              >
+                {job.title}
+              </Text>
+              <Text
+                className="text-xs font-sans text-gray-500"
+                numberOfLines={1}
+              >
+                {job.farmName}
+              </Text>
+            </View>
           </View>
+
           {isMyJob ? (
             <AnimatedPressable
               onPress={() => setShowActionMenu(!showActionMenu)}
+              className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center"
             >
-              <Ionicons name="ellipsis-vertical" size={24} color="white" />
+              <Ionicons
+                name="ellipsis-vertical"
+                size={20}
+                color={colors.muted}
+              />
             </AnimatedPressable>
-          ) : (
-            <AnimatedPressable>
-              <Ionicons name="bookmark-outline" size={24} color="white" />
-            </AnimatedPressable>
-          )}
+          ) : null}
         </View>
+
+        {!isRecruiter && (
+          <JobsHeroHeader
+            title={job.title}
+            subtitle={`${job.farmName} - ${job.location}`}
+            roleLabel="Candidat"
+            roleIcon="person-outline"
+          />
+        )}
       </View>
 
       {/* Action Menu Dropdown */}
@@ -179,17 +273,9 @@ export default function JobDetailsScreen() {
       )}
 
       <ScrollView
-        className="flex-1 px-4 py-6"
+        className="flex-1 px-4 py-4"
         contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT }}
       >
-        {/* Job Title and Company */}
-        <Text className="text-2xl font-heading-bold text-gray-800 mb-2">
-          {job.title}
-        </Text>
-        <Text className="text-lg font-sans text-gray-600 mb-4">
-          {job.farmName}
-        </Text>
-
         {/* Badges */}
         <View className="flex-row flex-wrap gap-2 mb-6">
           <View
@@ -237,6 +323,44 @@ export default function JobDetailsScreen() {
             {job.salaryRange}
           </Text>
         </View>
+
+        {isJobSeeker && farmCenter && (
+          <View className="mb-6">
+            <Text className="text-lg font-heading-bold text-gray-800 mb-3">
+              Localisation de la ferme
+            </Text>
+            <View className="rounded-2xl overflow-hidden border border-gray-200 h-44">
+              <MapView
+                style={{ flex: 1 }}
+                styleURL="mapbox://styles/mapbox/light-v11"
+                compassEnabled={false}
+                scaleBarEnabled={false}
+                logoEnabled={false}
+                attributionEnabled={false}
+                scrollEnabled={false}
+                zoomEnabled={false}
+                rotateEnabled={false}
+                pitchEnabled={false}
+              >
+                <Camera
+                  defaultSettings={{
+                    centerCoordinate: [
+                      farmCenter.longitude,
+                      farmCenter.latitude,
+                    ],
+                    zoomLevel: 10,
+                  }}
+                />
+                <PointAnnotation
+                  id={`farm-mini-${farmMatch?.id ?? "unknown"}`}
+                  coordinate={[farmCenter.longitude, farmCenter.latitude]}
+                >
+                  <Ionicons name="location" size={28} color={colors.primary} />
+                </PointAnnotation>
+              </MapView>
+            </View>
+          </View>
+        )}
 
         {/* Location Details */}
         <View className="bg-gray-50 rounded-2xl p-4 mb-6">
@@ -348,6 +472,51 @@ export default function JobDetailsScreen() {
           </AnimatedPressable>
         )}
       </View>
+
+      <Modal
+        visible={showStatsModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowStatsModal(false)}
+      >
+        <View className="flex-1 bg-black/40 items-center justify-center px-5">
+          <View className="bg-white rounded-2xl w-full p-5 border border-gray-200">
+            <Text className="text-lg font-heading-bold text-gray-900 mb-3">
+              Statistiques de l&apos;offre
+            </Text>
+
+            <View className="bg-gray-50 rounded-xl p-3 mb-2">
+              <Text className="text-xs font-sans text-gray-500">Vues</Text>
+              <Text className="text-xl font-sans-bold text-gray-900">127</Text>
+            </View>
+
+            <View className="bg-gray-50 rounded-xl p-3 mb-2">
+              <Text className="text-xs font-sans text-gray-500">
+                Candidatures
+              </Text>
+              <Text className="text-xl font-sans-bold text-gray-900">
+                {job.applicantsCount}
+              </Text>
+            </View>
+
+            <View className="bg-gray-50 rounded-xl p-3 mb-4">
+              <Text className="text-xs font-sans text-gray-500">
+                Taux de conversion
+              </Text>
+              <Text className="text-xl font-sans-bold text-gray-900">
+                {((job.applicantsCount / 127) * 100).toFixed(1)}%
+              </Text>
+            </View>
+
+            <AnimatedPressable
+              onPress={() => setShowStatsModal(false)}
+              className="bg-primary rounded-xl py-3 items-center"
+            >
+              <Text className="text-white font-sans-semibold">Fermer</Text>
+            </AnimatedPressable>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }

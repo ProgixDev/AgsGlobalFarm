@@ -41,6 +41,7 @@ interface UserStore {
   userType: UserType;
   currentUser: UserProfile | null;
   registeredUsers: (UserProfile & { password: string })[];
+  devPasswordOverrides: Record<string, string>;
   setUserType: (type: UserType) => void;
   toggleUserType: () => void;
   setCurrentUser: (user: UserProfile | null) => void;
@@ -49,6 +50,11 @@ interface UserStore {
     password: string,
   ) => { success: boolean; error?: string };
   register: (data: RegisterData) => { success: boolean; error?: string };
+  changePassword: (
+    email: string,
+    currentPassword: string,
+    newPassword: string,
+  ) => { success: boolean; error?: string };
 }
 
 export const useUserStore = create<UserStore>()(
@@ -57,6 +63,7 @@ export const useUserStore = create<UserStore>()(
       userType: "job_seeker",
       currentUser: null,
       registeredUsers: [],
+      devPasswordOverrides: {},
 
       setUserType: (type: UserType) => set({ userType: type }),
 
@@ -73,7 +80,7 @@ export const useUserStore = create<UserStore>()(
         })),
 
       login: (email: string, password: string) => {
-        const { registeredUsers } = get();
+        const { registeredUsers, devPasswordOverrides } = get();
 
         // Check dev accounts first
         const devUser = DEV_ACCOUNTS.find(
@@ -94,7 +101,12 @@ export const useUserStore = create<UserStore>()(
           };
         }
 
-        if (user.password !== password) {
+        const effectivePassword = devUser
+          ? (devPasswordOverrides[devUser.email.toLowerCase()] ??
+            devUser.password)
+          : user.password;
+
+        if (effectivePassword !== password) {
           return { success: false, error: "Mot de passe incorrect." };
         }
 
@@ -143,6 +155,62 @@ export const useUserStore = create<UserStore>()(
         const { password: _, ...userProfile } = newUser;
         set({ currentUser: userProfile, userType: userProfile.userType });
 
+        return { success: true };
+      },
+
+      changePassword: (
+        email: string,
+        currentPassword: string,
+        newPassword: string,
+      ) => {
+        const normalizedEmail = email.trim().toLowerCase();
+        if (!normalizedEmail) {
+          return { success: false, error: "Compte introuvable." };
+        }
+
+        const devAccount = DEV_ACCOUNTS.find(
+          (account) => account.email.toLowerCase() === normalizedEmail,
+        );
+
+        if (devAccount) {
+          const { devPasswordOverrides } = get();
+          const currentEffectivePassword =
+            devPasswordOverrides[normalizedEmail] ?? devAccount.password;
+
+          if (currentEffectivePassword !== currentPassword) {
+            return { success: false, error: "Mot de passe actuel incorrect." };
+          }
+
+          set((state) => ({
+            devPasswordOverrides: {
+              ...state.devPasswordOverrides,
+              [normalizedEmail]: newPassword,
+            },
+          }));
+
+          return { success: true };
+        }
+
+        const { registeredUsers } = get();
+        const userIndex = registeredUsers.findIndex(
+          (account) => account.email.toLowerCase() === normalizedEmail,
+        );
+
+        if (userIndex === -1) {
+          return { success: false, error: "Compte introuvable." };
+        }
+
+        if (registeredUsers[userIndex].password !== currentPassword) {
+          return { success: false, error: "Mot de passe actuel incorrect." };
+        }
+
+        const updatedUsers = [...registeredUsers];
+        updatedUsers[userIndex] = {
+          ...updatedUsers[userIndex],
+          password: newPassword,
+        };
+
+        set({ registeredUsers: updatedUsers });
         return { success: true };
       },
     }),

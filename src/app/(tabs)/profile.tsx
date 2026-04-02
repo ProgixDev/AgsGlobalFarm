@@ -29,6 +29,11 @@ export default function ProfileScreen() {
     router.replace("/");
   };
 
+  const isRecruiter = currentUser?.userType === "farm_owner";
+
+  const initials =
+    `${currentUser?.firstName?.[0] ?? "U"}${currentUser?.lastName?.[0] ?? ""}`.toUpperCase();
+
   const MenuItem = ({
     icon,
     label,
@@ -62,44 +67,111 @@ export default function ProfileScreen() {
       className="flex-1 bg-gray-50"
       contentContainerStyle={{ flexGrow: 1, paddingBottom: TAB_BAR_HEIGHT }}
     >
-      {/* Header */}
-      <View
-        className="bg-primary px-6 pb-10 items-center"
-        style={{ paddingTop: insets.top + 16 }}
-      >
-        <View className="w-24 h-24 rounded-full bg-white/20 items-center justify-center mb-4">
-          <Ionicons name="person" size={48} color={colors.white} />
+      <View style={{ paddingTop: insets.top + 10 }} className="px-5 pb-3">
+        <Text className="text-xs font-sans-semibold uppercase tracking-wider text-gray-500 mb-2">
+          Profil
+        </Text>
+
+        <View className="bg-white border border-gray-100 rounded-3xl p-4 flex-row items-center">
+          <View className="w-14 h-14 rounded-2xl bg-primary items-center justify-center mr-3">
+            <Text className="text-white text-lg font-heading-bold">
+              {initials}
+            </Text>
+          </View>
+
+          <View className="flex-1">
+            <Text
+              className="text-lg font-heading-bold text-gray-900"
+              numberOfLines={1}
+            >
+              {currentUser
+                ? `${currentUser.firstName} ${currentUser.lastName}`
+                : "Utilisateur"}
+            </Text>
+            <Text className="text-xs font-sans text-gray-500" numberOfLines={1}>
+              {currentUser?.email ?? "utilisateur@email.com"}
+            </Text>
+            <View className="self-start mt-2 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-100">
+              <Text className="text-[11px] font-sans-semibold text-emerald-700">
+                {isRecruiter ? "Compte recruteur" : "Compte candidat"}
+              </Text>
+            </View>
+          </View>
+
+          <AnimatedPressable
+            onPress={() => {
+              haptic.selection();
+              router.push("/account/personal-info");
+            }}
+            className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center"
+          >
+            <Ionicons name="create-outline" size={18} color={colors.muted} />
+          </AnimatedPressable>
         </View>
-        <Text className="text-white text-2xl font-heading-bold">
-          {currentUser
-            ? `${currentUser.firstName} ${currentUser.lastName}`
-            : "Utilisateur"}
-        </Text>
-        <Text className="text-white/70 text-sm font-sans mt-1">
-          {currentUser?.email ?? "utilisateur@email.com"}
-        </Text>
       </View>
 
-      <FadeInView className="flex-1 px-6 py-6">
-        {/* Account Section */}
+      <FadeInView className="flex-1 px-5 py-2">
+        <View className="bg-primary/5 border border-primary/15 rounded-2xl px-4 py-3 mb-5">
+          <Text className="text-sm font-sans-semibold text-primary">
+            {isRecruiter
+              ? "Suivez vos offres et candidatures depuis votre espace"
+              : "Suivez vos candidatures et votre progression facilement"}
+          </Text>
+        </View>
+
+        <Text className="text-xs font-sans-semibold text-muted-foreground uppercase tracking-wider mb-3">
+          {isRecruiter ? "Pilotage" : "Mon espace"}
+        </Text>
+        <View className="bg-white rounded-3xl border border-gray-100 mb-6 overflow-hidden">
+          {isRecruiter ? (
+            <>
+              <MenuItem
+                icon="briefcase-outline"
+                label="Mes offres"
+                onPress={() => router.push("/(tabs)/jobs")}
+              />
+              <MenuItem
+                icon="people-outline"
+                label="Candidatures recues"
+                onPress={() => router.push("/(tabs)/jobs")}
+              />
+              <MenuItem
+                icon="notifications-outline"
+                label="Notifications"
+                onPress={() => router.push("/account/notifications")}
+                isLast
+              />
+            </>
+          ) : (
+            <>
+              <MenuItem
+                icon="document-text-outline"
+                label="Mes candidatures"
+                onPress={() => router.push("/(tabs-job-seeker)/jobs")}
+              />
+              <MenuItem
+                icon="school-outline"
+                label="Mes formations"
+                onPress={() => router.push("/(tabs)/training")}
+              />
+              <MenuItem
+                icon="notifications-outline"
+                label="Notifications"
+                onPress={() => router.push("/account/notifications")}
+                isLast
+              />
+            </>
+          )}
+        </View>
+
         <Text className="text-xs font-sans-semibold text-muted-foreground uppercase tracking-wider mb-3">
           Compte
         </Text>
-        <View className="bg-white rounded-2xl shadow-sm mb-6 overflow-hidden">
+        <View className="bg-white rounded-3xl border border-gray-100 mb-6 overflow-hidden">
           <MenuItem
             icon="person-outline"
             label="Informations personnelles"
             onPress={() => router.push("/account/personal-info")}
-          />
-          <MenuItem
-            icon="lock-closed-outline"
-            label="Changer le mot de passe"
-            onPress={() => router.push("/(auth)/change-password")}
-          />
-          <MenuItem
-            icon="notifications-outline"
-            label="Notifications"
-            onPress={() => router.push("/account/notifications")}
             isLast
           />
         </View>
@@ -108,7 +180,7 @@ export default function ProfileScreen() {
         <Text className="text-xs font-sans-semibold text-muted-foreground uppercase tracking-wider mb-3">
           Support
         </Text>
-        <View className="bg-white rounded-2xl shadow-sm mb-6 overflow-hidden">
+        <View className="bg-white rounded-3xl border border-gray-100 mb-6 overflow-hidden">
           <MenuItem
             icon="help-circle-outline"
             label="Aide"

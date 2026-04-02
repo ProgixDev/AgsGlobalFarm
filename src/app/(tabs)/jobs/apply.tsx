@@ -18,6 +18,7 @@ import { useUserStore } from "@/stores/userStore";
 import { senegalRegions, senegalDepartments } from "@/data/senegalData";
 import { colors } from "@/theme/colors";
 import { TAB_BAR_HEIGHT } from "@/components/ui/FloatingTabBar";
+import { useHideTabBar } from "@/hooks/useHideTabBar";
 
 const desiredPositions = [
   { label: "Ouvrier agricole", value: "Ouvrier agricole" },
@@ -50,7 +51,10 @@ export default function JobApplyScreen() {
   const params = useLocalSearchParams();
   const getJobById = useJobsStore((state) => state.getJobById);
   const submitApplication = useJobsStore((state) => state.submitApplication);
+  const hasApplied = useJobsStore((state) => state.hasApplied);
   const currentUser = useUserStore((state) => state.currentUser);
+
+  useHideTabBar();
 
   const jobId = params.id as string;
   const job = getJobById(jobId);
@@ -150,11 +154,24 @@ export default function JobApplyScreen() {
   };
 
   const handleSubmit = () => {
+    if (!currentUser?.id) {
+      Alert.alert("Erreur", "Vous devez etre connecte pour postuler.");
+      return;
+    }
+
     if (!validate()) return;
+
+    if (hasApplied(jobId, currentUser.id)) {
+      Alert.alert(
+        "Candidature deja envoyee",
+        "Vous avez deja postule a cette offre.",
+      );
+      return;
+    }
 
     submitApplication({
       jobId,
-      applicantId: currentUser?.id,
+      applicantId: currentUser.id,
       applicantName: `${formData.firstName} ${formData.lastName}`,
       applicantEmail: formData.email,
       applicantPhone: formData.phone,
@@ -215,28 +232,30 @@ export default function JobApplyScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <KeyboardAwareScrollView bottomOffset={20} className="flex-1">
-        {/* Header */}
-        <View className="bg-primary px-4 py-4">
+        <View className="px-4 py-3 border-b border-gray-100 bg-white">
           <View className="flex-row items-center">
-            <TouchableOpacity onPress={() => router.back()} className="mr-3">
-              <Ionicons name="arrow-back" size={24} color="white" />
+            <TouchableOpacity
+              onPress={() => router.back()}
+              className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center"
+            >
+              <Ionicons name="arrow-back" size={20} color={colors.muted} />
             </TouchableOpacity>
-            <View className="flex-1">
-              <Text className="text-white text-lg font-heading-bold">
+            <View className="ml-3 flex-1">
+              <Text className="text-lg font-heading-bold text-gray-900">
                 Formulaire de candidature
               </Text>
               <Text
-                className="text-white/80 text-sm font-sans"
+                className="text-xs font-sans text-gray-500"
                 numberOfLines={1}
               >
-                {job.title} — {job.farmName}
+                {job.title} - {job.farmName}
               </Text>
             </View>
           </View>
         </View>
 
         <ScrollView
-          className="flex-1 px-4 py-6"
+          className="flex-1 px-4 py-4"
           contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT }}
         >
           {/* Section: Informations personnelles */}

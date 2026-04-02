@@ -82,6 +82,15 @@ export default function NotificationsScreen() {
       />
 
       <FadeInView className="px-6 py-6 gap-4">
+        <View className="bg-white border border-gray-100 rounded-2xl p-4">
+          <Text className="text-sm font-sans-semibold text-foreground">
+            Centre de notifications
+          </Text>
+          <Text className="text-xs font-sans text-muted-foreground mt-1">
+            Activez uniquement les alertes utiles pour votre activite.
+          </Text>
+        </View>
+
         {/* Quick actions */}
         <View className="flex-row gap-3">
           <AnimatedPressable
@@ -108,6 +117,16 @@ export default function NotificationsScreen() {
               Tout désactiver
             </Text>
           </AnimatedPressable>
+        </View>
+
+        <View className="bg-primary/5 border border-primary/20 rounded-2xl p-4">
+          <Text className="text-xs font-sans-semibold text-primary mb-1">
+            Conseil
+          </Text>
+          <Text className="text-xs font-sans text-muted-foreground">
+            Gardez les notifications essentielles actives pour ne pas manquer
+            les offres, candidatures et alertes importantes.
+          </Text>
         </View>
 
         {/* Settings list */}

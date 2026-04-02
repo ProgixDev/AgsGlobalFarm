@@ -9,6 +9,7 @@ import { haptic } from "@/utils/haptics";
 import { colors } from "@/theme/colors";
 import ScreenHeader from "@/components/ui/ScreenHeader";
 import { TAB_BAR_HEIGHT } from "@/components/ui/FloatingTabBar";
+import { useHideTabBar } from "@/hooks/useHideTabBar";
 
 export default function JobApplicationsScreen() {
   const params = useLocalSearchParams();
@@ -20,9 +21,16 @@ export default function JobApplicationsScreen() {
     (state) => state.updateApplicationStatus,
   );
 
+  useHideTabBar();
+
   const jobId = params.id as string;
   const job = getJobById(jobId);
   const applications = getApplicationsByJobId(jobId);
+  const sortedApplications = [...applications].sort((a, b) => {
+    const aTime = new Date(a.appliedDate).getTime();
+    const bTime = new Date(b.appliedDate).getTime();
+    return bTime - aTime;
+  });
 
   if (!job) {
     return (
@@ -44,15 +52,16 @@ export default function JobApplicationsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      {/* Header */}
-      <ScreenHeader title="Candidatures" subtitle={job.title} showBack />
+      <View className="bg-white border-b border-gray-100">
+        <ScreenHeader title="Candidatures" subtitle={job.title} showBack />
+      </View>
 
       <ScrollView
-        className="flex-1 px-4 py-4"
+        className="flex-1 px-4 py-3"
         contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT }}
       >
-        {applications.length > 0 ? (
-          applications.map((applicant) => (
+        {sortedApplications.length > 0 ? (
+          sortedApplications.map((applicant) => (
             <View
               key={applicant.id}
               className="bg-white rounded-2xl p-4 mb-3 border border-gray-200"
