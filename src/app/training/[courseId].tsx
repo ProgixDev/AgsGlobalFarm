@@ -85,7 +85,7 @@ export default function CourseDetailScreen() {
 
   return (
     <View className="flex-1 bg-gray-50">
-      <ScrollView>
+      <ScrollView contentContainerStyle={{ paddingBottom: 112 }}>
         {/* Header Image */}
         <View className="relative">
           <Image
@@ -94,26 +94,26 @@ export default function CourseDetailScreen() {
             resizeMode="cover"
           />
           <TouchableOpacity
-            className="absolute left-4 bg-black/50 rounded-full w-11 h-11 items-center justify-center"
+            className="absolute left-4 bg-white/90 border border-white rounded-full w-11 h-11 items-center justify-center"
             style={{ top: insets.top + 8 }}
             onPress={() => router.back()}
           >
-            <Ionicons name="arrow-back" size={24} color={colors.white} />
+            <Ionicons name="arrow-back" size={22} color={colors.black} />
           </TouchableOpacity>
 
           {isEnrolled && progress && (
-            <View className="absolute bottom-0 left-0 right-0 bg-black/70 px-6 py-3">
+            <View className="absolute bottom-3 left-4 right-4 bg-white/95 border border-gray-100 rounded-2xl px-4 py-3">
               <View className="flex-row justify-between items-center mb-2">
-                <Text className="text-white text-sm font-sans">
+                <Text className="text-gray-600 text-sm font-sans">
                   Progression
                 </Text>
-                <Text className="text-white text-sm font-sans-bold">
+                <Text className="text-primary text-sm font-sans-bold">
                   {progress.progressPercentage}%
                 </Text>
               </View>
-              <View className="bg-white/30 h-2 rounded-full">
+              <View className="bg-primary/10 h-2 rounded-full">
                 <View
-                  className="bg-white h-2 rounded-full"
+                  className="bg-primary h-2 rounded-full"
                   style={{ width: `${progress.progressPercentage}%` }}
                 />
               </View>
@@ -122,14 +122,17 @@ export default function CourseDetailScreen() {
         </View>
 
         {/* Course Info */}
-        <View className="px-6 py-6">
+        <View className="px-5 pt-6 pb-4">
+          <Text className="text-xs font-sans-semibold uppercase tracking-wider text-gray-500 mb-2">
+            Détails du cours
+          </Text>
           <Text className="text-2xl font-heading-bold text-gray-800 mb-3">
             {course.title}
           </Text>
 
-          <View className="flex-row items-center flex-wrap gap-2 mb-4">
+          <View className="flex-row items-center flex-wrap gap-2 mb-5">
             <View
-              className={`${getDifficultyBgColor(course.difficulty)} px-3 py-1 rounded-full`}
+              className={`${getDifficultyBgColor(course.difficulty)} px-3 py-1.5 rounded-full border border-black/5`}
             >
               <Text
                 className={`${getDifficultyColor(course.difficulty)} text-sm font-sans-semibold capitalize`}
@@ -138,14 +141,14 @@ export default function CourseDetailScreen() {
               </Text>
             </View>
 
-            <View className="flex-row items-center bg-gray-100 px-3 py-1 rounded-full">
+            <View className="flex-row items-center bg-gray-100 px-3 py-1.5 rounded-full border border-gray-200">
               <Ionicons name="time-outline" size={16} color={colors.muted} />
               <Text className="text-gray-600 text-sm font-sans ml-1">
                 {course.duration} heures
               </Text>
             </View>
 
-            <View className="flex-row items-center bg-gray-100 px-3 py-1 rounded-full">
+            <View className="flex-row items-center bg-gray-100 px-3 py-1.5 rounded-full border border-gray-200">
               <Ionicons name="book-outline" size={16} color={colors.muted} />
               <Text className="text-gray-600 text-sm font-sans ml-1">
                 {course.modules.reduce((sum, m) => sum + m.lessons.length, 0)}{" "}
@@ -154,7 +157,7 @@ export default function CourseDetailScreen() {
             </View>
 
             {course.requiresCertification && (
-              <View className="flex-row items-center bg-yellow-100 px-3 py-1 rounded-full">
+              <View className="flex-row items-center bg-yellow-100 px-3 py-1.5 rounded-full border border-yellow-200">
                 <Ionicons
                   name="ribbon-outline"
                   size={16}
@@ -167,13 +170,13 @@ export default function CourseDetailScreen() {
             )}
           </View>
 
-          <Text className="text-base font-sans text-gray-600 mb-4 leading-6">
+          <Text className="text-base font-sans text-gray-600 mb-5 leading-6">
             {course.description}
           </Text>
 
           {course.instructorName && (
-            <View className="flex-row items-center bg-primary/5 rounded-xl p-3 mb-4">
-              <View className="bg-primary/20 rounded-full p-2 mr-3">
+            <View className="flex-row items-center bg-white border border-gray-100 rounded-2xl p-4 mb-4">
+              <View className="bg-primary/10 rounded-full p-2.5 mr-3">
                 <Ionicons name="person" size={20} color={colors.primary} />
               </View>
               <View>
@@ -190,7 +193,10 @@ export default function CourseDetailScreen() {
           {course.tags.length > 0 && (
             <View className="flex-row flex-wrap gap-2 mb-6">
               {course.tags.map((tag) => (
-                <View key={tag} className="bg-gray-100 px-3 py-1 rounded-full">
+                <View
+                  key={tag}
+                  className="bg-gray-100 border border-gray-200 px-3 py-1 rounded-full"
+                >
                   <Text className="text-gray-600 text-xs font-sans">
                     #{tag}
                   </Text>
@@ -201,11 +207,11 @@ export default function CourseDetailScreen() {
 
           {/* Certification Criteria */}
           {course.requiresCertification && course.certificationCriteria && (
-            <View className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
+            <View className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 mb-6">
               <View className="flex-row items-center mb-3">
                 <Ionicons name="ribbon" size={24} color={colors.warningDark} />
                 <Text className="text-base font-heading-bold text-gray-800 ml-2">
-                  Critères de Certification
+                  Critères de certification
                 </Text>
               </View>
               <View className="space-y-2">
@@ -249,9 +255,9 @@ export default function CourseDetailScreen() {
         </View>
 
         {/* Course Modules */}
-        <View className="px-6 pb-24">
+        <View className="px-5 pb-4">
           <Text className="text-xl font-heading-bold text-gray-800 mb-4">
-            Contenu du Cours
+            Contenu du cours
           </Text>
 
           {course.modules.map((module, moduleIndex) => {
@@ -264,8 +270,8 @@ export default function CourseDetailScreen() {
             );
 
             return (
-              <View key={module.id} className="mb-6">
-                <View className="bg-white rounded-xl shadow-sm overflow-hidden">
+              <View key={module.id} className="mb-4">
+                <View className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
                   {/* Module Header */}
                   <View className="bg-primary/5 p-4 border-b border-primary/10">
                     <View className="flex-row items-start justify-between mb-2">
@@ -282,7 +288,7 @@ export default function CourseDetailScreen() {
                       </View>
                       {isEnrolled && (
                         <View className="ml-3">
-                          <View className="bg-primary/20 rounded-full w-12 h-12 items-center justify-center">
+                          <View className="bg-primary/15 border border-primary/20 rounded-full w-12 h-12 items-center justify-center">
                             <Text className="text-primary font-sans-bold text-xs">
                               {moduleProgress}%
                             </Text>
@@ -303,7 +309,7 @@ export default function CourseDetailScreen() {
                       return (
                         <TouchableOpacity
                           key={lesson.id}
-                          className={`p-4 flex-row items-center ${
+                          className={`px-4 py-4 flex-row items-center ${
                             lessonIndex < module.lessons.length - 1
                               ? "border-b border-gray-100"
                               : ""
@@ -311,7 +317,7 @@ export default function CourseDetailScreen() {
                           onPress={() => handleLessonPress(lesson.id)}
                         >
                           <View
-                            className={`w-10 h-10 rounded-full items-center justify-center mr-3 ${
+                            className={`w-11 h-11 rounded-full items-center justify-center mr-3 ${
                               completed ? "bg-green-100" : "bg-gray-100"
                             }`}
                           >
@@ -379,13 +385,16 @@ export default function CourseDetailScreen() {
 
       {/* Floating Action Button */}
       {!isEnrolled && (
-        <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
+        <View
+          className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-5 pt-3"
+          style={{ paddingBottom: Math.max(insets.bottom, 14) }}
+        >
           <TouchableOpacity
-            className="bg-primary py-4 rounded-xl items-center shadow-lg"
+            className="bg-primary py-4 rounded-2xl items-center"
             onPress={handleEnroll}
           >
             <Text className="text-white font-sans-bold text-base">
-              S&apos;inscrire au Cours
+              S&apos;inscrire au cours
             </Text>
           </TouchableOpacity>
         </View>

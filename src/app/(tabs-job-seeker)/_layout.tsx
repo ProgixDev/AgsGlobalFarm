@@ -49,6 +49,15 @@ export default function JobSeekerTabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="shop"
+        options={{
+          title: "Boutique",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="bag-handle" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="training"
         options={{
           title: "Formation",

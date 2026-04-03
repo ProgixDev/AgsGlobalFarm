@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import { View } from "react-native";
 import { Stack, useRouter } from "expo-router";
-import Svg, { Path, Defs, Pattern, Circle } from "react-native-svg";
 import { useUserStore } from "@/stores/userStore";
 
 export default function AuthLayout() {
@@ -16,46 +15,13 @@ export default function AuthLayout() {
 
   return (
     <>
-      {/* Shared Decorative Background */}
-      <View className="absolute inset-0 bg-primary">
-        {/* Decorative SVG Top */}
-        <View className="absolute inset-0 opacity-10">
-          <Svg
-            width="100%"
-            height="100%"
-            viewBox="0 0 100 100"
-            preserveAspectRatio="none"
-          >
-            <Path d="M0 100 C 20 0 50 0 100 100 Z" fill="white" />
-          </Svg>
-        </View>
-
-        {/* Background Pattern */}
-        <View className="absolute inset-0 opacity-20">
-          <Svg
-            width="100%"
-            height="100%"
-            viewBox="0 0 100 100"
-            preserveAspectRatio="none"
-          >
-            <Defs>
-              <Pattern
-                id="dots"
-                x="0"
-                y="0"
-                width="4"
-                height="4"
-                patternUnits="userSpaceOnUse"
-              >
-                <Circle cx="0.5" cy="0.25" r="0.25" fill="white" />
-              </Pattern>
-            </Defs>
-            <Path d="M0 0 L100 0 L100 100 L0 100 Z" fill="url(#dots)" />
-          </Svg>
-        </View>
+      <View className="absolute inset-0 bg-[#edf6e7]">
+        <View className="absolute -top-28 -left-24 h-96 w-96 rounded-full bg-[#cfe7bf]" />
+        <View className="absolute -right-24 top-28 h-80 w-80 rounded-full bg-[#dbeccd]" />
+        <View className="absolute -bottom-40 left-1/4 h-[420px] w-[420px] rounded-full bg-[#c5dfb1]" />
+        <View className="absolute inset-0 bg-[#f6fbf1]/70" />
       </View>
 
-      {/* Stack Navigator */}
       <Stack
         screenOptions={{
           headerShown: false,
@@ -65,6 +31,7 @@ export default function AuthLayout() {
         <Stack.Screen name="login" />
         <Stack.Screen name="signup" />
         <Stack.Screen name="forgot-password" />
+        <Stack.Screen name="change-password" />
         {__DEV__ && <Stack.Screen name="dev-login" />}
       </Stack>
     </>

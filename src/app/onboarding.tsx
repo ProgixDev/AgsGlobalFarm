@@ -107,11 +107,14 @@ export default function Onboarding() {
 
   return (
     <View className="flex-1 bg-background">
-      {/* Decorative background gradient */}
-      <View className="absolute inset-0 opacity-5">
+      <View className="absolute inset-0">
         <View
-          className="flex-1"
-          style={{ backgroundColor: slides[currentIndex].accentColor }}
+          className="absolute -top-24 -left-14 w-64 h-64 rounded-full"
+          style={{ backgroundColor: `${slides[currentIndex].accentColor}18` }}
+        />
+        <View
+          className="absolute -bottom-20 -right-16 w-72 h-72 rounded-full"
+          style={{ backgroundColor: `${slides[currentIndex].accentColor}10` }}
         />
       </View>
 
@@ -127,100 +130,42 @@ export default function Onboarding() {
         {slides.map((slide, index) => (
           <View
             key={index}
-            className="flex-1 justify-center items-center px-6"
-            style={{ width, paddingTop: insets.top + 16 }}
+            className="flex-1 px-5"
+            style={{ width, paddingTop: insets.top + 12 }}
           >
-            <View className="items-center w-full">
-              {/* Bento-grid style image container */}
-              <View className="mb-12 relative" style={{ height: height * 0.4 }}>
-                {index === 0 ? (
-                  // First slide - centered logo
-                  <View className="items-center justify-center h-full">
-                    <View
-                      className="overflow-hidden p-12 rounded-full"
-                      style={{
-                        backgroundColor: `${slide.accentColor}15`,
-                      }}
-                    >
-                      <Image
-                        source={slide.image}
-                        className="w-48 h-48"
-                        resizeMode="contain"
-                      />
-                    </View>
-                  </View>
-                ) : (
-                  // Other slides - bento grid layout
-                  <View className="relative w-full h-full items-center justify-center">
-                    {/* Main large image */}
-                    <View
-                      className="overflow-hidden absolute w-60 h-72 z-10 shadow-lg shadow-black/10 rounded-[32px]"
-                      style={{
-                        backgroundColor: `${slide.accentColor}10`,
-                      }}
-                    >
-                      <Image
-                        source={slide.image}
-                        className="w-full h-full"
-                        resizeMode="cover"
-                      />
-                    </View>
-
-                    {/* Decorative smaller images */}
-                    <View
-                      className="overflow-hidden absolute top-0 left-4 w-24 h-32 shadow-md shadow-black/10 rounded-3xl"
-                      style={{
-                        backgroundColor: `${slide.accentColor}08`,
-                      }}
-                    >
-                      <Image
-                        source={slide.image}
-                        className="w-full h-full"
-                        resizeMode="cover"
-                      />
-                    </View>
-
-                    <View
-                      className="overflow-hidden absolute bottom-4 right-6 w-28 h-28 shadow-md shadow-black/10 rounded-3xl"
-                      style={{
-                        backgroundColor: `${slide.accentColor}08`,
-                      }}
-                    >
-                      <Image
-                        source={slide.image}
-                        className="w-full h-full"
-                        resizeMode="cover"
-                      />
-                    </View>
-
-                    <View
-                      className="overflow-hidden absolute top-12 right-2 w-20 h-24 shadow-md shadow-black/10 rounded-[20px]"
-                      style={{
-                        backgroundColor: `${slide.accentColor}08`,
-                      }}
-                    >
-                      <Image
-                        source={slide.image}
-                        className="w-full h-full"
-                        resizeMode="cover"
-                      />
-                    </View>
-                  </View>
-                )}
-              </View>
-
-              {/* Text content */}
-              <View className="items-center px-4">
-                <Text className="text-3xl font-heading-bold text-foreground text-center mb-4 leading-10">
-                  {slide.title}
-                </Text>
+            <View className="flex-1 w-full items-center justify-center pb-8">
+              <View
+                className="w-full rounded-[34px] border border-black/5 bg-white px-5 pt-5 pb-7 shadow-lg shadow-black/5"
+                style={{ maxWidth: 420 }}
+              >
                 <View
-                  className="w-16 h-1 rounded-full mb-6"
-                  style={{ backgroundColor: slide.accentColor }}
-                />
-                <Text className="text-lg font-sans text-muted-foreground text-center leading-7 px-4">
-                  {slide.description}
-                </Text>
+                  className="w-full overflow-hidden items-center justify-center rounded-[28px]"
+                  style={{
+                    backgroundColor: `${slide.accentColor}12`,
+                    height: Math.min(height * 0.34, 290),
+                  }}
+                >
+                  <Image
+                    source={slide.image}
+                    className="w-full h-full"
+                    resizeMode={index === 0 ? "contain" : "cover"}
+                  />
+                </View>
+
+                <View className="items-center px-2 pt-6">
+                  <Text className="text-[30px] font-heading-bold text-foreground text-center leading-9">
+                    {slide.title}
+                  </Text>
+
+                  <View
+                    className="w-16 h-1.5 rounded-full my-4"
+                    style={{ backgroundColor: slide.accentColor }}
+                  />
+
+                  <Text className="text-base font-sans text-muted-foreground text-center leading-7">
+                    {slide.description}
+                  </Text>
+                </View>
               </View>
             </View>
           </View>
@@ -229,11 +174,10 @@ export default function Onboarding() {
 
       {/* Bottom section */}
       <View
-        className="px-6"
-        style={{ paddingBottom: Math.max(insets.bottom, 24) }}
+        className="px-5"
+        style={{ paddingBottom: Math.max(insets.bottom + 4, 24) }}
       >
-        {/* Indicators */}
-        <View className="flex-row justify-center mb-8">
+        <View className="flex-row justify-center mb-7">
           {slides.map((slide, index) => (
             <TouchableOpacity
               key={index}
@@ -245,8 +189,8 @@ export default function Onboarding() {
                 setCurrentIndex(index);
               }}
               activeOpacity={0.7}
-              hitSlop={{ top: 12, bottom: 12, left: 6, right: 6 }}
-              className="py-3"
+              hitSlop={{ top: 12, bottom: 12, left: 10, right: 10 }}
+              className="py-2"
             >
               <View
                 style={{
@@ -256,19 +200,18 @@ export default function Onboarding() {
                       : `${colors.black}20`,
                 }}
                 className={`h-2.5 rounded-full mx-1.5 ${
-                  index === currentIndex ? "w-10" : "w-2.5"
+                  index === currentIndex ? "w-9" : "w-2.5"
                 }`}
               />
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* Navigation */}
-        <View className="gap-4">
+        <View className="gap-3">
           <AnimatedPressable
             onPress={goToNext}
             hapticType="light"
-            className="rounded-xl items-center justify-center py-4 px-6"
+            className="rounded-2xl items-center justify-center py-4 px-6 min-h-[52px]"
             style={{ backgroundColor: slides[currentIndex].accentColor }}
           >
             <Text className="text-white text-base font-sans-semibold text-center">
@@ -276,9 +219,13 @@ export default function Onboarding() {
             </Text>
           </AnimatedPressable>
 
-          <View className="flex-row justify-between items-center px-2">
+          <View className="flex-row justify-between items-center px-1 min-h-[32px]">
             {currentIndex > 0 ? (
-              <TouchableOpacity onPress={goToPrev} activeOpacity={0.7}>
+              <TouchableOpacity
+                onPress={goToPrev}
+                activeOpacity={0.7}
+                hitSlop={{ top: 10, bottom: 10, left: 8, right: 8 }}
+              >
                 <Text
                   className="font-sans-semibold text-base"
                   style={{ color: slides[currentIndex].accentColor }}
@@ -291,7 +238,11 @@ export default function Onboarding() {
             )}
 
             {currentIndex < slides.length - 1 && (
-              <TouchableOpacity onPress={skip} activeOpacity={0.7}>
+              <TouchableOpacity
+                onPress={skip}
+                activeOpacity={0.7}
+                hitSlop={{ top: 10, bottom: 10, left: 8, right: 8 }}
+              >
                 <Text className="text-muted-foreground font-sans-medium text-base">
                   Passer
                 </Text>

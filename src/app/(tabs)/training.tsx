@@ -50,70 +50,79 @@ export default function TrainingScreen() {
     return courseProgress[courseId]?.progressPercentage || 0;
   };
 
+  const getLessonsCount = (course: Course) => {
+    return course.modules.reduce(
+      (sum, module) => sum + module.lessons.length,
+      0,
+    );
+  };
+
   return (
     <ScrollView
       className="flex-1 bg-gray-50"
       contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT }}
     >
-      {/* Header */}
-      <View
-        className="bg-primary pb-8 px-6"
-        style={{ paddingTop: insets.top + 12 }}
-      >
-        <View className="flex-row items-center mb-4">
-          <View className="bg-white/20 p-3 rounded-full mr-4">
-            <Ionicons name="school" size={32} color={colors.white} />
-          </View>
-          <View className="flex-1">
-            <Text className="text-white text-2xl font-heading-bold">
-              Formation
-            </Text>
-            <Text className="text-white/70 text-base font-sans mt-1">
-              Développez vos compétences agricoles
-            </Text>
-          </View>
+      <View style={{ paddingTop: insets.top + 10 }} className="px-5 pb-3">
+        <View className="flex-row items-center justify-between mb-2">
+          <Text className="text-xs font-sans-semibold uppercase tracking-wider text-gray-500">
+            Formation
+          </Text>
           {enrolledCourses.length > 0 && (
             <AnimatedPressable
-              className="bg-white/20 p-3 rounded-full"
+              className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center"
               onPress={() => {
                 haptic.selection();
                 router.push("/training/dashboard");
               }}
             >
-              <Ionicons name="stats-chart" size={24} color={colors.white} />
+              <Ionicons name="stats-chart" size={18} color={colors.primary} />
             </AnimatedPressable>
           )}
         </View>
 
-        {/* Stats */}
-        <View className="flex-row justify-between mt-4">
-          <View className="bg-white/20 rounded-xl px-4 py-3 flex-1 mr-2">
-            <Text className="text-white/80 text-xs font-sans">
-              Cours disponibles
-            </Text>
-            <Text className="text-white text-2xl font-heading-bold mt-1">
-              {courses.length}
-            </Text>
+        <View className="bg-white border border-gray-100 rounded-3xl p-4">
+          <View className="flex-row items-center">
+            <View className="w-14 h-14 rounded-2xl bg-primary items-center justify-center mr-3">
+              <Ionicons name="school" size={26} color={colors.white} />
+            </View>
+            <View className="flex-1">
+              <Text className="text-lg font-heading-bold text-gray-900">
+                Développez vos compétences
+              </Text>
+              <Text className="text-xs font-sans text-gray-500 mt-0.5">
+                Cours pratiques pour progresser pas à pas
+              </Text>
+            </View>
           </View>
-          <View className="bg-white/20 rounded-xl px-4 py-3 flex-1 ml-2">
-            <Text className="text-white/80 text-xs font-sans">
-              Mes formations
-            </Text>
-            <Text className="text-white text-2xl font-heading-bold mt-1">
-              {enrolledCourses.length}
-            </Text>
+
+          <View className="flex-row mt-4 gap-2">
+            <View className="flex-1 rounded-2xl bg-primary/5 border border-primary/15 px-3 py-3">
+              <Text className="text-[11px] font-sans-semibold uppercase tracking-wide text-primary/80">
+                Cours disponibles
+              </Text>
+              <Text className="text-2xl font-heading-bold text-primary mt-1">
+                {courses.length}
+              </Text>
+            </View>
+            <View className="flex-1 rounded-2xl bg-emerald-50 border border-emerald-100 px-3 py-3">
+              <Text className="text-[11px] font-sans-semibold uppercase tracking-wide text-emerald-700">
+                Mes formations
+              </Text>
+              <Text className="text-2xl font-heading-bold text-emerald-700 mt-1">
+                {enrolledCourses.length}
+              </Text>
+            </View>
           </View>
         </View>
       </View>
 
-      {/* My Courses Section */}
       {enrolledCourses.length > 0 && (
-        <FadeInView className="px-6 mt-6">
-          <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-lg font-heading-bold text-gray-800">
-              Mes Formations
+        <FadeInView className="px-5 mt-2">
+          <View className="flex-row items-center justify-between mb-3">
+            <Text className="text-xs font-sans-semibold text-muted-foreground uppercase tracking-wider">
+              Mes formations
             </Text>
-            <AnimatedPressable hapticType="selection">
+            <AnimatedPressable hapticType="selection" className="px-2 py-1">
               <Text className="text-primary font-sans-semibold">Tout voir</Text>
             </AnimatedPressable>
           </View>
@@ -121,7 +130,7 @@ export default function TrainingScreen() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            className="mb-6"
+            className="mb-2"
           >
             {enrolledCourses.map((courseId) => {
               const course = courses.find((c) => c.id === courseId);
@@ -132,7 +141,7 @@ export default function TrainingScreen() {
               return (
                 <AnimatedPressable
                   key={course.id}
-                  className="bg-white rounded-2xl mr-4 shadow-sm"
+                  className="bg-white border border-gray-100 rounded-3xl mr-3 overflow-hidden"
                   style={{ width: CARD_WIDTH }}
                   onPress={() => router.push(`/training/${course.id}`)}
                 >
@@ -143,14 +152,21 @@ export default function TrainingScreen() {
                   />
                   <View className="p-4">
                     <Text
-                      className="text-base font-heading-bold text-gray-800 mb-2"
+                      className="text-base font-heading-bold text-gray-900 mb-3"
                       numberOfLines={2}
                     >
                       {course.title}
                     </Text>
 
-                    {/* Progress Bar */}
-                    <View className="bg-gray-200 h-2 rounded-full mb-2">
+                    <View className="flex-row items-center justify-between mb-2">
+                      <Text className="text-xs font-sans text-gray-500">
+                        Progression
+                      </Text>
+                      <Text className="text-xs font-sans-semibold text-primary">
+                        {progress}%
+                      </Text>
+                    </View>
+                    <View className="bg-primary/15 h-2 rounded-full mb-1.5 overflow-hidden">
                       <View
                         className="bg-primary h-2 rounded-full"
                         style={{ width: `${progress}%` }}
@@ -167,10 +183,9 @@ export default function TrainingScreen() {
         </FadeInView>
       )}
 
-      {/* All Courses Section */}
-      <FadeInView className="px-6 mt-4 pb-8" delay={100}>
-        <Text className="text-lg font-heading-bold text-gray-800 mb-4">
-          {enrolledCourses.length > 0 ? "Tous les Cours" : "Cours Disponibles"}
+      <FadeInView className="px-5 mt-5 pb-8" delay={100}>
+        <Text className="text-xs font-sans-semibold text-muted-foreground uppercase tracking-wider mb-3">
+          {enrolledCourses.length > 0 ? "Tous les cours" : "Cours disponibles"}
         </Text>
 
         {courses.map((course) => {
@@ -180,25 +195,25 @@ export default function TrainingScreen() {
           return (
             <AnimatedPressable
               key={course.id}
-              className="bg-white rounded-2xl mb-4 shadow-sm overflow-hidden"
+              className="bg-white rounded-3xl border border-gray-100 mb-3 p-3"
               onPress={() => router.push(`/training/${course.id}`)}
             >
-              <View className="flex-row">
+              <View className="flex-row items-start">
                 <Image
                   source={{ uri: course.thumbnailUrl }}
-                  className="w-28 h-full"
+                  className="w-24 h-24 rounded-2xl"
                   resizeMode="cover"
                 />
-                <View className="flex-1 p-4">
-                  <View className="flex-row items-start justify-between mb-2">
+                <View className="flex-1 pl-3">
+                  <View className="flex-row items-start justify-between mb-1.5">
                     <Text
-                      className="text-base font-heading-bold text-gray-800 flex-1 mr-2"
+                      className="text-base font-heading-bold text-gray-900 flex-1 mr-2"
                       numberOfLines={2}
                     >
                       {course.title}
                     </Text>
                     {enrolled && (
-                      <View className="bg-primary/10 px-2 py-1 rounded-full">
+                      <View className="bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full">
                         <Text className="text-primary text-xs font-sans-semibold">
                           Inscrit
                         </Text>
@@ -213,9 +228,9 @@ export default function TrainingScreen() {
                     {course.description}
                   </Text>
 
-                  <View className="flex-row items-center flex-wrap gap-2">
+                  <View className="flex-row items-center flex-wrap gap-1.5">
                     <View
-                      className={`${getDifficultyBgColor(course.difficulty)} px-2 py-1 rounded-full`}
+                      className={`${getDifficultyBgColor(course.difficulty)} border border-black/5 px-2.5 py-1 rounded-full`}
                     >
                       <Text
                         className={`${getDifficultyColor(course.difficulty)} text-xs font-sans-semibold capitalize`}
@@ -242,16 +257,12 @@ export default function TrainingScreen() {
                         color={colors.muted}
                       />
                       <Text className="text-muted-foreground text-xs font-sans ml-1">
-                        {course.modules.reduce(
-                          (sum, m) => sum + m.lessons.length,
-                          0,
-                        )}{" "}
-                        leçons
+                        {getLessonsCount(course)} leçons
                       </Text>
                     </View>
 
                     {course.requiresCertification && (
-                      <View className="flex-row items-center bg-yellow-100 px-2 py-1 rounded-full">
+                      <View className="flex-row items-center bg-yellow-100 px-2 py-1 rounded-full border border-yellow-200">
                         <Ionicons
                           name="ribbon-outline"
                           size={12}
@@ -266,7 +277,15 @@ export default function TrainingScreen() {
 
                   {enrolled && progress > 0 && (
                     <View className="mt-3">
-                      <View className="bg-gray-200 h-1.5 rounded-full">
+                      <View className="flex-row items-center justify-between mb-1.5">
+                        <Text className="text-[11px] font-sans text-gray-500">
+                          Progression
+                        </Text>
+                        <Text className="text-[11px] font-sans-semibold text-primary">
+                          {progress}%
+                        </Text>
+                      </View>
+                      <View className="bg-primary/15 h-1.5 rounded-full overflow-hidden">
                         <View
                           className="bg-primary h-1.5 rounded-full"
                           style={{ width: `${progress}%` }}
@@ -282,7 +301,7 @@ export default function TrainingScreen() {
       </FadeInView>
 
       {courses.length === 0 && (
-        <View className="flex-1 justify-center items-center px-6 py-20">
+        <View className="items-center px-6 py-16">
           <Ionicons name="school-outline" size={64} color={colors.mutedLight} />
           <Text className="text-lg font-heading-bold text-gray-400 mt-4">
             Aucun cours disponible

@@ -1,12 +1,11 @@
 import React, { useState, useRef } from "react";
 import { Alert, View, Text, TextInput, TouchableOpacity } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { haptic } from "@/utils/haptics";
 import { AnimatedPressable } from "@/components/animated";
+import AuthShell from "@/components/auth/AuthShell";
 import { colors } from "@/theme/colors";
-import ScreenHeader from "@/components/ui/ScreenHeader";
 
 interface ChangePasswordForm {
   currentPassword: string;
@@ -93,19 +92,19 @@ export default function ChangePasswordScreen() {
 
     haptic.medium();
     Alert.alert(
-      "Bientot disponible",
-      "Le workflow technique sera branche juste apres la validation UX.",
+      "Bientôt disponible",
+      "Le workflow technique sera branché juste après la validation UX.",
       [{ text: "OK", onPress: () => router.back() }],
     );
   };
 
   const checks = [
     {
-      label: "Au moins 8 caracteres",
+      label: "Au moins 8 caractères",
       ok: formData.newPassword.length >= 8,
     },
     {
-      label: "Different du mot de passe actuel",
+      label: "Différent du mot de passe actuel",
       ok:
         formData.newPassword.length > 0 &&
         formData.newPassword !== formData.currentPassword,
@@ -126,18 +125,16 @@ export default function ChangePasswordScreen() {
     passedChecks <= 1 ? "#EF4444" : passedChecks === 2 ? "#F59E0B" : "#16A34A";
 
   return (
-    <KeyboardAwareScrollView
-      bottomOffset={20}
-      className="flex-1 bg-gray-50"
-      contentContainerStyle={{ flexGrow: 1 }}
-      keyboardShouldPersistTaps="handled"
+    <AuthShell
+      title="Changer le mot de passe"
+      subtitle="Mettez à jour votre mot de passe en toute sécurité."
+      showBack
+      onBackPress={() => router.back()}
     >
-      <ScreenHeader title="Changer le mot de passe" showBack />
-
-      <View className="px-6 py-6 gap-4">
-        <View className="bg-white border border-gray-100 rounded-2xl p-4">
+      <View className="gap-4">
+        <View className="bg-white/70 border border-[#e3ecd8] rounded-2xl p-4">
           <Text className="text-sm font-sans-semibold text-foreground">
-            Securite du compte
+            Sécurité du compte
           </Text>
           <Text className="text-xs font-sans text-muted-foreground mt-1">
             Pour confirmer ce changement, saisissez d&apos;abord votre mot de
@@ -161,7 +158,7 @@ export default function ChangePasswordScreen() {
         ) : null}
 
         {/* Form card */}
-        <View className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <View className="bg-white rounded-2xl border border-[#e3ecd8] overflow-hidden">
           {/* Current password */}
           <View className="px-4 pt-4 pb-3 border-b border-gray-100">
             <Text className="text-xs font-sans text-muted-foreground mb-2">
@@ -306,7 +303,7 @@ export default function ChangePasswordScreen() {
           </View>
         </View>
 
-        <View className="bg-white border border-gray-100 rounded-2xl p-4">
+        <View className="bg-white/70 border border-[#e3ecd8] rounded-2xl p-4">
           <View className="flex-row items-center justify-between mb-2">
             <Text className="text-xs font-sans text-muted-foreground">
               Robustesse du mot de passe
@@ -358,6 +355,6 @@ export default function ChangePasswordScreen() {
           </View>
         </AnimatedPressable>
       </View>
-    </KeyboardAwareScrollView>
+    </AuthShell>
   );
 }

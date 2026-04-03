@@ -409,3 +409,38 @@ interface TrainingContextType {
   getCourseById: (courseId: string) => Course | undefined;
   getLessonById: (courseId: string, lessonId: string) => Lesson | undefined;
 }
+
+// Shop Types
+type ShopCategory = "engrais" | "phyto" | "semence" | "petit_materiel";
+type ShopOrigin = "tabs" | "tabs-job-seeker";
+type ShopSortOption = "none" | "price_asc" | "price_desc";
+
+interface ShopProduct {
+  id: string;
+  name: string;
+  category: ShopCategory;
+  priceTTC: number;
+  unit: string;
+  imageUrl: string;
+  shortDescription: string;
+  longDescription: string;
+  isInStock: boolean;
+  stockQty: number;
+  brand?: string;
+  origin?: string;
+  usage?: string;
+  safety?: string;
+  dosage?: string;
+}
+
+interface ShopCartItem {
+  productId: string;
+  quantity: number;
+}
+
+interface ShopCartTotals {
+  subtotal: number;
+  tax: number;
+  shipping: number;
+  total: number;
+}
