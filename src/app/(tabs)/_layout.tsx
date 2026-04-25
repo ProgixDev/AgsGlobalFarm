@@ -14,7 +14,6 @@ export default function TabsLayout() {
   useEffect(() => {
     if (Platform.OS === "android") {
       NavigationBar.setVisibilityAsync("hidden");
-      NavigationBar.setBehaviorAsync("inset-touch");
     }
   }, []);
 

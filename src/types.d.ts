@@ -444,3 +444,100 @@ interface ShopCartTotals {
   shipping: number;
   total: number;
 }
+
+// Itinerary Generator Types
+type ItineraryMethod = "serre" | "plein_champ";
+type ItineraryScheduleType = "weekly" | "phase" | "stage";
+type ItineraryDoseUnit = "kg" | "g" | "ml" | "l";
+
+interface ItineraryDoseDefinition {
+  product: string;
+  dose: number;
+  unit: ItineraryDoseUnit;
+}
+
+interface ItineraryFertilizationStep {
+  id: string;
+  label: string;
+  schedule: string;
+  doses: ItineraryDoseDefinition[];
+}
+
+interface ItineraryPhytoCategory {
+  id: string;
+  label: string;
+  products: string[];
+  notes?: string;
+}
+
+interface ItineraryPhytoProtocol {
+  frequency: string;
+  emergencyFrequency: string;
+  disclaimer: string;
+  categories: ItineraryPhytoCategory[];
+}
+
+interface ItineraryProgramDefinition {
+  scheduleType: ItineraryScheduleType;
+  fertilization: ItineraryFertilizationStep[];
+  phyto: ItineraryPhytoProtocol;
+  notes?: string[];
+}
+
+interface CropItineraryDefinition {
+  id: string;
+  cropName: string;
+  baselineAreaM2: number;
+  sourcePdf: string[];
+  supportedMethods: ItineraryMethod[];
+  defaultProgram: ItineraryProgramDefinition;
+  methodPrograms?: Partial<Record<ItineraryMethod, ItineraryProgramDefinition>>;
+}
+
+interface ScaledItineraryDose extends ItineraryDoseDefinition {
+  scaledDose: number;
+}
+
+interface ScaledItineraryFertilizationStep
+  extends Omit<ItineraryFertilizationStep, "doses"> {
+  doses: ScaledItineraryDose[];
+}
+
+interface ScaledItineraryProgram {
+  scheduleType: ItineraryScheduleType;
+  fertilization: ScaledItineraryFertilizationStep[];
+  phyto: ItineraryPhytoProtocol;
+  notes?: string[];
+}
+
+interface ScaledCropItinerary {
+  id: string;
+  cropName: string;
+  areaM2: number;
+  method: ItineraryMethod;
+  scaleFactor: number;
+  baselineAreaM2: number;
+  sourcePdf: string[];
+  program: ScaledItineraryProgram;
+}
+
+interface ItineraryGeneratorFormData {
+  cropId: string;
+  areaM2: string;
+  method: ItineraryMethod | "";
+}
+
+interface ItineraryGeneratorFormErrors {
+  cropId?: string;
+  areaM2?: string;
+  method?: string;
+}
+
+interface ItineraryHistoryEntry {
+  id: string;
+  cropId: string;
+  cropName: string;
+  areaM2: number;
+  method: ItineraryMethod;
+  generatedAt: string;
+}

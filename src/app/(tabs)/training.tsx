@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, ScrollView, Image, Dimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { type Href, useRouter } from "expo-router";
 import { useTrainingStore } from "@/stores/trainingStore";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AnimatedPressable, FadeInView } from "@/components/animated";
@@ -115,6 +115,40 @@ export default function TrainingScreen() {
           </View>
         </View>
       </View>
+
+      <FadeInView className="px-5 mt-2" delay={80}>
+        <AnimatedPressable
+          className="bg-[#fffdf8] border border-[#e8dfc5] rounded-3xl p-4"
+          onPress={() => {
+            haptic.selection();
+            router.push("/itineraire/generator" as Href);
+          }}
+        >
+          <View className="flex-row items-center">
+            <View className="w-12 h-12 rounded-2xl bg-[#f5edd1] items-center justify-center mr-3">
+              <Ionicons
+                name="leaf-outline"
+                size={22}
+                color={colors.primaryDark}
+              />
+            </View>
+            <View className="flex-1">
+              <Text className="text-base font-heading-bold text-gray-900">
+                Generateur d&apos;itineraire technique
+              </Text>
+              <Text className="text-xs font-sans text-gray-600 mt-0.5">
+                Obtenez votre programme fertilisation + phyto adapte a votre
+                superficie.
+              </Text>
+            </View>
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={colors.primaryDark}
+            />
+          </View>
+        </AnimatedPressable>
+      </FadeInView>
 
       {enrolledCourses.length > 0 && (
         <FadeInView className="px-5 mt-2">

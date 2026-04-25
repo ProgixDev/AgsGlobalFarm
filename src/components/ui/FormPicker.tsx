@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, Platform } from "react-native";
+import { View, Text, Platform, useColorScheme } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { colors } from "@/theme/colors";
 
@@ -26,35 +26,46 @@ export default function FormPicker({
   enabled = true,
   containerClassName = "",
 }: FormPickerProps) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const pickerTextColor = isDark ? colors.white : colors.black;
+  const placeholderColor = isDark ? colors.mutedLighter : colors.textSecondary;
+
   return (
     <View className={`mb-4 ${containerClassName}`}>
-      <Text className="text-sm font-sans-medium text-foreground mb-2">
+      <Text className="text-sm font-sans-medium text-gray-700 mb-2">
         {label}
         {required && <Text className="text-danger font-sans"> *</Text>}
       </Text>
       <View
-        className={`bg-gray-50 border rounded-xl overflow-hidden ${
-          error ? "border-danger" : "border-border"
+        className={`${isDark ? "bg-[#1f2937]" : "bg-white"} border rounded-xl overflow-hidden ${
+          error ? "border-danger" : isDark ? "border-[#374151]" : "border-border"
         } ${!enabled ? "opacity-50" : ""}`}
       >
         <Picker
           selectedValue={value}
           onValueChange={onValueChange}
           enabled={enabled}
+          mode={Platform.OS === "android" ? "dropdown" : undefined}
+          dropdownIconColor={pickerTextColor}
           style={{
             height: Platform.OS === "ios" ? 180 : 50,
+            color: pickerTextColor,
+            backgroundColor: "transparent",
+            fontSize: 16,
           }}
         >
           <Picker.Item
             label={placeholder}
             value=""
-            color={colors.placeholder}
+            color={placeholderColor}
           />
           {items.map((item) => (
             <Picker.Item
               key={item.value}
               label={item.label}
               value={item.value}
+              color={pickerTextColor}
             />
           ))}
         </Picker>

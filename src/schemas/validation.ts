@@ -146,3 +146,22 @@ export const adviceFormSchema = z.object({
     .min(1, "Veuillez sélectionner un itinéraire technique"),
   crop: z.string().min(1, "Veuillez sélectionner une culture"),
 });
+
+// Technical itinerary generator validation schema
+export const itineraryGeneratorSchema = z.object({
+  cropId: z.string().min(1, "Veuillez sélectionner une culture"),
+  areaM2: z
+    .string()
+    .min(1, "Veuillez entrer la superficie")
+    .refine(
+      (value) => {
+        const normalized = value.replaceAll(" ", "").replace(",", ".");
+        const area = Number(normalized);
+        return Number.isFinite(area) && area > 0;
+      },
+      { message: "Veuillez entrer une superficie valide supérieure à 0" },
+    ),
+  method: z.enum(["serre", "plein_champ"], {
+    message: "Veuillez sélectionner un mode de culture",
+  }),
+});

@@ -4,10 +4,10 @@ import {
   Text,
   ScrollView,
   TextInput,
+  KeyboardAvoidingView,
   Platform,
   Alert,
 } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
@@ -238,7 +238,10 @@ export default function JobPostScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <KeyboardAwareScrollView bottomOffset={20} className="flex-1">
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
         <ScrollView
           className="flex-1 px-4 py-4"
           contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT }}
@@ -631,7 +634,7 @@ export default function JobPostScreen() {
             </Text>
           </AnimatedPressable>
         </View>
-      </KeyboardAwareScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

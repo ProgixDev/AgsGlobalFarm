@@ -13,8 +13,13 @@ import type { RegionAgriInfo } from "@/data/senegal-regions";
 import SwipeableBottomSheet from "@/components/ui/SwipeableBottomSheet";
 import { colors } from "@/theme/colors";
 
+const isFabricEnabled = Boolean(
+  (globalThis as { nativeFabricUIManager?: unknown }).nativeFabricUIManager,
+);
+
 if (
   Platform.OS === "android" &&
+  !isFabricEnabled &&
   UIManager.setLayoutAnimationEnabledExperimental
 ) {
   UIManager.setLayoutAnimationEnabledExperimental(true);

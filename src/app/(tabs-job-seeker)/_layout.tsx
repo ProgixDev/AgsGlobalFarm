@@ -13,7 +13,6 @@ export default function JobSeekerTabsLayout() {
   useEffect(() => {
     if (Platform.OS === "android") {
       NavigationBar.setVisibilityAsync("hidden");
-      NavigationBar.setBehaviorAsync("inset-touch");
     }
   }, []);
 

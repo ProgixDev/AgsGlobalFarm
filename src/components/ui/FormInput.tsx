@@ -18,15 +18,16 @@ export default function FormInput({
 }: FormInputProps) {
   return (
     <View className={`mb-4 ${containerClassName}`}>
-      <Text className="text-sm font-sans-medium text-foreground mb-2">
+      <Text className="text-sm font-sans-medium text-gray-700 mb-2">
         {label}
         {required && <Text className="text-danger font-sans"> *</Text>}
       </Text>
       <TextInput
-        className={`bg-gray-50 border rounded-xl px-4 py-3 text-base font-sans text-foreground ${
-          error ? "border-danger" : "border-border"
+        className={`bg-white border rounded-xl px-4 py-3 text-base font-sans text-gray-900 ${
+          error ? "border-danger" : "border-[#d9d5c8]"
         }`}
-        placeholderTextColor={colors.placeholder}
+        placeholderTextColor={colors.mutedLight}
+        selectionColor={colors.primary}
         {...props}
       />
       {error && (
