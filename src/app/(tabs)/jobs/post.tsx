@@ -23,10 +23,11 @@ import {
 import { AnimatedPressable } from "@/components/animated";
 import { haptic } from "@/utils/haptics";
 import { colors } from "@/theme/colors";
-import { TAB_BAR_HEIGHT } from "@/components/ui/FloatingTabBar";
+import { useTabBarInset } from "@/components/ui/FloatingTabBar";
 import { useHideTabBar } from "@/hooks/useHideTabBar";
 
 export default function JobPostScreen() {
+  const tabBarInset = useTabBarInset();
   const router = useRouter();
   const params = useLocalSearchParams();
   const createJob = useJobsStore((state) => state.createJob);
@@ -244,7 +245,7 @@ export default function JobPostScreen() {
       >
         <ScrollView
           className="flex-1 px-4 py-4"
-          contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT }}
+          contentContainerStyle={{ paddingBottom: tabBarInset }}
         >
           <View className="flex-row items-center mb-4">
             <AnimatedPressable

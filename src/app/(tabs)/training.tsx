@@ -7,13 +7,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AnimatedPressable, FadeInView } from "@/components/animated";
 import { haptic } from "@/utils/haptics";
 import { colors } from "@/theme/colors";
-import { TAB_BAR_HEIGHT } from "@/components/ui/FloatingTabBar";
+import { useTabBarInset } from "@/components/ui/FloatingTabBar";
 
 const CARD_WIDTH = Dimensions.get("window").width * 0.72;
 
 export default function TrainingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const tabBarInset = useTabBarInset();
   const courses = useTrainingStore((state) => state.courses);
   const enrolledCourses = useTrainingStore((state) => state.enrolledCourses);
   const courseProgress = useTrainingStore((state) => state.courseProgress);
@@ -60,7 +61,7 @@ export default function TrainingScreen() {
   return (
     <ScrollView
       className="flex-1 bg-gray-50"
-      contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT }}
+      contentContainerStyle={{ paddingBottom: tabBarInset }}
     >
       <View style={{ paddingTop: insets.top + 10 }} className="px-5 pb-3">
         <View className="flex-row items-center justify-between mb-2">

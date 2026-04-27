@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AnimatedPressable } from "@/components/animated";
-import { TAB_BAR_HEIGHT } from "@/components/ui/FloatingTabBar";
+import { useTabBarInset } from "@/components/ui/FloatingTabBar";
 import { useShopStore } from "@/stores/shopStore";
 import { colors } from "@/theme/colors";
 import { formatFcfa } from "@/utils/currency";
@@ -32,6 +32,7 @@ function navigateToOriginShop(
 export default function ShopDetailScreen({ productId, origin }: Props) {
   const router = useRouter();
   useHideTabBar();
+  const tabBarInset = useTabBarInset();
   const [hasImageError, setHasImageError] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
 
@@ -93,7 +94,7 @@ export default function ShopDetailScreen({ productId, origin }: Props) {
         </Text>
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: tabBarInset }}>
         <Image
           source={
             hasImageError

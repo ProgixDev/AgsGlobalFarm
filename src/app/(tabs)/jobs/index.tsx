@@ -14,7 +14,7 @@ import { useJobsStore } from "@/stores/jobsStore";
 import { AnimatedPressable } from "@/components/animated";
 import { haptic } from "@/utils/haptics";
 import { colors } from "@/theme/colors";
-import { TAB_BAR_HEIGHT } from "@/components/ui/FloatingTabBar";
+import { useTabBarInset } from "@/components/ui/FloatingTabBar";
 import JobsHeroHeader from "@/components/jobs/JobsHeroHeader";
 import JobsSegmentedTabs from "@/components/jobs/JobsSegmentedTabs";
 import JobsKpiCards from "@/components/jobs/JobsKpiCards";
@@ -29,6 +29,7 @@ type RecruiterTab = "overview" | "posts" | "applications";
 const CONTRACT_FILTERS = ["Tous", "CDI", "CDD", "Saisonnier", "Stage"];
 
 export default function JobsScreen() {
+  const tabBarInset = useTabBarInset();
   const router = useRouter();
   const currentUser = useUserStore((state) => state.currentUser);
   const userType = useUserStore((state) => state.userType);
@@ -168,7 +169,7 @@ export default function JobsScreen() {
 
               <ScrollView
                 className="flex-1 px-4 py-4"
-                contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT }}
+                contentContainerStyle={{ paddingBottom: tabBarInset }}
               >
                 {filteredDiscoverJobs.length > 0 ? (
                   filteredDiscoverJobs.map((job) => (
@@ -195,7 +196,7 @@ export default function JobsScreen() {
           {jobSeekerTab === "applications" && (
             <ScrollView
               className="flex-1 px-4 py-4"
-              contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT }}
+              contentContainerStyle={{ paddingBottom: tabBarInset }}
             >
               {myApplications.length > 0 ? (
                 myApplications.map((application) => {
@@ -246,7 +247,7 @@ export default function JobsScreen() {
 
           <ScrollView
             className="flex-1"
-            contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT }}
+            contentContainerStyle={{ paddingBottom: tabBarInset }}
           >
             {recruiterTab === "overview" && (
               <>

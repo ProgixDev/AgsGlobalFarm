@@ -17,7 +17,7 @@ import { useJobsStore } from "@/stores/jobsStore";
 import { useUserStore } from "@/stores/userStore";
 import { senegalRegions, senegalDepartments } from "@/data/senegalData";
 import { colors } from "@/theme/colors";
-import { TAB_BAR_HEIGHT } from "@/components/ui/FloatingTabBar";
+import { useTabBarInset } from "@/components/ui/FloatingTabBar";
 import { useHideTabBar } from "@/hooks/useHideTabBar";
 
 const desiredPositions = [
@@ -47,6 +47,7 @@ const educationLevels = [
 ];
 
 export default function JobApplyScreen() {
+  const tabBarInset = useTabBarInset();
   const router = useRouter();
   const params = useLocalSearchParams();
   const getJobById = useJobsStore((state) => state.getJobById);
@@ -259,7 +260,7 @@ export default function JobApplyScreen() {
 
         <ScrollView
           className="flex-1 px-4 py-4"
-          contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT }}
+          contentContainerStyle={{ paddingBottom: tabBarInset }}
         >
           {/* Section: Informations personnelles */}
           <Text className="text-base font-heading-bold text-gray-800 mb-4">

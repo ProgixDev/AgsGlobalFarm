@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { AnimatedPressable } from "@/components/animated";
-import { TAB_BAR_HEIGHT } from "@/components/ui/FloatingTabBar";
+import { useTabBarInset } from "@/components/ui/FloatingTabBar";
 import { useShopStore } from "@/stores/shopStore";
 import { colors } from "@/theme/colors";
 import { formatFcfa } from "@/utils/currency";
@@ -31,6 +31,7 @@ function goToOriginShop(
 export default function CartScreen({ origin }: Props) {
   const router = useRouter();
   useHideTabBar();
+  const tabBarInset = useTabBarInset();
   const cart = useShopStore((state) => state.cart);
   const getProductById = useShopStore((state) => state.getProductById);
   const incrementItem = useShopStore((state) => state.incrementItem);
@@ -89,7 +90,7 @@ export default function CartScreen({ origin }: Props) {
       ) : (
         <>
           <ScrollView
-            contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT }}
+            contentContainerStyle={{ paddingBottom: tabBarInset }}
             className="px-5 pt-4"
           >
             {cartDetails.map(({ line, product }) => {

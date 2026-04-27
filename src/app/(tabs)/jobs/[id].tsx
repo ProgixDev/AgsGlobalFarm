@@ -9,7 +9,7 @@ import { useMapStore } from "@/stores/mapStore";
 import { AnimatedPressable } from "@/components/animated";
 import { haptic } from "@/utils/haptics";
 import { colors } from "@/theme/colors";
-import { TAB_BAR_HEIGHT } from "@/components/ui/FloatingTabBar";
+import { useTabBarInset } from "@/components/ui/FloatingTabBar";
 import JobsHeroHeader from "@/components/jobs/JobsHeroHeader";
 import { useHideTabBar } from "@/hooks/useHideTabBar";
 import Mapbox, { Camera, MapView, PointAnnotation } from "@rnmapbox/maps";
@@ -41,6 +41,7 @@ function getFarmCenter(farm: FarmLocation) {
 }
 
 export default function JobDetailsScreen() {
+  const tabBarInset = useTabBarInset();
   const router = useRouter();
   const params = useLocalSearchParams();
   const getJobById = useJobsStore((state) => state.getJobById);
@@ -274,7 +275,7 @@ export default function JobDetailsScreen() {
 
       <ScrollView
         className="flex-1 px-4 py-4"
-        contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT }}
+        contentContainerStyle={{ paddingBottom: tabBarInset }}
       >
         {/* Badges */}
         <View className="flex-row flex-wrap gap-2 mb-6">

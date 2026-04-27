@@ -8,10 +8,11 @@ import { AnimatedPressable } from "@/components/animated";
 import { haptic } from "@/utils/haptics";
 import { colors } from "@/theme/colors";
 import ScreenHeader from "@/components/ui/ScreenHeader";
-import { TAB_BAR_HEIGHT } from "@/components/ui/FloatingTabBar";
+import { useTabBarInset } from "@/components/ui/FloatingTabBar";
 import { useHideTabBar } from "@/hooks/useHideTabBar";
 
 export default function JobApplicationsScreen() {
+  const tabBarInset = useTabBarInset();
   const params = useLocalSearchParams();
   const getJobById = useJobsStore((state) => state.getJobById);
   const getApplicationsByJobId = useJobsStore(
@@ -58,7 +59,7 @@ export default function JobApplicationsScreen() {
 
       <ScrollView
         className="flex-1 px-4 py-3"
-        contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT }}
+        contentContainerStyle={{ paddingBottom: tabBarInset }}
       >
         {sortedApplications.length > 0 ? (
           sortedApplications.map((applicant) => (

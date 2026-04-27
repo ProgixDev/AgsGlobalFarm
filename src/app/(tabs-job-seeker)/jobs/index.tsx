@@ -13,7 +13,7 @@ import { useUserStore } from "@/stores/userStore";
 import { useJobsStore } from "@/stores/jobsStore";
 import { haptic } from "@/utils/haptics";
 import { colors } from "@/theme/colors";
-import { TAB_BAR_HEIGHT } from "@/components/ui/FloatingTabBar";
+import { useTabBarInset } from "@/components/ui/FloatingTabBar";
 import JobsHeroHeader from "@/components/jobs/JobsHeroHeader";
 import JobsSegmentedTabs from "@/components/jobs/JobsSegmentedTabs";
 import JobsFilterChips from "@/components/jobs/JobsFilterChips";
@@ -26,6 +26,7 @@ type JobSeekerTab = "discover" | "applications";
 const CONTRACT_FILTERS = ["Tous", "CDI", "CDD", "Saisonnier", "Stage"];
 
 export default function JobSeekerJobsScreen() {
+  const tabBarInset = useTabBarInset();
   const router = useRouter();
   const currentUser = useUserStore((state) => state.currentUser);
   const getPublicActiveJobs = useJobsStore(
@@ -129,7 +130,7 @@ export default function JobSeekerJobsScreen() {
 
           <ScrollView
             className="flex-1 px-4 py-4"
-            contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT }}
+            contentContainerStyle={{ paddingBottom: tabBarInset }}
           >
             {filteredDiscoverJobs.length > 0 ? (
               filteredDiscoverJobs.map((job) => (
@@ -156,7 +157,7 @@ export default function JobSeekerJobsScreen() {
       {tab === "applications" && (
         <ScrollView
           className="flex-1 px-4 py-4"
-          contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT }}
+          contentContainerStyle={{ paddingBottom: tabBarInset }}
         >
           {myApplications.length > 0 ? (
             myApplications.map((application) => {

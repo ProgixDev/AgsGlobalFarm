@@ -8,11 +8,12 @@ import { useUserStore } from "@/stores/userStore";
 import { AnimatedPressable, FadeInView } from "@/components/animated";
 import { haptic } from "@/utils/haptics";
 import { colors } from "@/theme/colors";
-import { TAB_BAR_HEIGHT } from "@/components/ui/FloatingTabBar";
+import { useTabBarInset } from "@/components/ui/FloatingTabBar";
 
 export default function ProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const tabBarInset = useTabBarInset();
   const currentUser = useUserStore((state) => state.currentUser);
   const setCurrentUser = useUserStore((state) => state.setCurrentUser);
 
@@ -65,7 +66,7 @@ export default function ProfileScreen() {
   return (
     <ScrollView
       className="flex-1 bg-gray-50"
-      contentContainerStyle={{ flexGrow: 1, paddingBottom: TAB_BAR_HEIGHT }}
+      contentContainerStyle={{ flexGrow: 1, paddingBottom: tabBarInset }}
     >
       <View style={{ paddingTop: insets.top + 10 }} className="px-5 pb-3">
         <Text className="text-xs font-sans-semibold uppercase tracking-wider text-gray-500 mb-2">

@@ -4,7 +4,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AnimatedPressable } from "@/components/animated";
-import { TAB_BAR_HEIGHT } from "@/components/ui/FloatingTabBar";
+import { useTabBarInset } from "@/components/ui/FloatingTabBar";
 import { useShopStore } from "@/stores/shopStore";
 import { colors } from "@/theme/colors";
 import { formatFcfa } from "@/utils/currency";
@@ -100,6 +100,7 @@ function ProductCard({
 export default function ShopListScreen({ origin }: Props) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const tabBarInset = useTabBarInset();
   const selectedCategory = useShopStore((state) => state.selectedCategory);
   const sortOption = useShopStore((state) => state.sortOption);
   const setCategory = useShopStore((state) => state.setCategory);
@@ -119,7 +120,7 @@ export default function ShopListScreen({ origin }: Props) {
   return (
     <ScrollView
       className="flex-1 bg-gray-50"
-      contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT }}
+      contentContainerStyle={{ paddingBottom: tabBarInset }}
     >
       <View style={{ paddingTop: insets.top + 10 }} className="px-5 pb-3">
         <View className="flex-row items-center justify-between mb-2">

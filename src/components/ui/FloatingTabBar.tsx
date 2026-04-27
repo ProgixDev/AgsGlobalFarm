@@ -27,6 +27,12 @@ const SLIDE_SPRING = {
 
 export const TAB_BAR_HEIGHT = 80;
 
+/** Returns the total bottom padding needed to clear the floating tab bar + system nav bar. */
+export function useTabBarInset() {
+  const insets = useSafeAreaInsets();
+  return TAB_BAR_HEIGHT + insets.bottom;
+}
+
 function TabItem({
   route,
   index,
