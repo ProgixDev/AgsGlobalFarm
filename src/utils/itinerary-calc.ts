@@ -3,53 +3,39 @@ import { getTechnicalItineraryById } from "@/data/itineraries";
 interface CalculateItineraryParams {
   cropId: string;
   areaM2: number;
-  method: ItineraryMethod;
-}
-
-function resolveProgram(
-  definition: CropItineraryDefinition,
-  method: ItineraryMethod,
-): ItineraryProgramDefinition {
-  return definition.methodPrograms?.[method] ?? definition.defaultProgram;
 }
 
 export function calculateScaledItinerary({
   cropId,
   areaM2,
-  method,
 }: CalculateItineraryParams): ScaledCropItinerary {
   const definition = getTechnicalItineraryById(cropId);
 
   if (!definition) {
-    throw new Error(`Aucun itineraire trouve pour la culture: ${cropId}`);
+    throw new Error(`Aucun itinéraire trouvé pour la culture : ${cropId}`);
   }
 
   if (!Number.isFinite(areaM2) || areaM2 <= 0) {
-    throw new Error("La superficie doit etre un nombre strictement positif.");
-  }
-
-  if (!definition.supportedMethods.includes(method)) {
-    throw new Error(
-      `Le mode ${method} n'est pas pris en charge pour ${definition.cropName}.`,
-    );
+    throw new Error("La superficie doit être un nombre strictement positif.");
   }
 
   const scaleFactor = areaM2 / definition.baselineAreaM2;
-  const selectedProgram = resolveProgram(definition, method);
+  const program = definition.program;
 
   return {
     id: definition.id,
     cropName: definition.cropName,
+    emoji: definition.emoji,
+    cultivationNote: definition.cultivationNote,
     areaM2,
-    method,
     scaleFactor,
     baselineAreaM2: definition.baselineAreaM2,
     sourcePdf: definition.sourcePdf,
     program: {
-      scheduleType: selectedProgram.scheduleType,
-      notes: selectedProgram.notes,
-      phyto: selectedProgram.phyto,
-      fertilization: selectedProgram.fertilization.map((step) => ({
+      scheduleType: program.scheduleType,
+      notes: program.notes,
+      phyto: program.phyto,
+      fertilization: program.fertilization.map((step) => ({
         id: step.id,
         label: step.label,
         schedule: step.schedule,
@@ -64,10 +50,6 @@ export function calculateScaledItinerary({
   };
 }
 
-export function getMethodLabel(method: ItineraryMethod) {
-  return method === "serre" ? "Serre" : "Plein champ";
-}
-
 export function getScheduleLabel(scheduleType: ItineraryScheduleType) {
   switch (scheduleType) {
     case "weekly":
@@ -77,10 +59,41 @@ export function getScheduleLabel(scheduleType: ItineraryScheduleType) {
     case "stage":
       return "Stade";
     default:
-      return "Periode";
+      return "Période";
   }
 }
 
-export function formatDoseValue(value: number) {
-  return Number.isInteger(value) ? `${value}` : `${value}`;
+export function formatDose(value: number, unit: ItineraryDoseUnit) {
+  if (value === 0) return `0 ${unit}`;
+
+  if (unit === "g" && value >= 1000) {
+    const kg = value / 1000;
+    return `${formatNumber(kg)} kg`;
+  }
+
+  if (unit === "ml" && value >= 1000) {
+    const l = value / 1000;
+    return `${formatNumber(l)} L`;
+  }
+
+  return `${formatNumber(value)} ${unit}`;
+}
+
+export function formatNumber(value: number) {
+  if (!Number.isFinite(value)) return "—";
+
+  const rounded = Math.round(value * 100) / 100;
+
+  if (Number.isInteger(rounded)) {
+    return rounded.toLocaleString("fr-FR");
+  }
+
+  return rounded.toLocaleString("fr-FR", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
+}
+
+export function formatArea(areaM2: number) {
+  return `${formatNumber(areaM2)} m²`;
 }

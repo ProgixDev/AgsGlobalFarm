@@ -134,11 +134,11 @@ export default function TrainingScreen() {
             </View>
             <View className="flex-1">
               <Text className="text-base font-heading-bold text-gray-900">
-                Generateur d&apos;itineraire technique
+                Générateur d&apos;itinéraire technique
               </Text>
               <Text className="text-xs font-sans text-gray-600 mt-0.5">
-                Obtenez votre programme fertilisation + phyto adapte a votre
-                superficie.
+                Programme fertilisation + phyto adapté à votre superficie,
+                téléchargeable en PDF.
               </Text>
             </View>
             <Ionicons

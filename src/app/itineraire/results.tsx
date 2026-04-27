@@ -5,13 +5,20 @@ import { type Href, useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AnimatedPressable from "@/components/animated/AnimatedPressable";
 import Button from "@/components/ui/Button";
+import { useItineraryStore } from "@/stores/itineraryStore";
+import { TAB_BAR_HEIGHT } from "@/components/ui/FloatingTabBar";
 import {
   calculateScaledItinerary,
-  formatDoseValue,
-  getMethodLabel,
+  formatArea,
+  formatDose,
+  formatNumber,
   getScheduleLabel,
 } from "@/utils/itinerary-calc";
-import { exportItineraryToPdf } from "@/utils/itinerary-pdf";
+import {
+  generatePdf,
+  pdfFileExists,
+  sharePdf,
+} from "@/utils/itinerary-pdf";
 import { colors } from "@/theme/colors";
 import { haptic } from "@/utils/haptics";
 
@@ -19,99 +26,118 @@ function toSingleParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
 
-function parseArea(value?: string) {
-  if (!value) return Number.NaN;
-  return Number(value.replaceAll(" ", "").replace(",", "."));
-}
-
 export default function ItineraryResultsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const params = useLocalSearchParams<{
-    cropId?: string;
-    areaM2?: string;
-    method?: string;
-  }>();
+  const params = useLocalSearchParams<{ entryId?: string }>();
+  const entryId = toSingleParam(params.entryId);
 
-  const [isExporting, setIsExporting] = useState(false);
+  const entry = useItineraryStore((state) =>
+    entryId ? state.getEntryById(entryId) : undefined,
+  );
+  const updateHistoryPdf = useItineraryStore((state) => state.updateHistoryPdf);
 
-  const result = useMemo(() => {
-    const cropId = toSingleParam(params.cropId);
-    const areaParam = toSingleParam(params.areaM2);
-    const methodParam = toSingleParam(params.method);
+  const [isSharing, setSharing] = useState(false);
+  const [isRegenerating, setRegenerating] = useState(false);
 
-    if (!cropId || !areaParam || !methodParam) {
-      return { error: "Parametres incomplets pour afficher le resultat." };
-    }
-
-    if (methodParam !== "serre" && methodParam !== "plein_champ") {
-      return { error: "Mode de culture invalide." };
-    }
-
-    const areaM2 = parseArea(areaParam);
-
+  const computation = useMemo(() => {
+    if (!entry) return { error: "Entrée introuvable." } as const;
     try {
       const itinerary = calculateScaledItinerary({
-        cropId,
-        areaM2,
-        method: methodParam,
+        cropId: entry.cropId,
+        areaM2: entry.areaM2,
       });
-
-      return { itinerary };
+      return { itinerary } as const;
     } catch (error) {
       return {
         error:
           error instanceof Error
             ? error.message
-            : "Impossible de calculer cet itineraire.",
-      };
+            : "Impossible de calculer cet itinéraire.",
+      } as const;
     }
-  }, [params.areaM2, params.cropId, params.method]);
+  }, [entry]);
 
-  const itinerary = result.itinerary;
+  const itinerary = "itinerary" in computation ? computation.itinerary : null;
+  const fileExists = pdfFileExists(entry?.pdfUri);
 
-  const handleExportPdf = async () => {
-    if (!itinerary) return;
+  const handleViewPdf = async () => {
+    if (!entry || !entry.pdfUri || !itinerary) return;
+    if (!fileExists) {
+      Alert.alert(
+        "PDF indisponible",
+        "Le fichier n'est plus accessible. Régénérez l'itinéraire pour obtenir un nouveau PDF.",
+      );
+      return;
+    }
 
     try {
-      setIsExporting(true);
-      const exportResult = await exportItineraryToPdf(itinerary);
+      setSharing(true);
+      await sharePdf(entry.pdfUri, entry.cropName);
       haptic.success();
-      Alert.alert(
-        "PDF pret",
-        exportResult.shared
-          ? "Le document PDF a ete genere et partage."
-          : exportResult.usedPrintDialog
-            ? "Le menu d'impression a ete ouvert. Choisissez 'Enregistrer au format PDF'."
-            : "Le document PDF a ete genere, mais le partage n'est pas disponible sur cet appareil.",
-      );
     } catch (error) {
-      console.error("[Itinerary PDF] Export error", error);
+      console.error("[itinerary] share failed", error);
       Alert.alert(
-        "Export impossible",
+        "Partage impossible",
         error instanceof Error
           ? error.message
-          : "Le PDF n'a pas pu etre exporte.",
+          : "Le PDF n'a pas pu être ouvert.",
       );
     } finally {
-      setIsExporting(false);
+      setSharing(false);
     }
   };
 
-  if (!itinerary) {
+  const handleRegenerate = async () => {
+    if (!entry || !itinerary) return;
+
+    try {
+      setRegenerating(true);
+      const pdf = await generatePdf(itinerary);
+      updateHistoryPdf(entry.id, pdf.uri, pdf.savedToDownloads);
+      haptic.success();
+      Alert.alert(
+        "PDF régénéré",
+        "Le PDF a été régénéré. Touchez « Voir le PDF » pour le partager ou l'enregistrer.",
+      );
+    } catch (error) {
+      console.error("[itinerary] regenerate failed", error);
+      Alert.alert(
+        "Régénération impossible",
+        error instanceof Error
+          ? error.message
+          : "Le PDF n'a pas pu être régénéré.",
+      );
+    } finally {
+      setRegenerating(false);
+    }
+  };
+
+  if (!entry || !itinerary) {
+    const message =
+      "error" in computation ? computation.error : "Itinéraire introuvable.";
     return (
-      <View className="flex-1 bg-[#f6f4eb] items-center justify-center px-6">
+      <View
+        className="flex-1 bg-[#f6f4eb] items-center justify-center px-6"
+        style={{ paddingTop: insets.top }}
+      >
         <View className="bg-white rounded-3xl border border-[#e7e3d4] p-6 w-full">
-          <Ionicons name="alert-circle-outline" size={34} color={colors.warningDark} />
+          <Ionicons
+            name="alert-circle-outline"
+            size={34}
+            color={colors.warningDark}
+          />
           <Text className="text-xl font-heading-bold text-gray-900 mt-3">
-            Resultat indisponible
+            Résultat indisponible
           </Text>
           <Text className="text-sm font-sans text-gray-600 mt-2">
-            {result.error ?? "Les parametres envoyes sont invalides."}
+            {message}
           </Text>
           <Button
-            title="Retour au generateur"
-            onPress={() => router.replace("/itineraire/generator" as Href)}
+            title="Retour au générateur"
+            onPress={() =>
+              router.replace("/itineraire/generator" as Href)
+            }
             className="mt-5"
           />
         </View>
@@ -120,152 +146,253 @@ export default function ItineraryResultsScreen() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-[#f6f4eb]">
-      <View style={{ paddingTop: insets.top + 10 }} className="px-5 pb-8">
-        <View className="bg-[#1f8a49] rounded-[28px] p-5">
-          <View className="flex-row items-center">
-            <AnimatedPressable
-              onPress={() => router.back()}
-              className="w-11 h-11 rounded-full bg-white/20 items-center justify-center"
-              hapticType="light"
-            >
-              <Ionicons name="arrow-back" size={20} color={colors.white} />
-            </AnimatedPressable>
+    <ScrollView
+      className="flex-1 bg-[#f6f4eb]"
+      contentContainerStyle={{
+        paddingTop: insets.top + 12,
+        paddingBottom: TAB_BAR_HEIGHT + insets.bottom + 32,
+      }}
+    >
+      <View className="px-5">
+        <View className="flex-row items-center mb-4">
+          <AnimatedPressable
+            onPress={() => router.back()}
+            className="w-11 h-11 rounded-full bg-white border border-[#e7e3d4] items-center justify-center"
+            hapticType="light"
+          >
+            <Ionicons name="arrow-back" size={20} color="#1f8a49" />
+          </AnimatedPressable>
+          <View className="ml-3 flex-1">
+            <Text className="text-[11px] font-sans-semibold uppercase tracking-widest text-[#8a6e2f]">
+              Itinéraire calculé
+            </Text>
+            <Text className="text-2xl font-heading-bold text-gray-900 mt-0.5">
+              {itinerary.cropName}
+            </Text>
+          </View>
+        </View>
 
+        <View className="bg-[#1f8a49] rounded-3xl px-5 py-5 mb-5">
+          <View className="flex-row items-center">
+            <View className="w-14 h-14 rounded-2xl bg-white/15 items-center justify-center mr-3">
+              <Text className="text-3xl">{itinerary.emoji}</Text>
+            </View>
+            <View className="flex-1">
+              <Text className="text-white text-base font-heading-semibold">
+                {formatArea(itinerary.areaM2)}
+              </Text>
+              <Text className="text-white/80 text-xs font-sans mt-1">
+                Base : {formatArea(itinerary.baselineAreaM2)} • Facteur ×
+                {formatNumber(itinerary.scaleFactor)}
+              </Text>
+            </View>
+          </View>
+
+          {itinerary.cultivationNote && (
+            <View className="mt-4 bg-white/10 rounded-2xl px-3 py-2">
+              <Text className="text-white text-xs font-sans">
+                {itinerary.cultivationNote}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        <View className="bg-white border border-[#e7e3d4] rounded-3xl px-4 py-4 mb-5">
+          <View className="flex-row items-center mb-3">
+            <Ionicons
+              name={fileExists ? "document-text" : "document-text-outline"}
+              size={20}
+              color={fileExists ? colors.primary : colors.mutedLight}
+            />
             <View className="ml-3 flex-1">
-              <Text className="text-white text-xs uppercase tracking-widest font-sans-semibold">
-                Itineraire calcule
+              <Text className="text-sm font-heading-semibold text-gray-900">
+                {entry.pdfFileName}
               </Text>
-              <Text className="text-white text-2xl font-heading-bold mt-1">
-                {itinerary.cropName}
+              <Text className="text-[11px] font-sans text-gray-500 mt-0.5">
+                {fileExists
+                  ? "Touchez « Voir le PDF » pour le partager ou l'enregistrer."
+                  : "PDF non disponible — régénérez-le."}
               </Text>
-              <Text className="text-white/85 text-sm font-sans mt-1">
-                {formatDoseValue(itinerary.areaM2)} m2 • {getMethodLabel(itinerary.method)}
-              </Text>
+            </View>
+          </View>
+
+          <View className="flex-row gap-2">
+            <View className="flex-1">
+              <Button
+                title={isSharing ? "Ouverture…" : "Voir le PDF"}
+                onPress={handleViewPdf}
+                disabled={!fileExists}
+                loading={isSharing}
+                icon={
+                  !isSharing ? (
+                    <Ionicons name="open-outline" size={16} color="#fff" />
+                  ) : undefined
+                }
+                size="md"
+              />
+            </View>
+            <View className="flex-1">
+              <Button
+                title={isRegenerating ? "…" : "Régénérer"}
+                onPress={handleRegenerate}
+                loading={isRegenerating}
+                variant="outline"
+                icon={
+                  !isRegenerating ? (
+                    <Ionicons
+                      name="refresh"
+                      size={16}
+                      color={colors.primary}
+                    />
+                  ) : undefined
+                }
+                size="md"
+              />
             </View>
           </View>
         </View>
 
-        <View className="bg-[#fffdf8] border border-[#ece5cf] rounded-3xl p-5 mt-4">
-          <Text className="text-xs uppercase tracking-widest font-sans-semibold text-[#8a6e2f]">
-            Resume calcul
-          </Text>
-          <View className="mt-3 gap-2">
-            <Text className="text-sm font-sans text-gray-700">
-              Facteur applique: <Text className="font-sans-semibold">{formatDoseValue(itinerary.scaleFactor)}</Text>
-            </Text>
-            <Text className="text-sm font-sans text-gray-700">
-              Base technique: <Text className="font-sans-semibold">{formatDoseValue(itinerary.baselineAreaM2)} m2</Text>
-            </Text>
-            <Text className="text-sm font-sans text-gray-700">
-              Structure: <Text className="font-sans-semibold">{getScheduleLabel(itinerary.program.scheduleType)}</Text>
-            </Text>
-          </View>
-        </View>
+        <Text className="text-[11px] font-sans-semibold uppercase tracking-widest text-[#6b5e3f] px-1 mb-3">
+          Programme de fertilisation
+        </Text>
 
-        <View className="mt-6">
-          <Text className="text-xs uppercase tracking-widest font-sans-semibold text-[#6b5e3f] mb-3">
-            Programme de fertilisation
-          </Text>
+        {itinerary.program.fertilization.map((step, index) => (
+          <View
+            key={step.id}
+            className="bg-white border border-[#e7e3d4] rounded-3xl px-4 py-4 mb-3"
+          >
+            <View className="flex-row items-center mb-3">
+              <View className="w-9 h-9 rounded-xl bg-[#fdf9ea] items-center justify-center mr-3">
+                <Text className="text-sm font-heading-bold text-[#8a6e2f]">
+                  {index + 1}
+                </Text>
+              </View>
+              <View className="flex-1">
+                <Text className="text-base font-heading-semibold text-gray-900">
+                  {step.label}
+                </Text>
+                <Text className="text-[11px] font-sans text-gray-500 mt-0.5">
+                  {getScheduleLabel(itinerary.program.scheduleType)} :{" "}
+                  {step.schedule}
+                </Text>
+              </View>
+            </View>
 
-          {itinerary.program.fertilization.map((step) => (
-            <View
-              key={step.id}
-              className="bg-white border border-[#e7e3d4] rounded-2xl px-4 py-4 mb-3"
-            >
-              <Text className="text-base font-heading-semibold text-gray-900">
-                {step.label}
-              </Text>
-              <Text className="text-xs font-sans text-gray-500 mt-0.5 mb-3">
-                {getScheduleLabel(itinerary.program.scheduleType)}: {step.schedule}
-              </Text>
-
-              {step.doses.map((dose) => (
+            <View className="bg-[#fbf7e9] rounded-2xl px-3 py-2">
+              {step.doses.map((dose, doseIndex) => (
                 <View
                   key={`${step.id}-${dose.product}`}
-                  className="flex-row items-center justify-between py-2 border-b border-gray-100"
+                  className={`flex-row items-center justify-between py-2 ${
+                    doseIndex < step.doses.length - 1
+                      ? "border-b border-[#ece5cf]"
+                      : ""
+                  }`}
                 >
                   <Text className="text-sm font-sans text-gray-700 flex-1 mr-3">
                     {dose.product}
                   </Text>
                   <Text className="text-sm font-sans-semibold text-[#14532d]">
-                    {formatDoseValue(dose.scaledDose)} {dose.unit}
+                    {formatDose(dose.scaledDose, dose.unit)}
                   </Text>
                 </View>
               ))}
             </View>
-          ))}
+          </View>
+        ))}
+
+        <Text className="text-[11px] font-sans-semibold uppercase tracking-widest text-[#6b5e3f] px-1 mt-2 mb-3">
+          Protocole phytosanitaire
+        </Text>
+
+        <View className="bg-white border border-[#e7e3d4] rounded-3xl px-4 py-4 mb-3">
+          <View className="flex-row items-start mb-3">
+            <Ionicons
+              name="shield-checkmark-outline"
+              size={20}
+              color={colors.primary}
+            />
+            <View className="ml-3 flex-1">
+              <Text className="text-sm font-heading-semibold text-gray-900">
+                Préventif
+              </Text>
+              <Text className="text-xs font-sans text-gray-700 mt-0.5">
+                {itinerary.program.phyto.frequency}
+              </Text>
+            </View>
+          </View>
+          <View className="flex-row items-start">
+            <Ionicons
+              name="warning-outline"
+              size={20}
+              color={colors.warningDark}
+            />
+            <View className="ml-3 flex-1">
+              <Text className="text-sm font-heading-semibold text-gray-900">
+                En cas d&apos;attaque
+              </Text>
+              <Text className="text-xs font-sans text-gray-700 mt-0.5">
+                {itinerary.program.phyto.emergencyFrequency}
+              </Text>
+            </View>
+          </View>
         </View>
 
-        <View className="mt-3">
-          <Text className="text-xs uppercase tracking-widest font-sans-semibold text-[#6b5e3f] mb-3">
-            Protocole phytosanitaire
-          </Text>
-
-          <View className="bg-white border border-[#e7e3d4] rounded-2xl px-4 py-4 mb-3">
-            <Text className="text-sm font-sans text-gray-700">
-              <Text className="font-sans-semibold">Preventif:</Text> {itinerary.program.phyto.frequency}
-            </Text>
-            <Text className="text-sm font-sans text-gray-700 mt-1">
-              <Text className="font-sans-semibold">En cas d&apos;attaque:</Text> {itinerary.program.phyto.emergencyFrequency}
-            </Text>
-          </View>
-
+        <View className="gap-2">
           {itinerary.program.phyto.categories.map((category) => (
             <View
               key={category.id}
-              className="bg-white border border-[#e7e3d4] rounded-2xl px-4 py-3 mb-2"
+              className="bg-white border border-[#e7e3d4] rounded-2xl px-4 py-3"
             >
-              <Text className="text-sm font-sans-semibold text-gray-900">
+              <Text className="text-[11px] font-sans-semibold uppercase tracking-wider text-[#8a6e2f]">
                 {category.label}
               </Text>
-              <Text className="text-sm font-sans text-gray-700 mt-1">
+              <Text className="text-sm font-sans text-gray-800 mt-1">
                 {category.products.join(" / ")}
               </Text>
               {category.notes && (
-                <Text className="text-xs font-sans text-gray-500 mt-1">
+                <Text className="text-[11px] font-sans text-gray-500 mt-1">
                   {category.notes}
                 </Text>
               )}
             </View>
           ))}
+        </View>
 
-          <View className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 mt-2">
-            <Text className="text-xs font-sans text-amber-800">
-              {itinerary.program.phyto.disclaimer}
-            </Text>
-          </View>
+        <View className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 mt-4">
+          <Text className="text-xs font-sans text-amber-800">
+            {itinerary.program.phyto.disclaimer}
+          </Text>
         </View>
 
         {(itinerary.program.notes?.length ?? 0) > 0 && (
-          <View className="mt-5 bg-white border border-[#e7e3d4] rounded-2xl px-4 py-4">
-            <Text className="text-sm font-sans-semibold text-gray-900 mb-2">
-              Notes
+          <View className="mt-5 bg-white border border-[#e7e3d4] rounded-3xl px-4 py-4">
+            <Text className="text-sm font-heading-semibold text-gray-900 mb-2">
+              Notes de programme
             </Text>
             {itinerary.program.notes?.map((note) => (
-              <Text key={note} className="text-sm font-sans text-gray-700 mb-1">
+              <Text
+                key={note}
+                className="text-sm font-sans text-gray-700 mb-1"
+              >
                 • {note}
               </Text>
             ))}
           </View>
         )}
 
-        <View className="mt-5 bg-white border border-[#e7e3d4] rounded-2xl px-4 py-4">
-          <Text className="text-sm font-sans-semibold text-gray-900 mb-2">Sources</Text>
+        <View className="mt-5 bg-white border border-[#e7e3d4] rounded-3xl px-4 py-4">
+          <Text className="text-sm font-heading-semibold text-gray-900 mb-2">
+            Source(s)
+          </Text>
           {itinerary.sourcePdf.map((source) => (
-            <Text key={source} className="text-sm font-sans text-gray-700 mb-1">
+            <Text
+              key={source}
+              className="text-xs font-sans text-gray-600 mb-1"
+            >
               • {source}
             </Text>
           ))}
         </View>
-
-        <Button
-          title="Telecharger le PDF"
-          onPress={handleExportPdf}
-          loading={isExporting}
-          icon={<Ionicons name="download-outline" size={18} color="#fff" />}
-          className="mt-6 min-h-[48px]"
-        />
       </View>
     </ScrollView>
   );

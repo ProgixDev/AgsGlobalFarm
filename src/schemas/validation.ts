@@ -161,7 +161,4 @@ export const itineraryGeneratorSchema = z.object({
       },
       { message: "Veuillez entrer une superficie valide supérieure à 0" },
     ),
-  method: z.enum(["serre", "plein_champ"], {
-    message: "Veuillez sélectionner un mode de culture",
-  }),
 });

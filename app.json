@@ -8,7 +8,10 @@
     "scheme": "agsmobile",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "platforms": ["ios", "android"],
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
@@ -53,7 +56,9 @@
           }
         }
       ],
-      ["@rnmapbox/maps"]
+      [
+        "@rnmapbox/maps"
+      ]
     ],
     "extra": {
       "router": {

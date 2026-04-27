@@ -446,7 +446,6 @@ interface ShopCartTotals {
 }
 
 // Itinerary Generator Types
-type ItineraryMethod = "serre" | "plein_champ";
 type ItineraryScheduleType = "weekly" | "phase" | "stage";
 type ItineraryDoseUnit = "kg" | "g" | "ml" | "l";
 
@@ -487,11 +486,12 @@ interface ItineraryProgramDefinition {
 interface CropItineraryDefinition {
   id: string;
   cropName: string;
+  emoji: string;
+  tagline: string;
   baselineAreaM2: number;
   sourcePdf: string[];
-  supportedMethods: ItineraryMethod[];
-  defaultProgram: ItineraryProgramDefinition;
-  methodPrograms?: Partial<Record<ItineraryMethod, ItineraryProgramDefinition>>;
+  cultivationNote: string;
+  program: ItineraryProgramDefinition;
 }
 
 interface ScaledItineraryDose extends ItineraryDoseDefinition {
@@ -513,8 +513,9 @@ interface ScaledItineraryProgram {
 interface ScaledCropItinerary {
   id: string;
   cropName: string;
+  emoji: string;
+  cultivationNote: string;
   areaM2: number;
-  method: ItineraryMethod;
   scaleFactor: number;
   baselineAreaM2: number;
   sourcePdf: string[];
@@ -524,20 +525,21 @@ interface ScaledCropItinerary {
 interface ItineraryGeneratorFormData {
   cropId: string;
   areaM2: string;
-  method: ItineraryMethod | "";
 }
 
 interface ItineraryGeneratorFormErrors {
   cropId?: string;
   areaM2?: string;
-  method?: string;
 }
 
 interface ItineraryHistoryEntry {
   id: string;
   cropId: string;
   cropName: string;
+  emoji: string;
   areaM2: number;
-  method: ItineraryMethod;
   generatedAt: string;
+  pdfUri: string | null;
+  pdfFileName: string;
+  savedToDownloads: boolean;
 }
