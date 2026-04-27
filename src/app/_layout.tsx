@@ -1,9 +1,10 @@
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
-import { View, ActivityIndicator } from "react-native";
+import { View, ActivityIndicator, Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import * as SplashScreen from "expo-splash-screen";
+import * as NavigationBar from "expo-navigation-bar";
 import { loadFonts } from "@/utils/loadFonts";
 import { colors } from "@/theme/colors";
 import "./global.css";
@@ -12,6 +13,14 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
+
+  useEffect(() => {
+    if (Platform.OS === "android") {
+      NavigationBar.setVisibilityAsync("visible");
+      NavigationBar.setBackgroundColorAsync(colors.white);
+      NavigationBar.setButtonStyleAsync("dark");
+    }
+  }, []);
 
   useEffect(() => {
     async function prepare() {
@@ -44,7 +53,7 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <StatusBar style="light" hidden={true} />
+      <StatusBar style="dark" />
       <Stack
         screenOptions={{
           headerShown: false,
