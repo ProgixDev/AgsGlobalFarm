@@ -1,5 +1,5 @@
 const SHOP_PLACEHOLDER_IMAGE =
-  "https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=1200&q=80";
+  "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=800&q=80";
 
 export const shopProducts: ShopProduct[] = [
   {
@@ -9,7 +9,7 @@ export const shopProducts: ShopProduct[] = [
     priceTTC: 12500,
     unit: "sac 50 kg",
     imageUrl:
-      "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?auto=format&fit=crop&w=800&q=80",
     shortDescription:
       "Engrais equilibre pour cultures maraicheres et cereales.",
     longDescription:
@@ -29,7 +29,7 @@ export const shopProducts: ShopProduct[] = [
     priceTTC: 11800,
     unit: "sac 50 kg",
     imageUrl:
-      "https://images.unsplash.com/photo-1589923158776-cb4485d99fd6?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1589923158776-cb4485d99fd6?auto=format&fit=crop&w=800&q=80",
     shortDescription: "Apport azote rapide pour relancer la croissance.",
     longDescription:
       "Engrais azote a liberte rapide recommande en phase de developpement vegetatif. Ideal pour renforcer la vigueur des plants en debut de cycle.",
@@ -48,7 +48,7 @@ export const shopProducts: ShopProduct[] = [
     priceTTC: 7200,
     unit: "sac 25 kg",
     imageUrl:
-      "https://images.unsplash.com/photo-1592982871875-5f5e7cb8f7eb?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1592982871875-5f5e7cb8f7eb?auto=format&fit=crop&w=800&q=80",
     shortDescription:
       "Amendement organique pour ameliorer la structure du sol.",
     longDescription:
@@ -68,7 +68,7 @@ export const shopProducts: ShopProduct[] = [
     priceTTC: 10900,
     unit: "sac 50 kg",
     imageUrl:
-      "https://images.unsplash.com/photo-1598514982849-2f22f8f4df59?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1598514982849-2f22f8f4df59?auto=format&fit=crop&w=800&q=80",
     shortDescription:
       "Renforce la qualite des fruits et la resistance au stress.",
     longDescription:
@@ -88,7 +88,7 @@ export const shopProducts: ShopProduct[] = [
     priceTTC: 6800,
     unit: "boite 1 kg",
     imageUrl:
-      "https://images.unsplash.com/photo-1523741543316-beb7fc7023d8?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1523741543316-beb7fc7023d8?auto=format&fit=crop&w=800&q=80",
     shortDescription: "Protection preventive contre mildiou et bacterioses.",
     longDescription:
       "Fongicide de contact a base de cuivre pour prevenir les maladies foliaires sur tomate, pomme de terre et cultures maraicheres.",
@@ -107,7 +107,7 @@ export const shopProducts: ShopProduct[] = [
     priceTTC: 5400,
     unit: "flacon 500 ml",
     imageUrl:
-      "https://images.unsplash.com/photo-1471193945509-9ad0617afabf?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1471193945509-9ad0617afabf?auto=format&fit=crop&w=800&q=80",
     shortDescription: "Controle biologique des ravageurs suceurs et piqueurs.",
     longDescription:
       "Solution a base d'extrait de neem, agit sur aleurodes, pucerons et thrips. Compatible avec programmes de production raisonnée.",
@@ -126,7 +126,7 @@ export const shopProducts: ShopProduct[] = [
     priceTTC: 8900,
     unit: "bidon 1 L",
     imageUrl:
-      "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=800&q=80",
     shortDescription: "Elimine les graminees sans nuire aux cultures cibles.",
     longDescription:
       "Herbicide post-levee pour maitriser les adventices graminees. Application precise recommandee pour optimiser la selectivite.",
@@ -145,7 +145,7 @@ export const shopProducts: ShopProduct[] = [
     priceTTC: 7600,
     unit: "flacon 250 ml",
     imageUrl:
-      "https://images.unsplash.com/photo-1461354464878-ad92f492a5a0?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1461354464878-ad92f492a5a0?auto=format&fit=crop&w=800&q=80",
     shortDescription:
       "Controle les attaques d'acariens en serre et plein champ.",
     longDescription:
@@ -165,7 +165,7 @@ export const shopProducts: ShopProduct[] = [
     priceTTC: 9800,
     unit: "sachet 5 kg",
     imageUrl:
-      "https://images.unsplash.com/photo-1601599561213-832382fd07ba?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1601599561213-832382fd07ba?auto=format&fit=crop&w=800&q=80",
     shortDescription: "Cycle court adapte aux zones a pluviometrie variable.",
     longDescription:
       "Variete hybride a bon potentiel de rendement, bonne tolerance au stress hydrique et adaptation aux conditions soudano-sahéliennes.",
@@ -184,7 +184,7 @@ export const shopProducts: ShopProduct[] = [
     priceTTC: 8600,
     unit: "sac 20 kg",
     imageUrl:
-      "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=800&q=80",
     shortDescription: "Variete performante pour perimetres irrigues.",
     longDescription:
       "Semence certifiee pour riziculture irriguee, bon tallage et regularite de maturation pour faciliter la recolte.",
@@ -203,7 +203,7 @@ export const shopProducts: ShopProduct[] = [
     priceTTC: 4200,
     unit: "sachet 100 g",
     imageUrl:
-      "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?auto=format&fit=crop&w=800&q=80",
     shortDescription: "Bonne conservation post-recolte et calibre regulier.",
     longDescription:
       "Semence maraichere pour oignon violet, appreciee pour sa conservation et son adaptation aux bassins de production locaux.",
@@ -222,7 +222,7 @@ export const shopProducts: ShopProduct[] = [
     priceTTC: 6900,
     unit: "sac 25 kg",
     imageUrl:
-      "https://images.unsplash.com/photo-1628773822625-4a9d1f4e8f1f?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=800&q=80",
     shortDescription: "Variete locale appreciee pour rendement stable.",
     longDescription:
       "Semence d'arachide selectionnee pour bonne adaptation aux zones arachidieres et qualite de gousses.",
@@ -241,7 +241,7 @@ export const shopProducts: ShopProduct[] = [
     priceTTC: 14500,
     unit: "piece",
     imageUrl:
-      "https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=800&q=80",
     shortDescription:
       "Pulverisateur manuel robuste pour traitements foliaires.",
     longDescription:
@@ -261,7 +261,7 @@ export const shopProducts: ShopProduct[] = [
     priceTTC: 5200,
     unit: "piece",
     imageUrl:
-      "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=800&q=80",
     shortDescription: "Arrosage manuel precis pour pepiniere et planches.",
     longDescription:
       "Arrosoir metallique resistant a la corrosion, pomme d'arrosage fine pour limiter l'erosion des semis.",
@@ -280,7 +280,7 @@ export const shopProducts: ShopProduct[] = [
     priceTTC: 9100,
     unit: "piece",
     imageUrl:
-      "https://images.unsplash.com/photo-1518991791750-749b69e9f2bb?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1518991791750-749b69e9f2bb?auto=format&fit=crop&w=800&q=80",
     shortDescription: "Facilite recolte sur cultures fruitieres artisanales.",
     longDescription:
       "Outil leger pour accelerer la recolte et reduire la fatigue operateur sur petites exploitations.",

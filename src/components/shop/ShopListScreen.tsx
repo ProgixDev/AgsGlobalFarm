@@ -1,7 +1,7 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { Image, ScrollView, Text, View } from "react-native";
-import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AnimatedPressable } from "@/components/animated";
 import { useTabBarInset } from "@/components/ui/FloatingTabBar";
@@ -22,11 +22,13 @@ const CATEGORY_OPTIONS: { key: "all" | ShopCategory; label: string }[] = [
   { key: "petit_materiel", label: "Petit materiel" },
 ];
 
-const SORT_OPTIONS: { key: ShopSortOption; label: string }[] = [
-  { key: "none", label: "Aucun" },
-  { key: "price_asc", label: "Prix croissant" },
-  { key: "price_desc", label: "Prix decroissant" },
-];
+
+const CATEGORY_FALLBACK: Record<ShopCategory, any> = {
+  engrais:        require("../../../assets/images/Bags.png"),
+  phyto:          require("../../../assets/images/GreenHouse.png"),
+  semence:        require("../../../assets/images/Tomato.png"),
+  petit_materiel: require("../../../assets/images/Pickles.png"),
+};
 
 function ProductCard({
   product,
@@ -36,6 +38,8 @@ function ProductCard({
   onPress: () => void;
 }) {
   const [hasImageError, setHasImageError] = useState(false);
+  const [contentHeight, setContentHeight] = useState(96);
+  const fallback = CATEGORY_FALLBACK[product.category] ?? require("../../../assets/images/Bags.png");
 
   return (
     <AnimatedPressable
@@ -44,17 +48,12 @@ function ProductCard({
     >
       <View className="flex-row">
         <Image
-          source={
-            hasImageError
-              ? require("../../../assets/images/formation.jpg")
-              : { uri: product.imageUrl }
-          }
+          source={hasImageError ? fallback : { uri: product.imageUrl }}
           onError={() => setHasImageError(true)}
-          className="w-24 rounded-2xl"
-          style={{ alignSelf: "stretch" }}
+          style={{ width: 96, height: Math.max(96, contentHeight), borderRadius: 16 }}
           resizeMode="cover"
         />
-        <View className="flex-1 pl-3">
+        <View className="flex-1 pl-3" onLayout={(e) => setContentHeight(e.nativeEvent.layout.height)}>
           <View className="flex-row items-start justify-between mb-1.5">
             <Text
               className="text-base font-heading-bold text-gray-900 flex-1 mr-2"
@@ -71,27 +70,20 @@ function ProductCard({
             {product.shortDescription}
           </Text>
 
-          <View className="flex-row items-center justify-between">
-            <Text className="text-primary font-sans-bold text-base">
-              {formatFcfa(product.priceTTC)}
-            </Text>
-            <View
-              className={`px-2.5 py-1 rounded-full ${
-                product.isInStock ? "bg-emerald-100" : "bg-red-100"
-              }`}
-            >
-              <Text
-                className={`text-xs font-sans-semibold ${
-                  product.isInStock ? "text-emerald-700" : "text-red-700"
-                }`}
-              >
-                {product.isInStock ? "En stock" : "Rupture de stock"}
-              </Text>
-            </View>
-          </View>
-          <Text className="text-xs font-sans text-gray-500 mt-1">
-            {product.unit}
+          <Text className="text-primary font-sans-bold text-base">
+            {formatFcfa(product.priceTTC)}
           </Text>
+          <View className="flex-row items-center mt-1 gap-1.5">
+            <View
+              className={`w-2 h-2 rounded-full ${product.isInStock ? "bg-emerald-500" : "bg-red-400"}`}
+            />
+            <Text
+              className={`text-xs font-sans-semibold ${product.isInStock ? "text-emerald-700" : "text-red-500"}`}
+            >
+              {product.isInStock ? "En stock" : "Rupture de stock"}
+            </Text>
+            <Text className="text-xs font-sans text-gray-400">· {product.unit}</Text>
+          </View>
         </View>
       </View>
     </AnimatedPressable>
@@ -103,20 +95,12 @@ export default function ShopListScreen({ origin }: Props) {
   const insets = useSafeAreaInsets();
   const tabBarInset = useTabBarInset();
   const selectedCategory = useShopStore((state) => state.selectedCategory);
-  const sortOption = useShopStore((state) => state.sortOption);
   const setCategory = useShopStore((state) => state.setCategory);
-  const setSortOption = useShopStore((state) => state.setSortOption);
   const getVisibleProducts = useShopStore((state) => state.getVisibleProducts);
   const getCartCount = useShopStore((state) => state.getCartCount);
 
-  const [isSortOpen, setIsSortOpen] = useState(false);
-
   const products = getVisibleProducts();
   const cartCount = getCartCount();
-  const currentSortLabel = useMemo(
-    () => SORT_OPTIONS.find((opt) => opt.key === sortOption)?.label ?? "Aucun",
-    [sortOption],
-  );
 
   return (
     <ScrollView
@@ -188,43 +172,6 @@ export default function ShopListScreen({ origin }: Props) {
           })}
         </ScrollView>
 
-        <View className="items-end mb-3">
-          <AnimatedPressable
-            className="px-3 py-2 rounded-full bg-white border border-gray-200 flex-row items-center"
-            onPress={() => setIsSortOpen((prev) => !prev)}
-          >
-            <Text className="text-xs font-sans-semibold text-gray-700 mr-1">
-              {currentSortLabel}
-            </Text>
-            <Ionicons name="chevron-down" size={14} color={colors.muted} />
-          </AnimatedPressable>
-
-          {isSortOpen && (
-            <View className="mt-2 bg-white border border-gray-200 rounded-2xl p-1 w-44">
-              {SORT_OPTIONS.map((opt) => (
-                <AnimatedPressable
-                  key={opt.key}
-                  className="px-3 py-2 rounded-xl"
-                  onPress={() => {
-                    haptic.selection();
-                    setSortOption(opt.key);
-                    setIsSortOpen(false);
-                  }}
-                >
-                  <Text
-                    className={`text-xs font-sans ${
-                      sortOption === opt.key
-                        ? "text-primary font-sans-semibold"
-                        : "text-gray-700"
-                    }`}
-                  >
-                    {opt.label}
-                  </Text>
-                </AnimatedPressable>
-              ))}
-            </View>
-          )}
-        </View>
 
         {products.map((product) => (
           <ProductCard
