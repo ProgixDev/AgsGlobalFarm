@@ -379,20 +379,6 @@ export default function ItineraryResultsScreen() {
             ))}
           </View>
         )}
-
-        <View className="mt-5 bg-white border border-[#e7e3d4] rounded-3xl px-4 py-4">
-          <Text className="text-sm font-heading-semibold text-gray-900 mb-2">
-            Source(s)
-          </Text>
-          {itinerary.sourcePdf.map((source) => (
-            <Text
-              key={source}
-              className="text-xs font-sans text-gray-600 mb-1"
-            >
-              • {source}
-            </Text>
-          ))}
-        </View>
       </View>
     </ScrollView>
   );

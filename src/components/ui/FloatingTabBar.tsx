@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Text, TouchableOpacity, StyleSheet } from "react-native";
+import { TouchableOpacity, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import Animated, {
@@ -25,8 +25,49 @@ const SLIDE_SPRING = {
   mass: 0.9,
 };
 
-// Total space the tab bar occupies from the bottom of the screen
-export const TAB_BAR_HEIGHT = 90;
+export const TAB_BAR_HEIGHT = 80;
+
+function TabItem({
+  route,
+  index,
+  isFocused,
+  options,
+  onPress,
+  onLongPress,
+  onLayout,
+}: {
+  route: any;
+  index: number;
+  isFocused: boolean;
+  options: any;
+  onPress: () => void;
+  onLongPress: () => void;
+  onLayout: (index: number, x: number, width: number) => void;
+}) {
+  const label = options.title ?? route.name;
+  const iconColor = isFocused ? colors.primary : colors.muted;
+  return (
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessibilityState={isFocused ? { selected: true } : {}}
+      accessibilityLabel={options.tabBarAccessibilityLabel ?? label}
+      onPress={onPress}
+      onLongPress={onLongPress}
+      activeOpacity={0.7}
+      style={styles.tab}
+      onLayout={(e) => {
+        const { x, width } = e.nativeEvent.layout;
+        onLayout(index, x, width);
+      }}
+    >
+      {options.tabBarIcon?.({
+        focused: isFocused,
+        color: iconColor,
+        size: 24,
+      })}
+    </TouchableOpacity>
+  );
+}
 
 export default function FloatingTabBar({
   state,
@@ -34,37 +75,28 @@ export default function FloatingTabBar({
   navigation,
 }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  const [tabLayouts, setTabLayouts] = useState<{ x: number; width: number }[]>(
-    [],
-  );
+  const [tabLayouts, setTabLayouts] = useState<{ x: number; width: number }[]>([]);
 
-  // Indicator animation (pill sliding between tabs)
   const indicatorX = useSharedValue(0);
   const indicatorWidth = useSharedValue(0);
-
-  // Visibility animation (slide in/out from bottom)
   const visibility = useSharedValue(1);
   const bottomOffset = useSharedValue(0);
 
   const allTabsMeasured = tabLayouts.length === state.routes.length;
   const bottomPadding = insets.bottom + 12;
 
-  // Check if the focused screen wants the tab bar hidden
   const focusedOptions = descriptors[state.routes[state.index].key].options;
   const tabBarStyle = focusedOptions.tabBarStyle as any;
   const shouldHide = tabBarStyle?.display === "none";
 
-  // Animate indicator when tab changes
   useEffect(() => {
     if (!allTabsMeasured) return;
     const layout = tabLayouts[state.index];
     if (!layout) return;
-
     indicatorX.value = withSpring(layout.x, INDICATOR_SPRING);
     indicatorWidth.value = withSpring(layout.width, INDICATOR_SPRING);
   }, [state.index, allTabsMeasured, tabLayouts]);
 
-  // Animate visibility (overlay dismiss/appear)
   useEffect(() => {
     if (shouldHide) {
       visibility.value = withTiming(0, {
@@ -76,7 +108,6 @@ export default function FloatingTabBar({
     }
   }, [shouldHide]);
 
-  // Animate when safe area insets change (system nav bar show/hide)
   useEffect(() => {
     bottomOffset.value = withSpring(bottomPadding, SLIDE_SPRING);
   }, [bottomPadding]);
@@ -93,7 +124,6 @@ export default function FloatingTabBar({
       [TAB_BAR_HEIGHT + 40, 0],
       Extrapolation.CLAMP,
     );
-
     return {
       transform: [{ translateY }],
       opacity: interpolate(
@@ -126,7 +156,6 @@ export default function FloatingTabBar({
 
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
-          const label = options.title ?? route.name;
           const isFocused = state.index === index;
 
           const onPress = () => {
@@ -135,51 +164,26 @@ export default function FloatingTabBar({
               target: route.key,
               canPreventDefault: true,
             });
-
             if (!isFocused && !event.defaultPrevented) {
               navigation.navigate(route.name, route.params);
             }
           };
 
           const onLongPress = () => {
-            navigation.emit({
-              type: "tabLongPress",
-              target: route.key,
-            });
+            navigation.emit({ type: "tabLongPress", target: route.key });
           };
 
-          const iconColor = isFocused ? colors.primary : colors.muted;
-
           return (
-            <TouchableOpacity
+            <TabItem
               key={route.key}
-              accessibilityRole="button"
-              accessibilityState={isFocused ? { selected: true } : {}}
-              accessibilityLabel={options.tabBarAccessibilityLabel}
+              route={route}
+              index={index}
+              isFocused={isFocused}
+              options={options}
               onPress={onPress}
               onLongPress={onLongPress}
-              activeOpacity={0.7}
-              style={styles.tab}
-              onLayout={(e) => {
-                const { x, width } = e.nativeEvent.layout;
-                onTabLayout(index, x, width);
-              }}
-            >
-              {options.tabBarIcon?.({
-                focused: isFocused,
-                color: iconColor,
-                size: 22,
-              })}
-              <Text
-                style={[
-                  styles.label,
-                  { color: iconColor },
-                  isFocused && styles.activeLabel,
-                ]}
-              >
-                {label}
-              </Text>
-            </TouchableOpacity>
+              onLayout={onTabLayout}
+            />
           );
         })}
       </Animated.View>
@@ -194,7 +198,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     alignItems: "center",
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
   },
   container: {
     flexDirection: "row",
@@ -221,17 +225,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
     borderRadius: 22,
-    gap: 2,
-  },
-  label: {
-    fontSize: 11,
-    fontFamily: "Figtree-Medium",
-  },
-  activeLabel: {
-    fontFamily: "Figtree-SemiBold",
-    color: colors.primary,
+    gap: 4,
+    minWidth: 44,
+    minHeight: 44,
   },
 });

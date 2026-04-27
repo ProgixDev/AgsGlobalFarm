@@ -151,11 +151,6 @@ function buildHtml(itinerary: ScaledCropItinerary) {
 
       ${notesBlock}
 
-      <section class="card compact">
-        <h3>Source(s)</h3>
-        <ul>${sources}</ul>
-      </section>
-
       <div class="disclaimer">${escapeHtml(itinerary.program.phyto.disclaimer)}</div>
     </body>
   </html>
