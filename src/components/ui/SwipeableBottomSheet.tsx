@@ -40,6 +40,8 @@ interface SwipeableBottomSheetProps {
   initialState?: "expanded" | "minimized";
   /** Called when the sheet state changes */
   onStateChange?: (state: SheetState) => void;
+  /** Skip minimized snap — swipe down goes straight to dismissed */
+  noMinimize?: boolean;
 }
 
 export default function SwipeableBottomSheet({
@@ -55,6 +57,7 @@ export default function SwipeableBottomSheet({
   minimizeTrigger,
   initialState = "expanded",
   onStateChange,
+  noMinimize = false,
 }: SwipeableBottomSheetProps) {
   const insets = useSafeAreaInsets();
   const bottomInset = bottomInsetProp ?? TAB_BAR_HEIGHT + insets.bottom;
@@ -86,12 +89,9 @@ export default function SwipeableBottomSheet({
 
   useEffect(() => {
     if (visible && expandTrigger != null) {
-      const targetState =
-        initialState === "minimized" ? "minimized" : "expanded";
-      const targetY = targetState === "minimized" ? minimizedY : expandedY;
-      sheetState.value = targetState;
-      translateY.value = withSpring(targetY, SPRING_CONFIG);
-      onStateChange?.(targetState);
+      sheetState.value = "expanded";
+      translateY.value = withSpring(expandedY, SPRING_CONFIG);
+      onStateChange?.("expanded");
     }
   }, [expandTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -131,7 +131,7 @@ export default function SwipeableBottomSheet({
       const velocity = event.velocityY;
 
       if (velocity > 800) {
-        if (sheetState.value === "expanded") {
+        if (!noMinimize && sheetState.value === "expanded") {
           sheetState.value = "minimized";
           translateY.value = withSpring(minimizedY, SPRING_CONFIG);
           runOnJS(fireHaptic)();
@@ -157,7 +157,20 @@ export default function SwipeableBottomSheet({
       const midExpMin = (expandedY + minimizedY) / 2;
       const midMinDis = (minimizedY + dismissedY) / 2;
 
-      if (currentY < midExpMin) {
+      if (noMinimize) {
+        const midExpDis = (expandedY + dismissedY) / 2;
+        if (currentY < midExpDis) {
+          sheetState.value = "expanded";
+          translateY.value = withSpring(expandedY, SPRING_CONFIG);
+          runOnJS(fireStateChange)("expanded");
+        } else {
+          sheetState.value = "dismissed";
+          translateY.value = withSpring(dismissedY, SPRING_CONFIG);
+          runOnJS(fireHaptic)();
+          runOnJS(fireStateChange)("dismissed");
+          runOnJS(fireDismiss)();
+        }
+      } else if (currentY < midExpMin) {
         sheetState.value = "expanded";
         translateY.value = withSpring(expandedY, SPRING_CONFIG);
         runOnJS(fireStateChange)("expanded");

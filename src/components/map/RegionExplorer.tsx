@@ -75,11 +75,11 @@ export function RegionExplorer({
     <SwipeableBottomSheet
       visible={visible}
       onDismiss={onClose}
-      expandedHeight={0.85}
-      minimizedHeight={90}
-      initialState="minimized"
+      expandedHeight={0.92}
+      initialState="expanded"
       expandTrigger={selectedRegion.id}
-      showBackdrop={false}
+      showBackdrop={true}
+      noMinimize
       onStateChange={(state) => setSheetExpanded(state === "expanded")}
       minimizedContent={
         <View className="flex-row items-center">
