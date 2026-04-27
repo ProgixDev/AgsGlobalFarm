@@ -233,10 +233,11 @@ export default function TrainingScreen() {
               className="bg-white rounded-3xl border border-gray-100 mb-3 p-3"
               onPress={() => router.push(`/training/${course.id}`)}
             >
-              <View className="flex-row items-start">
+              <View className="flex-row">
                 <Image
                   source={{ uri: course.thumbnailUrl }}
-                  className="w-24 h-24 rounded-2xl"
+                  className="w-24 rounded-2xl"
+                  style={{ alignSelf: "stretch" }}
                   resizeMode="cover"
                 />
                 <View className="flex-1 pl-3">

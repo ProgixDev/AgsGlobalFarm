@@ -329,7 +329,7 @@ export const trainingCourses: Course[] = [
       "Maîtrisez les techniques d'irrigation efficaces et apprenez à combiner arrosage et fertilisation pour optimiser vos rendements.",
     category: "Gestion de l'Eau",
     thumbnailUrl:
-      "https://images.unsplash.com/photo-1625246268847-f4f86e8e9dd7?w=400",
+      "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
     difficulty: "intermédiaire",
     duration: 7,
     requiresCertification: true,
@@ -375,7 +375,7 @@ export const trainingCourses: Course[] = [
       "Apprenez à produire votre propre compost de qualité pour améliorer la fertilité de vos sols et réduire les coûts d'intrants.",
     category: "Fertilité",
     thumbnailUrl:
-      "https://images.unsplash.com/photo-1625246308880-2eb4c6d7a501?w=400",
+      "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400",
     difficulty: "débutant",
     duration: 4,
     requiresCertification: false,
