@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Image, ScrollView, Text, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, Image, ScrollView, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -42,10 +42,24 @@ export default function ShopDetailScreen({ productId, origin }: Props) {
   };
 
   const product = useShopStore((state) => state.getProductById(productId));
+  const refreshProductById = useShopStore((state) => state.refreshProductById);
   const addToCart = useShopStore((state) => state.addToCart);
   const getCartQuantityForProduct = useShopStore(
     (state) => state.getCartQuantityForProduct,
   );
+
+  const [fetchStatus, setFetchStatus] = useState<
+    "idle" | "loading" | "missing"
+  >("idle");
+
+  useEffect(() => {
+    if (!product && fetchStatus === "idle") {
+      setFetchStatus("loading");
+      refreshProductById(productId).then((p) => {
+        setFetchStatus(p ? "idle" : "missing");
+      });
+    }
+  }, [product, productId, refreshProductById, fetchStatus]);
 
   if (!product) {
     return (
@@ -62,14 +76,25 @@ export default function ShopDetailScreen({ productId, origin }: Props) {
           </Text>
         </View>
         <View className="flex-1 items-center justify-center px-6">
-          <Ionicons
-            name="alert-circle-outline"
-            size={60}
-            color={colors.mutedLight}
-          />
-          <Text className="mt-3 text-gray-500 font-sans">
-            Produit introuvable.
-          </Text>
+          {fetchStatus === "loading" ? (
+            <>
+              <ActivityIndicator size="large" color={colors.primary} />
+              <Text className="mt-3 text-gray-500 font-sans">
+                Chargement...
+              </Text>
+            </>
+          ) : (
+            <>
+              <Ionicons
+                name="alert-circle-outline"
+                size={60}
+                color={colors.mutedLight}
+              />
+              <Text className="mt-3 text-gray-500 font-sans">
+                Produit introuvable.
+              </Text>
+            </>
+          )}
         </View>
       </SafeAreaView>
     );

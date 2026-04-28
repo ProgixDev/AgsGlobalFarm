@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { Image, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -38,6 +38,14 @@ export default function CartScreen({ origin }: Props) {
   const decrementItem = useShopStore((state) => state.decrementItem);
   const removeItem = useShopStore((state) => state.removeItem);
   const getCartTotals = useShopStore((state) => state.getCartTotals);
+  const productsStatus = useShopStore((state) => state.productsStatus);
+  const loadProducts = useShopStore((state) => state.loadProducts);
+
+  useEffect(() => {
+    if (productsStatus === "idle") {
+      loadProducts();
+    }
+  }, [productsStatus, loadProducts]);
   const [imageErrors, setImageErrors] = React.useState<Record<string, boolean>>(
     {},
   );

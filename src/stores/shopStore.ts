@@ -1,18 +1,33 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { shopProducts } from "@/data/shop-products";
+import {
+  fetchProducts,
+  fetchProductById,
+  fetchCategories,
+  type ShopCategoryOption,
+} from "@/lib/api/shop";
 
 const TAX_RATE = 0.18;
 const SHIPPING_FLAT_FEE = 2000;
 
+type ProductsStatus = "idle" | "loading" | "ready" | "error";
+
 interface ShopStore {
   products: ShopProduct[];
+  productsStatus: ProductsStatus;
+  productsError: string | null;
+  categories: ShopCategoryOption[];
   cart: ShopCartItem[];
   selectedCategory: "all" | ShopCategory;
   sortOption: ShopSortOption;
+  searchQuery: string;
+  loadProducts: () => Promise<void>;
+  loadCategories: () => Promise<void>;
+  refreshProductById: (productId: string) => Promise<ShopProduct | null>;
   setCategory: (category: "all" | ShopCategory) => void;
   setSortOption: (option: ShopSortOption) => void;
+  setSearchQuery: (query: string) => void;
   getProductById: (productId: string) => ShopProduct | undefined;
   getVisibleProducts: () => ShopProduct[];
   getCartCount: () => number;
@@ -39,26 +54,82 @@ function sortProducts(products: ShopProduct[], sortOption: ShopSortOption) {
 export const useShopStore = create<ShopStore>()(
   persist(
     (set, get) => ({
-      products: shopProducts,
+      products: [],
+      productsStatus: "idle",
+      productsError: null,
+      categories: [],
       cart: [],
       selectedCategory: "all",
       sortOption: "none",
+      searchQuery: "",
+
+      loadProducts: async () => {
+        set({ productsStatus: "loading", productsError: null });
+        try {
+          const { products } = await fetchProducts({ limit: 200 });
+          set({ products, productsStatus: "ready" });
+        } catch (err) {
+          const message =
+            err instanceof Error ? err.message : "Erreur de chargement";
+          set({ productsStatus: "error", productsError: message });
+        }
+      },
+
+      loadCategories: async () => {
+        try {
+          const categories = await fetchCategories();
+          set({ categories });
+        } catch (err) {
+          console.warn("Failed to load categories", err);
+        }
+      },
+
+      refreshProductById: async (productId: string) => {
+        try {
+          const product = await fetchProductById(productId);
+          set((state) => {
+            const idx = state.products.findIndex((p) => p.id === productId);
+            if (idx === -1) {
+              return { products: [...state.products, product] };
+            }
+            const next = [...state.products];
+            next[idx] = product;
+            return { products: next };
+          });
+          return product;
+        } catch (err) {
+          console.warn("Failed to refresh product", err);
+          return null;
+        }
+      },
 
       setCategory: (category) => set({ selectedCategory: category }),
       setSortOption: (option) => set({ sortOption: option }),
+      setSearchQuery: (query) => set({ searchQuery: query }),
 
       getProductById: (productId: string) => {
         return get().products.find((product) => product.id === productId);
       },
 
       getVisibleProducts: () => {
-        const { products, selectedCategory, sortOption } = get();
-        const filtered =
+        const { products, selectedCategory, sortOption, searchQuery } = get();
+        let filtered =
           selectedCategory === "all"
             ? products
             : products.filter(
                 (product) => product.category === selectedCategory,
               );
+
+        if (searchQuery.trim()) {
+          const q = searchQuery.trim().toLowerCase();
+          filtered = filtered.filter(
+            (p) =>
+              p.name.toLowerCase().includes(q) ||
+              p.shortDescription.toLowerCase().includes(q) ||
+              (p.brand && p.brand.toLowerCase().includes(q)),
+          );
+        }
+
         return sortProducts(filtered, sortOption);
       },
 

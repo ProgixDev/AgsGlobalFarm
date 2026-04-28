@@ -1,5 +1,12 @@
-import React, { useState } from "react";
-import { Image, ScrollView, Text, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -22,11 +29,10 @@ const CATEGORY_OPTIONS: { key: "all" | ShopCategory; label: string }[] = [
   { key: "petit_materiel", label: "Petit materiel" },
 ];
 
-
 const CATEGORY_FALLBACK: Record<ShopCategory, any> = {
-  engrais:        require("../../../assets/images/Bags.png"),
-  phyto:          require("../../../assets/images/GreenHouse.png"),
-  semence:        require("../../../assets/images/Tomato.png"),
+  engrais: require("../../../assets/images/Bags.png"),
+  phyto: require("../../../assets/images/GreenHouse.png"),
+  semence: require("../../../assets/images/Tomato.png"),
   petit_materiel: require("../../../assets/images/Pickles.png"),
 };
 
@@ -39,7 +45,9 @@ function ProductCard({
 }) {
   const [hasImageError, setHasImageError] = useState(false);
   const [contentHeight, setContentHeight] = useState(96);
-  const fallback = CATEGORY_FALLBACK[product.category] ?? require("../../../assets/images/Bags.png");
+  const fallback =
+    CATEGORY_FALLBACK[product.category] ??
+    require("../../../assets/images/Bags.png");
 
   return (
     <AnimatedPressable
@@ -50,10 +58,17 @@ function ProductCard({
         <Image
           source={hasImageError ? fallback : { uri: product.imageUrl }}
           onError={() => setHasImageError(true)}
-          style={{ width: 96, height: Math.max(96, contentHeight), borderRadius: 16 }}
+          style={{
+            width: 96,
+            height: Math.max(96, contentHeight),
+            borderRadius: 16,
+          }}
           resizeMode="cover"
         />
-        <View className="flex-1 pl-3" onLayout={(e) => setContentHeight(e.nativeEvent.layout.height)}>
+        <View
+          className="flex-1 pl-3"
+          onLayout={(e) => setContentHeight(e.nativeEvent.layout.height)}
+        >
           <View className="flex-row items-start justify-between mb-1.5">
             <Text
               className="text-base font-heading-bold text-gray-900 flex-1 mr-2"
@@ -82,7 +97,9 @@ function ProductCard({
             >
               {product.isInStock ? "En stock" : "Rupture de stock"}
             </Text>
-            <Text className="text-xs font-sans text-gray-400">· {product.unit}</Text>
+            <Text className="text-xs font-sans text-gray-400">
+              · {product.unit}
+            </Text>
           </View>
         </View>
       </View>
@@ -96,11 +113,24 @@ export default function ShopListScreen({ origin }: Props) {
   const tabBarInset = useTabBarInset();
   const selectedCategory = useShopStore((state) => state.selectedCategory);
   const setCategory = useShopStore((state) => state.setCategory);
+  const searchQuery = useShopStore((state) => state.searchQuery);
+  const setSearchQuery = useShopStore((state) => state.setSearchQuery);
+  const productsStatus = useShopStore((state) => state.productsStatus);
+  const productsError = useShopStore((state) => state.productsError);
+  const loadProducts = useShopStore((state) => state.loadProducts);
   const getVisibleProducts = useShopStore((state) => state.getVisibleProducts);
   const getCartCount = useShopStore((state) => state.getCartCount);
 
+  useEffect(() => {
+    if (productsStatus === "idle") {
+      loadProducts();
+    }
+  }, [productsStatus, loadProducts]);
+
   const products = getVisibleProducts();
   const cartCount = getCartCount();
+  const isLoading = productsStatus === "loading";
+  const hasError = productsStatus === "error";
 
   return (
     <ScrollView
@@ -140,6 +170,27 @@ export default function ShopListScreen({ origin }: Props) {
       </View>
 
       <View className="px-5">
+        <View className="flex-row items-center bg-white border border-gray-100 rounded-2xl px-3 py-2 mb-3">
+          <Ionicons name="search" size={18} color={colors.mutedLight} />
+          <TextInput
+            className="flex-1 ml-2 text-sm font-sans text-gray-900"
+            placeholder="Rechercher un produit"
+            placeholderTextColor={colors.mutedLight}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            returnKeyType="search"
+          />
+          {searchQuery.length > 0 && (
+            <AnimatedPressable onPress={() => setSearchQuery("")}>
+              <Ionicons
+                name="close-circle"
+                size={18}
+                color={colors.mutedLight}
+              />
+            </AnimatedPressable>
+          )}
+        </View>
+
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -172,31 +223,69 @@ export default function ShopListScreen({ origin }: Props) {
           })}
         </ScrollView>
 
+        {isLoading && (
+          <View className="items-center px-6 py-16">
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text className="text-sm font-sans text-gray-500 mt-3">
+              Chargement des produits...
+            </Text>
+          </View>
+        )}
 
-        {products.map((product) => (
-          <ProductCard
-            key={product.id}
-            product={product}
-            onPress={() =>
-              router.push({
-                pathname: "/shop/[id]",
-                params: { id: product.id, origin },
-              } as any)
-            }
-          />
-        ))}
-
-        {products.length === 0 && (
+        {hasError && !isLoading && (
           <View className="items-center px-6 py-16">
             <Ionicons
-              name="bag-handle-outline"
+              name="cloud-offline-outline"
               size={64}
               color={colors.mutedLight}
             />
-            <Text className="text-lg font-heading-bold text-gray-400 mt-4">
-              Aucun produit disponible
+            <Text className="text-base font-heading-bold text-gray-700 mt-3">
+              Impossible de charger les produits
             </Text>
+            {productsError && (
+              <Text className="text-xs font-sans text-gray-500 mt-1 text-center">
+                {productsError}
+              </Text>
+            )}
+            <AnimatedPressable
+              className="mt-4 px-5 py-2.5 rounded-full bg-primary"
+              onPress={() => loadProducts()}
+            >
+              <Text className="text-sm font-sans-semibold text-white">
+                Réessayer
+              </Text>
+            </AnimatedPressable>
           </View>
+        )}
+
+        {!isLoading && !hasError && (
+          <>
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onPress={() =>
+                  router.push({
+                    pathname: "/shop/[id]",
+                    params: { id: product.id, origin },
+                  } as any)
+                }
+              />
+            ))}
+
+            {products.length === 0 && (
+              <View className="items-center px-6 py-16">
+                <Ionicons
+                  name="bag-handle-outline"
+                  size={64}
+                  color={colors.mutedLight}
+                />
+                <Text className="text-lg font-heading-bold text-gray-400 mt-4">
+                  Aucun produit disponible
+                </Text>
+              </View>
+            )}
+          </>
         )}
       </View>
     </ScrollView>

@@ -422,6 +422,7 @@ interface ShopProduct {
   priceTTC: number;
   unit: string;
   imageUrl: string;
+  cloudinaryPublicId?: string;
   shortDescription: string;
   longDescription: string;
   isInStock: boolean;

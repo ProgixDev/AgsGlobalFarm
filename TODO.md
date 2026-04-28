@@ -22,9 +22,9 @@
 ### Shop
 - [x] Product model
 - [x] List products
-- [ ] Product detail endpoint
-- [ ] Product search / filter
-- [ ] Product categories endpoint
+- [x] Product detail endpoint
+- [x] Product search / filter
+- [x] Product categories endpoint
 - [ ] Admin: create / update / delete product
 - [ ] Stock decrement on order
 - [ ] Product reviews
@@ -135,11 +135,12 @@
 - [ ] Departments endpoint
 
 ### File Upload
-- [ ] Storage provider chosen
-- [ ] Upload endpoint
+- [x] Storage provider chosen (Cloudinary)
+- [x] Upload signature endpoint (POST /api/upload/signature)
 - [ ] Avatar upload
 - [ ] Job photo upload
 - [ ] Incident photo upload
+- [ ] Product image upload (admin)
 
 ### Admin
 - [ ] Admin role + middleware
@@ -158,7 +159,9 @@
 - [ ] API documentation
 
 ### Mobile-callable REST wrappers (server actions → routes)
-- [ ] GET /api/products
+- [x] GET /api/products
+- [x] GET /api/products/:id
+- [x] GET /api/products/categories
 - [ ] GET /api/orders
 - [ ] GET /api/formations/online
 - [ ] GET /api/formations/presential
@@ -189,9 +192,9 @@
 - [x] Token in expo-secure-store
 
 ### Shop
-- [ ] Products from API
-- [ ] Search / filter (API)
-- [ ] Categories from API
+- [x] Products from API
+- [x] Search / filter (API)
+- [x] Categories from API
 
 ### Checkout / Payment
 - [ ] POST /api/payment/initiate
