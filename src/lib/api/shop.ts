@@ -1,8 +1,4 @@
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
-
-if (!API_URL) {
-  console.warn("EXPO_PUBLIC_API_URL not set");
-}
+import { apiFetch } from "@/lib/api/client";
 
 export interface FetchProductsParams {
   category?: ShopCategory;
@@ -36,34 +32,19 @@ function buildQuery(params: FetchProductsParams): string {
 export async function fetchProducts(
   params: FetchProductsParams = {},
 ): Promise<FetchProductsResult> {
-  const url = `${API_URL}/api/products${buildQuery(params)}`;
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Failed to fetch products (${res.status})`);
-  }
-  const data = (await res.json()) as FetchProductsResult;
-  return data;
+  return apiFetch<FetchProductsResult>(`/api/products${buildQuery(params)}`);
 }
 
 export async function fetchProductById(id: string): Promise<ShopProduct> {
-  const url = `${API_URL}/api/products/${encodeURIComponent(id)}`;
-  const res = await fetch(url);
-  if (res.status === 404) {
-    throw new Error("Produit introuvable");
-  }
-  if (!res.ok) {
-    throw new Error(`Failed to fetch product (${res.status})`);
-  }
-  const data = (await res.json()) as { product: ShopProduct };
+  const data = await apiFetch<{ product: ShopProduct }>(
+    `/api/products/${encodeURIComponent(id)}`,
+  );
   return data.product;
 }
 
 export async function fetchCategories(): Promise<ShopCategoryOption[]> {
-  const url = `${API_URL}/api/products/categories`;
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Failed to fetch categories (${res.status})`);
-  }
-  const data = (await res.json()) as { categories: ShopCategoryOption[] };
+  const data = await apiFetch<{ categories: ShopCategoryOption[] }>(
+    "/api/products/categories",
+  );
   return data.categories;
 }

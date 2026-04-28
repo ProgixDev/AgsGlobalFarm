@@ -249,165 +249,150 @@ interface JobPostingFormErrors {
   requirements: string;
 }
 
-// Training System Types
-type ContentType = "video" | "text" | "image" | "pdf" | "quiz";
-type DifficultyLevel = "débutant" | "intermédiaire" | "avancé";
-type QuestionType = "multiple_choice" | "true_false" | "text";
+// Formation Types (mirrors web schema)
 
-interface MediaContent {
-  type: ContentType;
-  url?: string;
-  localUri?: string;
-  text?: string;
-  duration?: number; // for videos in seconds
-  thumbnailUrl?: string;
-  downloadProgress?: number;
-  isDownloaded?: boolean;
+interface FormationLesson {
+  id: number;
+  title: string;
+  content?: string;
 }
 
-interface QuizQuestion {
+interface FormationSection {
+  id: number;
+  title: string;
+  description?: string;
+  lessons: FormationLesson[];
+}
+
+interface FormationQuizOption {
   id: string;
-  type: QuestionType;
+  text: string;
+}
+
+interface FormationQuizQuestion {
+  id: number;
   question: string;
-  options?: string[];
-  correctAnswer: string | number;
-  explanation?: string;
+  image?: string;
+  points: number;
+  options: FormationQuizOption[];
 }
 
-interface Quiz {
-  id: string;
+interface FormationQuizSection {
+  id: number;
   title: string;
-  questions: QuizQuestion[];
-  passingScore: number; // percentage
-  timeLimit?: number; // in minutes
+  questions: FormationQuizQuestion[];
 }
 
-interface Lesson {
-  id: string;
-  title: string;
-  description: string;
-  content: MediaContent[];
-  duration: number; // estimated duration in minutes
-  order: number;
-  quiz?: Quiz;
-  isLocked?: boolean;
+interface FormationStats {
+  totalSections: number;
+  totalLessons: number;
 }
 
-interface CourseModule {
-  id: string;
+interface OnlineFormation {
+  _id: string;
   title: string;
   description: string;
-  lessons: Lesson[];
-  order: number;
-}
-
-interface Course {
-  id: string;
-  title: string;
-  description: string;
+  image: string;
+  duration?: string;
+  level: string;
+  price: number;
   category: string;
-  thumbnailUrl: string;
-  difficulty: DifficultyLevel;
-  duration: number; // total duration in hours
-  modules: CourseModule[];
-  tags: string[];
-  instructorName?: string;
-  requiresCertification: boolean;
-  certificationCriteria?: {
-    minimumScore: number;
-    requiredLessons: number;
-    onSiteTrainingRequired?: boolean;
-  };
+  type: "online";
+  icon: string;
+  sections?: FormationSection[];
+  owned?: boolean;
+  stats?: FormationStats;
+  accessExpiresAt?: string | Date;
+  createdAt: string | Date;
+  updatedAt: string | Date;
 }
 
-interface LessonProgress {
-  lessonId: string;
-  courseId: string;
-  completed: boolean;
-  lastPosition?: number; // for video position
-  completedAt?: string;
-  timeSpent: number; // in seconds
+interface PresentialTimeFrame {
+  from: string;
+  to: string;
+  name: string;
+  description?: string;
 }
 
-interface QuizAttempt {
-  quizId: string;
-  lessonId: string;
-  courseId: string;
+interface PresentialDay {
+  name: string;
+  timeFrames: PresentialTimeFrame[];
+}
+
+interface PresentialSession {
+  id: number;
+  startDate: string | Date;
+  endDate: string | Date;
+  location: string;
+  availableSpots: number;
+  reservedSpots?: number;
+  status: "open" | "ongoing" | "done";
+  owned?: boolean;
+}
+
+interface PresentialFormation {
+  _id: string;
+  title: string;
+  description: string;
+  image: string;
+  durationDays: number;
+  level: string;
+  price: number;
+  category: string;
+  type: "presentiel";
+  icon: string;
+  program: PresentialDay[];
+  sessions: PresentialSession[];
+  address: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  maxParticipants?: number;
+  owned?: boolean;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+type Formation = OnlineFormation | PresentialFormation;
+
+interface FormationProgress {
+  formationId: string;
+  completedLessons: string[]; // "sectionId-lessonId"
+  lastAccessedAt: string | Date;
+}
+
+interface QuizAnswerInput {
+  questionId: number;
+  selectedAnswer: string;
+}
+
+interface QuizGradedAnswer {
+  sectionId: number;
+  questionId: number;
+  correct: boolean;
+}
+
+interface QuizSubmitResult {
+  score: number;
+  total: number;
+  passed: boolean;
+  certificateSent: boolean;
+  answers: QuizGradedAnswer[];
+}
+
+interface QuizResult {
+  formationId: string;
   score: number;
   totalQuestions: number;
-  answers: Record<string, string | number>;
-  attemptedAt: string;
   passed: boolean;
+  certificateSent?: boolean;
+  attemptDate: string | Date;
+  completedAt: string | Date;
 }
 
-interface CourseProgress {
-  courseId: string;
-  enrolledAt: string;
-  lastAccessedAt: string;
-  completedLessons: number;
-  totalLessons: number;
-  progressPercentage: number;
-  quizScores: QuizAttempt[];
-  certificateEarned: boolean;
-  certificateId?: string;
-}
-
-interface Bookmark {
-  id: string;
-  courseId: string;
-  lessonId: string;
-  timestamp: number; // for video bookmarks
-  note?: string;
-  createdAt: string;
-}
-
-interface Note {
-  id: string;
-  courseId: string;
-  lessonId: string;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface Certificate {
-  id: string;
-  courseId: string;
-  userId: string;
-  userName: string;
-  issuedAt: string;
-  expiresAt?: string;
-  verificationCode: string;
-  pdfUrl?: string;
-  onSiteTrainingCompleted: boolean;
-  onSiteTrainingDate?: string;
-  onSiteTrainingLocation?: string;
-}
-
-interface TrainingContextType {
-  courses: Course[];
-  enrolledCourses: string[];
-  courseProgress: Record<string, CourseProgress>;
-  lessonProgress: Record<string, LessonProgress>;
-  bookmarks: Bookmark[];
-  notes: Note[];
-  certificates: Certificate[];
-  enrollInCourse: (courseId: string) => void;
-  updateLessonProgress: (
-    lessonId: string,
-    courseId: string,
-    progress: Partial<LessonProgress>,
-  ) => void;
-  completeLesson: (lessonId: string, courseId: string) => void;
-  submitQuizAttempt: (attempt: QuizAttempt) => void;
-  addBookmark: (bookmark: Omit<Bookmark, "id" | "createdAt">) => void;
-  removeBookmark: (bookmarkId: string) => void;
-  addNote: (note: Omit<Note, "id" | "createdAt" | "updatedAt">) => void;
-  updateNote: (noteId: string, content: string) => void;
-  deleteNote: (noteId: string) => void;
-  downloadLesson: (lessonId: string, courseId: string) => Promise<void>;
-  getCourseById: (courseId: string) => Course | undefined;
-  getLessonById: (courseId: string, lessonId: string) => Lesson | undefined;
+interface QuizAttemptsInfo {
+  attemptsToday: number;
+  maxDailyAttempts: number;
+  remaining: number;
 }
 
 // Shop Types

@@ -53,7 +53,7 @@
 - [x] List owned online formations
 - [x] 3-month access window
 - [x] Formation stats (sections, lessons)
-- [ ] Formation detail endpoint
+- [x] Formation detail endpoint
 - [ ] Admin: create / update / delete formation
 
 ### Formations (Presential)
@@ -63,7 +63,7 @@
 - [x] List public presential formations
 - [x] List owned presential
 - [x] Auto-enroll on payment
-- [ ] Session detail endpoint
+- [x] Session detail endpoint
 - [ ] Admin: create / update sessions
 
 ### Progress
@@ -163,16 +163,17 @@
 - [x] GET /api/products/:id
 - [x] GET /api/products/categories
 - [ ] GET /api/orders
-- [ ] GET /api/formations/online
-- [ ] GET /api/formations/presential
-- [ ] GET /api/formations/owned
-- [ ] GET /api/formations/:id
-- [ ] GET/PUT /api/formations/:id/progress
-- [ ] GET /api/formations/:id/quiz
-- [ ] POST /api/formations/:id/quiz/submit
-- [ ] GET /api/formations/:id/quiz/result
-- [ ] GET /api/formations/:id/quiz/attempts
-- [ ] POST /api/formations/:id/certificate/resend
+- [x] GET /api/formations/online
+- [x] GET /api/formations/presential
+- [x] GET /api/formations/owned
+- [x] GET /api/formations/online/:id
+- [x] GET /api/formations/presential/:id
+- [x] GET/PUT /api/formations/:id/progress
+- [x] GET /api/formations/:id/quiz
+- [x] POST /api/formations/:id/quiz/submit
+- [x] GET /api/formations/:id/quiz/result
+- [x] GET /api/formations/:id/quiz/attempts
+- [x] POST /api/formations/:id/certificate/resend
 - [ ] POST /api/contact
 
 ---
@@ -205,15 +206,15 @@
 - [ ] Detail (API)
 
 ### Training
-- [ ] Courses from API
-- [ ] Owned formations (API)
-- [ ] Progress sync (API)
-- [ ] Quiz fetch (API)
-- [ ] Quiz submit (API)
-- [ ] Quiz attempts counter (API)
-- [ ] Certificate resend (API)
-- [ ] Access expiration data (3-month window)
-- [ ] Presential session selection on purchase
+- [x] Courses from API
+- [x] Owned formations (API)
+- [x] Progress sync (API)
+- [x] Quiz fetch (API)
+- [x] Quiz submit (API)
+- [x] Quiz attempts counter (API)
+- [x] Certificate resend (API)
+- [x] Access expiration data (3-month window)
+- [x] Presential session selection on purchase
 
 ### Jobs (Farm Owner)
 - [ ] List from API

@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Image,
+  ActivityIndicator,
   Alert,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTrainingStore } from "@/stores/trainingStore";
 import { colors } from "@/theme/colors";
@@ -16,38 +16,85 @@ import { colors } from "@/theme/colors";
 export default function LessonViewerScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { courseId, lessonId } = useLocalSearchParams<{
+  const { courseId: formationId, lessonId: lessonKey } = useLocalSearchParams<{
     courseId: string;
     lessonId: string;
   }>();
-  const getCourseById = useTrainingStore((state) => state.getCourseById);
-  const getLessonById = useTrainingStore((state) => state.getLessonById);
-  const completeLesson = useTrainingStore((state) => state.completeLesson);
-  const lessonProgress = useTrainingStore((state) => state.lessonProgress);
-  const submitQuizAttempt = useTrainingStore(
-    (state) => state.submitQuizAttempt,
+
+  const getFormationById = useTrainingStore((state) => state.getFormationById);
+  const loadOnlineById = useTrainingStore((state) => state.loadOnlineById);
+  const loadProgress = useTrainingStore((state) => state.loadProgress);
+  const progressByFormationId = useTrainingStore(
+    (state) => state.progressByFormationId,
+  );
+  const markLessonComplete = useTrainingStore(
+    (state) => state.markLessonComplete,
   );
 
-  const course = getCourseById(courseId);
-  const lesson = getLessonById(courseId, lessonId);
-  const progressKey = `${courseId}-${lessonId}`;
-  const isCompleted = lessonProgress[progressKey]?.completed || false;
-
-  const [showQuiz, setShowQuiz] = useState(false);
-  const [quizAnswers, setQuizAnswers] = useState<
-    Record<string, string | number>
-  >({});
-  const [quizSubmitted, setQuizSubmitted] = useState(false);
-  const [quizScore, setQuizScore] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
+  const [bootstrapping, setBootstrapping] = useState(false);
 
   useEffect(() => {
-    // Track time spent
-    return () => {
-      // Could update lesson progress with time spent
-    };
-  }, []);
+    if (!formationId) return;
+    const f = getFormationById(formationId);
+    if (!f || (f.type === "online" && !(f as OnlineFormation).sections)) {
+      setBootstrapping(true);
+      (async () => {
+        await loadOnlineById(formationId);
+        await loadProgress(formationId);
+        setBootstrapping(false);
+      })();
+    } else {
+      loadProgress(formationId);
+    }
+  }, [formationId, getFormationById, loadOnlineById, loadProgress]);
 
-  if (!course || !lesson) {
+  const formation = getFormationById(formationId);
+  const completedLessons = progressByFormationId[formationId] || [];
+  const isCompleted = completedLessons.includes(lessonKey);
+
+  const [sectionIdStr, lessonIdStr] = (lessonKey || "").split("-");
+  const sectionIdNum = Number(sectionIdStr);
+  const lessonIdNum = Number(lessonIdStr);
+
+  const onlineFormation =
+    formation?.type === "online" ? (formation as OnlineFormation) : null;
+  const section = onlineFormation?.sections?.find(
+    (s) => s.id === sectionIdNum,
+  );
+  const lesson = section?.lessons.find((l) => l.id === lessonIdNum);
+
+  const handleComplete = async () => {
+    if (!formationId || !lessonKey) return;
+    setSubmitting(true);
+    try {
+      await markLessonComplete(formationId, lessonKey);
+      Alert.alert(
+        "Leçon complétée",
+        "Vous avez terminé cette leçon avec succès.",
+        [{ text: "Continuer", onPress: () => router.back() }],
+      );
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Erreur de sauvegarde";
+      Alert.alert("Erreur", message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (bootstrapping) {
+    return (
+      <View className="flex-1 bg-gray-50 justify-center items-center px-6">
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text className="text-sm font-sans text-gray-500 mt-3">
+          Chargement de la leçon...
+        </Text>
+      </View>
+    );
+  }
+
+  if (!formation || !lesson || !section) {
     return (
       <View className="flex-1 bg-gray-50 justify-center items-center px-6">
         <Ionicons
@@ -68,334 +115,8 @@ export default function LessonViewerScreen() {
     );
   }
 
-  const handleCompleteLesson = () => {
-    if (lesson.quiz && !quizSubmitted) {
-      setShowQuiz(true);
-    } else {
-      completeLesson(lessonId, courseId);
-      Alert.alert(
-        "Leçon complétée !",
-        "Vous avez terminé cette leçon avec succès.",
-        [
-          {
-            text: "Continuer",
-            onPress: () => router.back(),
-          },
-        ],
-      );
-    }
-  };
-
-  const handleQuizAnswer = (questionId: string, answer: string | number) => {
-    setQuizAnswers((prev) => ({ ...prev, [questionId]: answer }));
-  };
-
-  const handleSubmitQuiz = () => {
-    if (!lesson.quiz) return;
-
-    let correctCount = 0;
-    lesson.quiz.questions.forEach((question) => {
-      if (quizAnswers[question.id] === question.correctAnswer) {
-        correctCount++;
-      }
-    });
-
-    const score = Math.round(
-      (correctCount / lesson.quiz.questions.length) * 100,
-    );
-    setQuizScore(score);
-    setQuizSubmitted(true);
-
-    const attempt: QuizAttempt = {
-      quizId: lesson.quiz.id,
-      lessonId: lesson.id,
-      courseId,
-      score,
-      totalQuestions: lesson.quiz.questions.length,
-      answers: quizAnswers,
-      attemptedAt: new Date().toISOString(),
-      passed: score >= lesson.quiz.passingScore,
-    };
-
-    submitQuizAttempt(attempt);
-
-    if (attempt.passed) {
-      completeLesson(lessonId, courseId);
-    }
-  };
-
-  const renderContent = (content: MediaContent, index: number) => {
-    switch (content.type) {
-      case "video":
-        return (
-          <View
-            key={index}
-            className="bg-black rounded-2xl overflow-hidden mb-6"
-          >
-            <View className="aspect-video bg-gray-800 items-center justify-center">
-              <Ionicons name="play-circle" size={64} color={colors.white} />
-              <Text className="text-white text-sm font-sans mt-2">
-                Vidéo - {Math.floor((content.duration || 0) / 60)} min
-              </Text>
-            </View>
-          </View>
-        );
-
-      case "text":
-        return (
-          <View key={index} className="mb-6">
-            <Text className="text-base font-sans text-gray-700 leading-7">
-              {content.text}
-            </Text>
-          </View>
-        );
-
-      case "image":
-        return (
-          <View
-            key={index}
-            className="mb-6 rounded-2xl overflow-hidden border border-gray-100"
-          >
-            <Image
-              source={{ uri: content.url }}
-              className="w-full h-64"
-              resizeMode="cover"
-            />
-          </View>
-        );
-
-      case "pdf":
-        return (
-          <TouchableOpacity
-            key={index}
-            className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-6 flex-row items-center"
-          >
-            <Ionicons
-              name="document-text"
-              size={32}
-              color={colors.dangerDark}
-            />
-            <View className="ml-4 flex-1">
-              <Text className="text-base font-sans-semibold text-gray-800">
-                Document PDF
-              </Text>
-              <Text className="text-sm font-sans text-gray-600 mt-1">
-                Appuyez pour ouvrir
-              </Text>
-            </View>
-            <Ionicons name="download-outline" size={24} color={colors.muted} />
-          </TouchableOpacity>
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  const renderQuiz = () => {
-    if (!lesson.quiz) return null;
-
-    return (
-      <View className="px-5 pb-10">
-        <View className="bg-primary/5 border border-primary/20 rounded-2xl p-4 mb-6">
-          <View className="flex-row items-center mb-2">
-            <Ionicons name="help-circle" size={24} color={colors.primary} />
-            <Text className="text-lg font-heading-bold text-gray-800 ml-2">
-              {lesson.quiz.title}
-            </Text>
-          </View>
-          <Text className="text-sm font-sans text-gray-600">
-            Score minimum requis : {lesson.quiz.passingScore}%
-          </Text>
-        </View>
-
-        {lesson.quiz.questions.map((question, qIndex) => (
-          <View
-            key={question.id}
-            className="bg-white border border-gray-100 rounded-2xl p-4 mb-4"
-          >
-            <Text className="text-base font-sans-semibold text-gray-800 mb-4">
-              {qIndex + 1}. {question.question}
-            </Text>
-
-            {question.options?.map((option, optIndex) => {
-              const isSelected = quizAnswers[question.id] === optIndex;
-              const isCorrect = question.correctAnswer === optIndex;
-              const showCorrect = quizSubmitted && isCorrect;
-              const showWrong = quizSubmitted && isSelected && !isCorrect;
-
-              return (
-                <TouchableOpacity
-                  key={optIndex}
-                  className={`border rounded-xl p-3.5 mb-2 ${
-                    showCorrect
-                      ? "bg-green-50 border-green-500"
-                      : showWrong
-                        ? "bg-red-50 border-red-500"
-                        : isSelected
-                          ? "bg-primary/5 border-primary"
-                          : "bg-white border-gray-200"
-                  }`}
-                  onPress={() =>
-                    !quizSubmitted && handleQuizAnswer(question.id, optIndex)
-                  }
-                  disabled={quizSubmitted}
-                >
-                  <View className="flex-row items-center">
-                    <View
-                      className={`w-6 h-6 rounded-full border-2 items-center justify-center mr-3 ${
-                        showCorrect
-                          ? "border-green-500 bg-green-500"
-                          : showWrong
-                            ? "border-red-500 bg-red-500"
-                            : isSelected
-                              ? "border-primary bg-primary/50"
-                              : "border-gray-300"
-                      }`}
-                    >
-                      {(isSelected || showCorrect) && (
-                        <Ionicons
-                          name={
-                            showCorrect
-                              ? "checkmark"
-                              : showWrong
-                                ? "close"
-                                : "checkmark"
-                          }
-                          size={16}
-                          color={colors.white}
-                        />
-                      )}
-                    </View>
-                    <Text
-                      className={`flex-1 text-sm ${
-                        showCorrect
-                          ? "text-green-700 font-sans-semibold"
-                          : showWrong
-                            ? "text-red-700 font-sans-semibold"
-                            : isSelected
-                              ? "text-primary font-sans-semibold"
-                              : "text-gray-700 font-sans"
-                      }`}
-                    >
-                      {option}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-
-            {quizSubmitted && question.explanation && (
-              <View className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
-                <View className="flex-row items-start">
-                  <Ionicons
-                    name="information-circle"
-                    size={20}
-                    color={colors.infoDark}
-                  />
-                  <Text className="text-sm font-sans text-blue-700 ml-2 flex-1">
-                    {question.explanation}
-                  </Text>
-                </View>
-              </View>
-            )}
-          </View>
-        ))}
-
-        {quizSubmitted && (
-          <View
-            className={`rounded-2xl p-6 mb-4 ${
-              quizScore >= lesson.quiz.passingScore
-                ? "bg-green-50 border border-green-200"
-                : "bg-red-50 border border-red-200"
-            }`}
-          >
-            <View className="items-center">
-              <Ionicons
-                name={
-                  quizScore >= lesson.quiz.passingScore
-                    ? "checkmark-circle"
-                    : "close-circle"
-                }
-                size={48}
-                color={
-                  quizScore >= lesson.quiz.passingScore
-                    ? colors.primary
-                    : colors.dangerDark
-                }
-              />
-              <Text className="text-2xl font-heading-bold text-gray-800 mt-3">
-                Score : {quizScore}%
-              </Text>
-              <Text className="text-base font-sans text-gray-600 mt-2 text-center">
-                {quizScore >= lesson.quiz.passingScore
-                  ? "Félicitations ! Vous avez réussi le quiz."
-                  : "Vous n'avez pas atteint le score minimum. Révisez la leçon et réessayez."}
-              </Text>
-            </View>
-          </View>
-        )}
-
-        {!quizSubmitted ? (
-          <TouchableOpacity
-            className={`py-4 rounded-2xl items-center ${
-              Object.keys(quizAnswers).length === lesson.quiz.questions.length
-                ? "bg-primary"
-                : "bg-gray-300"
-            }`}
-            onPress={handleSubmitQuiz}
-            disabled={
-              Object.keys(quizAnswers).length !== lesson.quiz.questions.length
-            }
-          >
-            <Text className="text-white font-sans-bold text-base">
-              Soumettre le quiz
-            </Text>
-          </TouchableOpacity>
-        ) : (
-          <View className="space-y-3">
-            {quizScore >= lesson.quiz.passingScore ? (
-              <TouchableOpacity
-                className="bg-primary py-4 rounded-2xl items-center"
-                onPress={() => router.back()}
-              >
-                <Text className="text-white font-sans-bold text-base">
-                  Continuer
-                </Text>
-              </TouchableOpacity>
-            ) : (
-              <>
-                <TouchableOpacity
-                  className="bg-primary py-4 rounded-2xl items-center"
-                  onPress={() => {
-                    setQuizSubmitted(false);
-                    setQuizAnswers({});
-                    setQuizScore(0);
-                  }}
-                >
-                  <Text className="text-white font-sans-bold text-base">
-                    Réessayer
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  className="bg-gray-200 py-4 rounded-2xl items-center"
-                  onPress={() => setShowQuiz(false)}
-                >
-                  <Text className="text-gray-700 font-sans-bold text-base">
-                    Revoir la leçon
-                  </Text>
-                </TouchableOpacity>
-              </>
-            )}
-          </View>
-        )}
-      </View>
-    );
-  };
-
   return (
     <View className="flex-1 bg-gray-50">
-      {/* Header */}
       <View
         className="bg-white border-b border-gray-100 px-5 pb-4"
         style={{ paddingTop: insets.top + 10 }}
@@ -408,96 +129,66 @@ export default function LessonViewerScreen() {
             <Ionicons name="arrow-back" size={18} color={colors.primary} />
           </View>
           <Text className="text-primary text-sm font-sans-semibold">
-            Retour au cours
+            Retour à la formation
           </Text>
         </TouchableOpacity>
         <Text className="text-xs font-sans-semibold uppercase tracking-wider text-gray-500 mb-1">
-          Leçon
+          {section.title}
         </Text>
         <Text className="text-gray-900 text-xl font-heading-bold">
           {lesson.title}
         </Text>
         <Text className="text-gray-500 text-sm font-sans mt-1">
-          {course.title}
+          {formation.title}
         </Text>
       </View>
 
-      <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ paddingBottom: 24 }}
-      >
-        {!showQuiz ? (
-          <>
-            {/* Lesson Description */}
-            <View className="px-5 py-5">
-              <View className="bg-white border border-gray-100 rounded-2xl p-4">
-                <View className="flex-row items-start mb-1">
-                  <View className="bg-primary/10 rounded-full p-2.5 mr-3 mt-0.5">
-                    <Ionicons name="book" size={20} color={colors.primary} />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-base text-gray-800 font-sans-semibold">
-                      {lesson.description}
-                    </Text>
-                    <View className="flex-row items-center mt-2">
-                      <Ionicons
-                        name="time-outline"
-                        size={14}
-                        color={colors.mutedLight}
-                      />
-                      <Text className="text-sm font-sans text-gray-500 ml-1">
-                        {lesson.duration} minutes
-                      </Text>
-                    </View>
-                  </View>
-                  {isCompleted && (
-                    <View className="bg-green-100 rounded-full p-2 ml-2">
-                      <Ionicons
-                        name="checkmark-circle"
-                        size={24}
-                        color={colors.primary}
-                      />
-                    </View>
-                  )}
-                </View>
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 24 }}>
+        <View className="px-5 py-5">
+          <View className="bg-white border border-gray-100 rounded-2xl p-5">
+            {lesson.content ? (
+              <Text className="text-base font-sans text-gray-700 leading-7">
+                {lesson.content}
+              </Text>
+            ) : (
+              <Text className="text-sm font-sans text-gray-500 italic">
+                Aucun contenu disponible pour cette leçon.
+              </Text>
+            )}
+
+            {isCompleted && (
+              <View className="mt-4 flex-row items-center bg-green-50 border border-green-200 rounded-xl p-3">
+                <Ionicons
+                  name="checkmark-circle"
+                  size={20}
+                  color={colors.primary}
+                />
+                <Text className="text-green-700 font-sans-semibold ml-2">
+                  Leçon complétée
+                </Text>
               </View>
-            </View>
+            )}
+          </View>
+        </View>
 
-            {/* Lesson Content */}
-            <View className="px-5">
-              {lesson.content.map((content, index) =>
-                renderContent(content, index),
+        {!isCompleted && (
+          <View className="px-5 pb-4">
+            <TouchableOpacity
+              className={`py-4 rounded-2xl items-center ${
+                submitting ? "bg-primary/60" : "bg-primary"
+              }`}
+              disabled={submitting}
+              onPress={handleComplete}
+            >
+              {submitting ? (
+                <ActivityIndicator color={colors.white} />
+              ) : (
+                <Text className="text-white font-sans-bold text-base">
+                  Marquer comme complétée
+                </Text>
               )}
-            </View>
-
-            {/* Complete Lesson Button */}
-            <View className="px-5 pb-4">
-              {!isCompleted && (
-                <TouchableOpacity
-                  className="bg-primary py-4 rounded-2xl items-center"
-                  onPress={handleCompleteLesson}
-                >
-                  <Text className="text-white font-sans-bold text-base">
-                    {lesson.quiz ? "Passer au quiz" : "Marquer comme complétée"}
-                  </Text>
-                </TouchableOpacity>
-              )}
-              {isCompleted && (
-                <View className="bg-green-50 border border-green-200 rounded-2xl p-4 items-center">
-                  <Ionicons
-                    name="checkmark-circle"
-                    size={32}
-                    color={colors.primary}
-                  />
-                  <Text className="text-green-700 font-sans-semibold text-base mt-2">
-                    Leçon complétée
-                  </Text>
-                </View>
-              )}
-            </View>
-          </>
-        ) : (
-          renderQuiz()
+            </TouchableOpacity>
+          </View>
         )}
       </ScrollView>
     </View>
