@@ -14,6 +14,7 @@
     "build:apk": "bash scripts/build-release-apk.sh"
   },
   "dependencies": {
+    "@better-auth/expo": "^1.6.9",
     "@expo-google-fonts/dm-sans": "^0.4.2",
     "@expo-google-fonts/figtree": "^0.4.1",
     "@expo/vector-icons": "^15.0.3",
@@ -24,6 +25,7 @@
     "@react-navigation/elements": "^2.6.3",
     "@react-navigation/native": "^7.1.8",
     "@rnmapbox/maps": "^10.2.10",
+    "better-auth": "^1.6.9",
     "expo": "^54.0.0",
     "expo-constants": "~18.0.13",
     "expo-dev-client": "~6.0.20",
@@ -34,8 +36,10 @@
     "expo-image-picker": "~17.0.10",
     "expo-linking": "~8.0.11",
     "expo-navigation-bar": "~5.0.10",
+    "expo-network": "~8.0.8",
     "expo-print": "~15.0.8",
     "expo-router": "~6.0.23",
+    "expo-secure-store": "~15.0.8",
     "expo-sharing": "13.1.5",
     "expo-splash-screen": "~31.0.13",
     "expo-status-bar": "~3.0.9",

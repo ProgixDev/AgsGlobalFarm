@@ -76,10 +76,7 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      // Simulate network delay for better UX
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      const result = login(formData.email, formData.password);
+      const result = await login(formData.email, formData.password);
 
       if (!result.success) {
         haptic.error();
@@ -98,9 +95,12 @@ export default function Login() {
         return;
       }
 
-      // Login successful - navigate to map
+      // Login successful — route by role
       haptic.success();
-      router.replace("/(tabs)/map");
+      const role = useUserStore.getState().currentUser?.userType;
+      router.replace(
+        role === "farm_owner" ? "/(tabs)/map" : "/(tabs-job-seeker)/map",
+      );
     } catch {
       setGeneralError(
         "Une erreur inattendue s'est produite. Veuillez réessayer.",

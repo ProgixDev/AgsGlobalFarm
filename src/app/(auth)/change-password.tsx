@@ -1,11 +1,19 @@
 import React, { useState, useRef } from "react";
-import { Alert, View, Text, TextInput, TouchableOpacity } from "react-native";
+import {
+  Alert,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { haptic } from "@/utils/haptics";
 import { AnimatedPressable } from "@/components/animated";
 import AuthShell from "@/components/auth/AuthShell";
 import { colors } from "@/theme/colors";
+import { useUserStore } from "@/stores/userStore";
 
 interface ChangePasswordForm {
   currentPassword: string;
@@ -21,7 +29,9 @@ interface ChangePasswordErrors {
 
 export default function ChangePasswordScreen() {
   const router = useRouter();
+  const changePassword = useUserStore((s) => s.changePassword);
   const [submitError, setSubmitError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const [formData, setFormData] = useState<ChangePasswordForm>({
     currentPassword: "",
@@ -86,14 +96,32 @@ export default function ChangePasswordScreen() {
     errors.confirmPassword
   );
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setSubmitError("");
-    if (!validate()) return;
+    if (!validate()) {
+      haptic.error();
+      return;
+    }
 
-    haptic.medium();
+    setIsLoading(true);
+    const result = await changePassword(
+      formData.currentPassword,
+      formData.newPassword,
+    );
+    setIsLoading(false);
+
+    if (!result.success) {
+      setSubmitError(
+        result.error || "Impossible de changer le mot de passe.",
+      );
+      haptic.error();
+      return;
+    }
+
+    haptic.success();
     Alert.alert(
-      "Bientôt disponible",
-      "Le workflow technique sera branché juste après la validation UX.",
+      "Mot de passe mis à jour",
+      "Votre mot de passe a été modifié avec succès.",
       [{ text: "OK", onPress: () => router.back() }],
     );
   };
@@ -345,14 +373,25 @@ export default function ChangePasswordScreen() {
         {/* Submit */}
         <AnimatedPressable
           onPress={handleSubmit}
-          className="bg-primary rounded-2xl py-4 items-center justify-center"
+          disabled={isLoading}
+          className={`bg-primary rounded-2xl py-4 items-center justify-center ${
+            isLoading ? "opacity-70" : ""
+          }`}
         >
-          <View className="flex-row items-center">
-            <Ionicons name="shield-checkmark-outline" size={20} color="white" />
-            <Text className="text-white text-base font-sans-semibold ml-2">
-              Mettre à jour le mot de passe
-            </Text>
-          </View>
+          {isLoading ? (
+            <ActivityIndicator size="small" color="white" />
+          ) : (
+            <View className="flex-row items-center">
+              <Ionicons
+                name="shield-checkmark-outline"
+                size={20}
+                color="white"
+              />
+              <Text className="text-white text-base font-sans-semibold ml-2">
+                Mettre à jour le mot de passe
+              </Text>
+            </View>
+          )}
         </AnimatedPressable>
       </View>
     </AuthShell>

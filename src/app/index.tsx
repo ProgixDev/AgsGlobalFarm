@@ -1,38 +1,58 @@
-import React, { useState, useEffect } from "react";
-import { View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, ActivityIndicator } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
+import { useUserStore } from "@/stores/userStore";
+import { colors } from "@/theme/colors";
 
 export default function Index() {
+  const router = useRouter();
   const [isOnboardingCompleted, setIsOnboardingCompleted] = useState<
     boolean | null
   >(null);
-
-  const router = useRouter();
+  const isInitialized = useUserStore((s) => s.isInitialized);
+  const currentUser = useUserStore((s) => s.currentUser);
+  const hydrateFromSession = useUserStore((s) => s.hydrateFromSession);
 
   useEffect(() => {
-    const checkOnboarding = async () => {
-      try {
-        const value = await AsyncStorage.getItem("onboardingCompleted");
-        setIsOnboardingCompleted(value === "true");
-      } catch {
-        setIsOnboardingCompleted(false);
-      }
-    };
-    checkOnboarding();
+    AsyncStorage.getItem("onboardingCompleted")
+      .then((v) => setIsOnboardingCompleted(v === "true"))
+      .catch(() => setIsOnboardingCompleted(false));
   }, []);
 
   useEffect(() => {
-    if (isOnboardingCompleted === null || router === null) return;
+    if (!isInitialized) {
+      hydrateFromSession();
+    }
+  }, [isInitialized, hydrateFromSession]);
+
+  useEffect(() => {
+    if (isOnboardingCompleted === null || !isInitialized) return;
 
     if (!isOnboardingCompleted) {
       router.replace("/onboarding");
-    } else if (__DEV__) {
+      return;
+    }
+
+    if (currentUser) {
+      const target =
+        currentUser.userType === "farm_owner"
+          ? "/(tabs)/map"
+          : "/(tabs-job-seeker)/map";
+      router.replace(target);
+      return;
+    }
+
+    if (__DEV__) {
       router.replace("/(auth)/dev-login");
     } else {
       router.replace("/(auth)/login");
     }
-  }, [isOnboardingCompleted, router]);
+  }, [isOnboardingCompleted, isInitialized, currentUser, router]);
 
-  return <View className="flex-1 bg-background" />;
+  return (
+    <View className="flex-1 bg-background items-center justify-center">
+      <ActivityIndicator size="large" color={colors.primary} />
+    </View>
+  );
 }

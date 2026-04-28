@@ -148,13 +148,10 @@ export default function Signup() {
     setIsLoading(true);
 
     try {
-      // Simulate network delay for better UX
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
       // Remove leading zeros from phone number
       const cleanedPhone = formData.phone.replace(/^0+/, "");
 
-      const result = register({
+      const result = await register({
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
@@ -171,9 +168,12 @@ export default function Signup() {
         return;
       }
 
-      // Registration successful - navigate to map
+      // Registration successful - route by role
       haptic.success();
-      router.replace("/(tabs)/map");
+      const role = formData.userType;
+      router.replace(
+        role === "farm_owner" ? "/(tabs)/map" : "/(tabs-job-seeker)/map",
+      );
     } catch {
       setGeneralError(
         "Une erreur inattendue s'est produite. Veuillez réessayer.",

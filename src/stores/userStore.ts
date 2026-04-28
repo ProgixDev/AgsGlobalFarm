@@ -1,31 +1,5 @@
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
-const DEV_ACCOUNTS: (UserProfile & { password: string })[] = [
-  {
-    id: "dev-job-seeker",
-    firstName: "Amadou",
-    lastName: "Diallo",
-    email: "amadou.diallo@example.com",
-    phone: "771234567",
-    userType: "job_seeker",
-    gender: "male",
-    password: "password123",
-  },
-  {
-    id: "dev-farm-owner",
-    firstName: "Fatou",
-    lastName: "Ndiaye",
-    email: "fatou.ndiaye@example.com",
-    phone: "781234567",
-    userType: "farm_owner",
-    gender: "female",
-    password: "password123",
-  },
-];
-
-export { DEV_ACCOUNTS };
+import { authClient } from "@/lib/auth-client";
 
 interface RegisterData {
   firstName: string;
@@ -37,186 +11,288 @@ interface RegisterData {
   password: string;
 }
 
+interface AuthResult {
+  success: boolean;
+  error?: string;
+}
+
 interface UserStore {
   userType: UserType;
   currentUser: UserProfile | null;
-  registeredUsers: (UserProfile & { password: string })[];
-  devPasswordOverrides: Record<string, string>;
+  isInitialized: boolean;
+  isAuthenticating: boolean;
+
   setUserType: (type: UserType) => void;
   toggleUserType: () => void;
   setCurrentUser: (user: UserProfile | null) => void;
-  login: (
-    email: string,
-    password: string,
-  ) => { success: boolean; error?: string };
-  register: (data: RegisterData) => { success: boolean; error?: string };
+
+  hydrateFromSession: () => Promise<void>;
+  login: (email: string, password: string) => Promise<AuthResult>;
+  register: (data: RegisterData) => Promise<AuthResult>;
+  logout: () => Promise<void>;
   changePassword: (
-    email: string,
     currentPassword: string,
     newPassword: string,
-  ) => { success: boolean; error?: string };
+  ) => Promise<AuthResult>;
+  requestPasswordResetOtp: (email: string) => Promise<AuthResult>;
+  resetPasswordWithOtp: (
+    email: string,
+    otp: string,
+    newPassword: string,
+  ) => Promise<AuthResult>;
 }
 
-export const useUserStore = create<UserStore>()(
-  persist(
-    (set, get) => ({
-      userType: "job_seeker",
-      currentUser: null,
-      registeredUsers: [],
-      devPasswordOverrides: {},
+type SessionUser = {
+  id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  gender?: string;
+  role?: string;
+};
 
-      setUserType: (type: UserType) => set({ userType: type }),
+function mapSessionUserToProfile(user: SessionUser): UserProfile {
+  const role = user.role === "farm_owner" ? "farm_owner" : "job_seeker";
+  return {
+    id: user.id,
+    firstName: user.firstName ?? "",
+    lastName: user.lastName ?? "",
+    email: user.email,
+    phone: user.phone ?? "",
+    userType: role,
+    gender: user.gender,
+  };
+}
 
-      toggleUserType: () =>
-        set((state) => ({
-          userType:
-            state.userType === "job_seeker" ? "farm_owner" : "job_seeker",
-        })),
+function extractErrorMessage(error: unknown, fallback: string): string {
+  if (!error) return fallback;
+  if (typeof error === "string") return error;
+  if (typeof error === "object") {
+    const e = error as { message?: string; code?: string; statusText?: string };
+    return e.message || e.statusText || e.code || fallback;
+  }
+  return fallback;
+}
 
-      setCurrentUser: (user: UserProfile | null) =>
-        set((state) => ({
-          currentUser: user,
-          userType: user?.userType ?? state.userType,
-        })),
+export const useUserStore = create<UserStore>()((set, get) => ({
+  userType: "job_seeker",
+  currentUser: null,
+  isInitialized: false,
+  isAuthenticating: false,
 
-      login: (email: string, password: string) => {
-        const { registeredUsers, devPasswordOverrides } = get();
+  setUserType: (type) => set({ userType: type }),
 
-        // Check dev accounts first
-        const devUser = DEV_ACCOUNTS.find(
-          (account) => account.email.toLowerCase() === email.toLowerCase(),
-        );
+  toggleUserType: () =>
+    set((state) => ({
+      userType: state.userType === "job_seeker" ? "farm_owner" : "job_seeker",
+    })),
 
-        // Check registered users
-        const registeredUser = registeredUsers.find(
-          (account) => account.email.toLowerCase() === email.toLowerCase(),
-        );
+  setCurrentUser: (user) =>
+    set((state) => ({
+      currentUser: user,
+      userType: user?.userType ?? state.userType,
+    })),
 
-        const user = devUser || registeredUser;
+  hydrateFromSession: async () => {
+    try {
+      const { data, error } = await authClient.getSession();
+      if (error || !data?.user) {
+        set({ currentUser: null, isInitialized: true });
+        return;
+      }
+      const profile = mapSessionUserToProfile(data.user as SessionUser);
+      set({
+        currentUser: profile,
+        userType: profile.userType,
+        isInitialized: true,
+      });
+    } catch {
+      set({ currentUser: null, isInitialized: true });
+    }
+  },
 
-        if (!user) {
-          return {
-            success: false,
-            error: "Aucun compte trouvé avec cet email.",
-          };
-        }
-
-        const effectivePassword = devUser
-          ? (devPasswordOverrides[devUser.email.toLowerCase()] ??
-            devUser.password)
-          : user.password;
-
-        if (effectivePassword !== password) {
-          return { success: false, error: "Mot de passe incorrect." };
-        }
-
-        // Extract user profile without password
-        const { password: _, ...userProfile } = user;
-        set({ currentUser: userProfile, userType: userProfile.userType });
-        return { success: true };
-      },
-
-      register: (data: RegisterData) => {
-        const { registeredUsers } = get();
-
-        // Check if email already exists in dev accounts
-        const devExists = DEV_ACCOUNTS.some(
-          (account) => account.email.toLowerCase() === data.email.toLowerCase(),
-        );
-
-        // Check if email already exists in registered users
-        const registeredExists = registeredUsers.some(
-          (account) => account.email.toLowerCase() === data.email.toLowerCase(),
-        );
-
-        if (devExists || registeredExists) {
-          return {
-            success: false,
-            error: "Un compte avec cet email existe déjà.",
-          };
-        }
-
-        // Create new user
-        const newUser: UserProfile & { password: string } = {
-          id: `user-${Date.now()}`,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          email: data.email,
-          phone: data.phone,
-          userType: data.userType,
-          gender: data.gender,
-          password: data.password,
+  login: async (email, password) => {
+    set({ isAuthenticating: true });
+    try {
+      const { data, error } = await authClient.signIn.email({
+        email: email.trim().toLowerCase(),
+        password,
+      });
+      if (error || !data?.user) {
+        return {
+          success: false,
+          error: extractErrorMessage(
+            error,
+            "Email ou mot de passe incorrect.",
+          ),
         };
+      }
+      const profile = mapSessionUserToProfile(data.user as SessionUser);
+      set({ currentUser: profile, userType: profile.userType });
+      return { success: true };
+    } catch (err) {
+      return {
+        success: false,
+        error: extractErrorMessage(
+          err,
+          "Une erreur réseau est survenue. Réessayez.",
+        ),
+      };
+    } finally {
+      set({ isAuthenticating: false });
+    }
+  },
 
-        // Add to registered users
-        set({ registeredUsers: [...registeredUsers, newUser] });
+  register: async (data) => {
+    set({ isAuthenticating: true });
+    try {
+      const role = data.userType === "farm_owner" ? "farm_owner" : "job_seeker";
+      const { data: result, error } = await authClient.signUp.email({
+        email: data.email.trim().toLowerCase(),
+        password: data.password,
+        name: `${data.firstName} ${data.lastName}`.trim(),
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phone: data.phone,
+        gender: data.gender || undefined,
+        role,
+      } as Parameters<typeof authClient.signUp.email>[0]);
 
-        // Set as current user (without password)
-        const { password: _, ...userProfile } = newUser;
-        set({ currentUser: userProfile, userType: userProfile.userType });
-
-        return { success: true };
-      },
-
-      changePassword: (
-        email: string,
-        currentPassword: string,
-        newPassword: string,
-      ) => {
-        const normalizedEmail = email.trim().toLowerCase();
-        if (!normalizedEmail) {
-          return { success: false, error: "Compte introuvable." };
-        }
-
-        const devAccount = DEV_ACCOUNTS.find(
-          (account) => account.email.toLowerCase() === normalizedEmail,
-        );
-
-        if (devAccount) {
-          const { devPasswordOverrides } = get();
-          const currentEffectivePassword =
-            devPasswordOverrides[normalizedEmail] ?? devAccount.password;
-
-          if (currentEffectivePassword !== currentPassword) {
-            return { success: false, error: "Mot de passe actuel incorrect." };
-          }
-
-          set((state) => ({
-            devPasswordOverrides: {
-              ...state.devPasswordOverrides,
-              [normalizedEmail]: newPassword,
-            },
-          }));
-
-          return { success: true };
-        }
-
-        const { registeredUsers } = get();
-        const userIndex = registeredUsers.findIndex(
-          (account) => account.email.toLowerCase() === normalizedEmail,
-        );
-
-        if (userIndex === -1) {
-          return { success: false, error: "Compte introuvable." };
-        }
-
-        if (registeredUsers[userIndex].password !== currentPassword) {
-          return { success: false, error: "Mot de passe actuel incorrect." };
-        }
-
-        const updatedUsers = [...registeredUsers];
-        updatedUsers[userIndex] = {
-          ...updatedUsers[userIndex],
-          password: newPassword,
+      if (error || !result?.user) {
+        return {
+          success: false,
+          error: extractErrorMessage(
+            error,
+            "Inscription impossible. Vérifiez vos informations.",
+          ),
         };
+      }
+      const profile = mapSessionUserToProfile(result.user as SessionUser);
+      set({ currentUser: profile, userType: profile.userType });
+      return { success: true };
+    } catch (err) {
+      return {
+        success: false,
+        error: extractErrorMessage(
+          err,
+          "Une erreur réseau est survenue. Réessayez.",
+        ),
+      };
+    } finally {
+      set({ isAuthenticating: false });
+    }
+  },
 
-        set({ registeredUsers: updatedUsers });
-        return { success: true };
-      },
-    }),
-    {
-      name: "@ags_user_storage",
-      storage: createJSONStorage(() => AsyncStorage),
-    },
-  ),
-);
+  logout: async () => {
+    try {
+      await authClient.signOut();
+    } catch {
+      // ignore network errors on signout, clear local state regardless
+    } finally {
+      set({ currentUser: null });
+    }
+  },
+
+  changePassword: async (currentPassword, newPassword) => {
+    try {
+      const { error } = await authClient.changePassword({
+        currentPassword,
+        newPassword,
+        revokeOtherSessions: true,
+      });
+      if (error) {
+        return {
+          success: false,
+          error: extractErrorMessage(error, "Mot de passe actuel incorrect."),
+        };
+      }
+      return { success: true };
+    } catch (err) {
+      return {
+        success: false,
+        error: extractErrorMessage(
+          err,
+          "Une erreur réseau est survenue. Réessayez.",
+        ),
+      };
+    }
+  },
+
+  requestPasswordResetOtp: async (email) => {
+    try {
+      const { error } = await authClient.emailOtp.sendVerificationOtp({
+        email: email.trim().toLowerCase(),
+        type: "forget-password",
+      });
+      if (error) {
+        return {
+          success: false,
+          error: extractErrorMessage(
+            error,
+            "Impossible d'envoyer le code. Réessayez.",
+          ),
+        };
+      }
+      return { success: true };
+    } catch (err) {
+      return {
+        success: false,
+        error: extractErrorMessage(
+          err,
+          "Une erreur réseau est survenue. Réessayez.",
+        ),
+      };
+    }
+  },
+
+  resetPasswordWithOtp: async (email, otp, newPassword) => {
+    try {
+      const { error } = await authClient.emailOtp.resetPassword({
+        email: email.trim().toLowerCase(),
+        otp,
+        password: newPassword,
+      });
+      if (error) {
+        return {
+          success: false,
+          error: extractErrorMessage(error, "Code invalide ou expiré."),
+        };
+      }
+      return { success: true };
+    } catch (err) {
+      return {
+        success: false,
+        error: extractErrorMessage(
+          err,
+          "Une erreur réseau est survenue. Réessayez.",
+        ),
+      };
+    }
+  },
+}));
+
+// Backwards-compat: dev-login screen imports DEV_ACCOUNTS to prefill creds.
+// They now correspond to seeded server accounts (see scripts/seed-test-users.ts).
+export const DEV_ACCOUNTS: Array<{
+  email: string;
+  password: string;
+  userType: UserType;
+  firstName: string;
+  lastName: string;
+}> = [
+  {
+    email: "amadou.diallo@example.com",
+    password: "password123",
+    userType: "job_seeker",
+    firstName: "Amadou",
+    lastName: "Diallo",
+  },
+  {
+    email: "fatou.ndiaye@example.com",
+    password: "password123",
+    userType: "farm_owner",
+    firstName: "Fatou",
+    lastName: "Ndiaye",
+  },
+];

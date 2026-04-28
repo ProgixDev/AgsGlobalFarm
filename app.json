@@ -58,7 +58,8 @@
       ],
       [
         "@rnmapbox/maps"
-      ]
+      ],
+      "expo-secure-store"
     ],
     "extra": {
       "router": {

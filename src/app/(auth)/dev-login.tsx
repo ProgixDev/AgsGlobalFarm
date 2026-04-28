@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { DEV_ACCOUNTS, useUserStore } from "@/stores/userStore";
@@ -11,51 +11,54 @@ type UserTypeTab = "job_seeker" | "farm_owner";
 
 export default function DevLogin() {
   const router = useRouter();
-  const setCurrentUser = useUserStore((state) => state.setCurrentUser);
-  const registeredUsers = useUserStore((state) => state.registeredUsers);
+  const login = useUserStore((s) => s.login);
   const [activeTab, setActiveTab] = useState<UserTypeTab>("job_seeker");
-
-  // Combine dev accounts and registered users
-  const allUsers: UserProfile[] = [
-    ...DEV_ACCOUNTS.map(({ password, ...user }) => user),
-    ...registeredUsers,
-  ];
-
-  // Filter users by type
-  const jobSeekers = allUsers.filter((user) => user.userType === "job_seeker");
-  const farmOwners = allUsers.filter((user) => user.userType === "farm_owner");
-
-  const displayedUsers = activeTab === "job_seeker" ? jobSeekers : farmOwners;
+  const [loadingEmail, setLoadingEmail] = useState<string | null>(null);
+  const [error, setError] = useState("");
 
   if (!__DEV__) {
     router.replace("/(auth)/login");
     return null;
   }
 
-  const handleSelectAccount = (account: UserProfile) => {
-    setCurrentUser(account);
-    // Route to the appropriate tab based on user type
-    if (account.userType === "job_seeker") {
-      router.replace("/(tabs-job-seeker)/map");
-    } else {
-      router.replace("/(tabs)/map");
+  const displayedUsers = DEV_ACCOUNTS.filter((u) => u.userType === activeTab);
+  const jobSeekers = DEV_ACCOUNTS.filter((u) => u.userType === "job_seeker");
+  const farmOwners = DEV_ACCOUNTS.filter((u) => u.userType === "farm_owner");
+
+  const handleSelectAccount = async (account: (typeof DEV_ACCOUNTS)[number]) => {
+    setError("");
+    setLoadingEmail(account.email);
+    const result = await login(account.email, account.password);
+    setLoadingEmail(null);
+
+    if (!result.success) {
+      haptic.error();
+      setError(
+        result.error ||
+          "Connexion impossible. Avez-vous lancé le seed des comptes de test ?",
+      );
+      return;
     }
+
+    haptic.success();
+    router.replace(
+      account.userType === "job_seeker"
+        ? "/(tabs-job-seeker)/map"
+        : "/(tabs)/map",
+    );
   };
 
-  const userTypeLabel: Record<UserProfile["userType"], string> = {
+  const userTypeLabel: Record<UserTypeTab, string> = {
     job_seeker: "Chercheur d'emploi",
     farm_owner: "Propriétaire de ferme / Recruteur",
   };
 
-  const userTypeColor: Record<UserProfile["userType"], string> = {
+  const userTypeColor: Record<UserTypeTab, string> = {
     job_seeker: colors.success,
     farm_owner: colors.warning,
   };
 
-  const userTypeIcon: Record<
-    UserProfile["userType"],
-    keyof typeof Ionicons.glyphMap
-  > = {
+  const userTypeIcon: Record<UserTypeTab, keyof typeof Ionicons.glyphMap> = {
     job_seeker: "person-outline",
     farm_owner: "leaf-outline",
   };
@@ -66,7 +69,6 @@ export default function DevLogin() {
       contentContainerStyle={{ flexGrow: 1 }}
     >
       <View className="flex-1 px-6 py-16">
-        {/* Header */}
         <View className="mb-10">
           <View className="flex-row items-center mb-2">
             <View className="bg-yellow-400 rounded-lg px-2 py-0.5 mr-3">
@@ -79,12 +81,27 @@ export default function DevLogin() {
             </Text>
           </View>
           <Text className="text-muted-foreground text-sm font-sans">
-            Sélectionnez un compte prédéfini pour tester l&apos;application.
-            Cette page n&apos;est disponible qu&apos;en mode développement.
+            Comptes de test seedés sur le backend. Lancez{" "}
+            <Text className="font-sans-semibold">
+              bun run scripts/seed-test-users.ts
+            </Text>{" "}
+            côté API si la connexion échoue.
           </Text>
         </View>
 
-        {/* Tab Buttons */}
+        {error ? (
+          <View className="flex-row items-center bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-4">
+            <Ionicons
+              name="alert-circle-outline"
+              size={18}
+              color={colors.danger}
+            />
+            <Text className="text-red-600 text-sm font-sans ml-2 flex-1">
+              {error}
+            </Text>
+          </View>
+        ) : null}
+
         <View className="flex-row gap-2 mb-6">
           <AnimatedPressable
             onPress={() => {
@@ -163,11 +180,8 @@ export default function DevLogin() {
           </AnimatedPressable>
         </View>
 
-        {/* Account Cards */}
         <Text className="text-xs font-sans-semibold text-muted-foreground uppercase tracking-wider mb-3">
-          {activeTab === "job_seeker"
-            ? "Chercheurs d'emploi"
-            : "Propriétaires de ferme / Recruteurs"}
+          {userTypeLabel[activeTab]}
         </Text>
         <FadeInView>
           <View className="gap-4 mb-10">
@@ -179,102 +193,77 @@ export default function DevLogin() {
                   color={colors.mutedLighter}
                 />
                 <Text className="text-gray-500 mt-2 text-center font-sans">
-                  Aucun compte{" "}
-                  {activeTab === "job_seeker"
-                    ? "chercheur d'emploi"
-                    : "recruteur"}{" "}
-                  disponible
+                  Aucun compte de test pour ce rôle.
                 </Text>
               </View>
             ) : (
-              displayedUsers.map((account) => (
-                <AnimatedPressable
-                  key={account.id}
-                  onPress={() => handleSelectAccount(account)}
-                  className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5"
-                >
-                  <View className="flex-row items-center">
-                    {/* Avatar */}
-                    <View
-                      className="w-14 h-14 rounded-full items-center justify-center mr-4"
-                      style={{
-                        backgroundColor: userTypeColor[account.userType] + "20",
-                      }}
-                    >
-                      <Ionicons
-                        name={userTypeIcon[account.userType]}
-                        size={26}
-                        color={userTypeColor[account.userType]}
-                      />
-                    </View>
-
-                    {/* Info */}
-                    <View className="flex-1">
-                      <Text className="text-base font-sans-semibold text-foreground">
-                        {account.firstName} {account.lastName}
-                      </Text>
-                      <Text className="text-sm font-sans text-muted-foreground mb-1">
-                        {account.email}
-                      </Text>
+              displayedUsers.map((account) => {
+                const isLoading = loadingEmail === account.email;
+                return (
+                  <AnimatedPressable
+                    key={account.email}
+                    onPress={() => handleSelectAccount(account)}
+                    disabled={isLoading}
+                    className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5"
+                  >
+                    <View className="flex-row items-center">
                       <View
-                        className="self-start rounded-full px-2 py-0.5"
+                        className="w-14 h-14 rounded-full items-center justify-center mr-4"
                         style={{
                           backgroundColor:
                             userTypeColor[account.userType] + "20",
                         }}
                       >
-                        <Text
-                          className="text-xs font-sans-medium"
-                          style={{ color: userTypeColor[account.userType] }}
-                        >
-                          {userTypeLabel[account.userType]}
-                        </Text>
-                      </View>
-                    </View>
-
-                    <Ionicons
-                      name="arrow-forward-circle"
-                      size={28}
-                      color={userTypeColor[account.userType]}
-                    />
-                  </View>
-
-                  {/* Extra details */}
-                  <View className="flex-row mt-4 pt-4 border-t border-gray-100 gap-4">
-                    <View className="flex-row items-center">
-                      <Ionicons
-                        name="call-outline"
-                        size={14}
-                        color={colors.mutedLight}
-                      />
-                      <Text className="text-xs font-sans text-muted-foreground ml-1">
-                        +221 {account.phone}
-                      </Text>
-                    </View>
-                    {account.gender && (
-                      <View className="flex-row items-center">
                         <Ionicons
-                          name="person-outline"
-                          size={14}
-                          color={colors.mutedLight}
+                          name={userTypeIcon[account.userType]}
+                          size={26}
+                          color={userTypeColor[account.userType]}
                         />
-                        <Text className="text-xs font-sans text-muted-foreground ml-1">
-                          {account.gender === "male"
-                            ? "Homme"
-                            : account.gender === "female"
-                              ? "Femme"
-                              : "Autre"}
-                        </Text>
                       </View>
-                    )}
-                  </View>
-                </AnimatedPressable>
-              ))
+
+                      <View className="flex-1">
+                        <Text className="text-base font-sans-semibold text-foreground">
+                          {account.firstName} {account.lastName}
+                        </Text>
+                        <Text className="text-sm font-sans text-muted-foreground mb-1">
+                          {account.email}
+                        </Text>
+                        <View
+                          className="self-start rounded-full px-2 py-0.5"
+                          style={{
+                            backgroundColor:
+                              userTypeColor[account.userType] + "20",
+                          }}
+                        >
+                          <Text
+                            className="text-xs font-sans-medium"
+                            style={{ color: userTypeColor[account.userType] }}
+                          >
+                            {userTypeLabel[account.userType]}
+                          </Text>
+                        </View>
+                      </View>
+
+                      {isLoading ? (
+                        <ActivityIndicator
+                          size="small"
+                          color={userTypeColor[account.userType]}
+                        />
+                      ) : (
+                        <Ionicons
+                          name="arrow-forward-circle"
+                          size={28}
+                          color={userTypeColor[account.userType]}
+                        />
+                      )}
+                    </View>
+                  </AnimatedPressable>
+                );
+              })
             )}
           </View>
         </FadeInView>
 
-        {/* Divider */}
         <View className="flex-row items-center mb-6">
           <View className="flex-1 h-px bg-gray-200" />
           <Text className="text-xs font-sans text-muted-foreground mx-3">
@@ -283,7 +272,6 @@ export default function DevLogin() {
           <View className="flex-1 h-px bg-gray-200" />
         </View>
 
-        {/* Go to real login */}
         <AnimatedPressable
           onPress={() => router.replace("/(auth)/login")}
           className="flex-row items-center justify-center border border-gray-200 rounded-2xl py-4"

@@ -15,18 +15,18 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const tabBarInset = useTabBarInset();
   const currentUser = useUserStore((state) => state.currentUser);
-  const setCurrentUser = useUserStore((state) => state.setCurrentUser);
+  const logout = useUserStore((state) => state.logout);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     haptic.warning();
-    setCurrentUser(null);
+    await logout();
     router.replace(__DEV__ ? "/(auth)/dev-login" : "/(auth)/login");
   };
 
   const handleResetOnboarding = async () => {
     haptic.medium();
     await AsyncStorage.removeItem("onboardingCompleted");
-    setCurrentUser(null);
+    await logout();
     router.replace("/");
   };
 
