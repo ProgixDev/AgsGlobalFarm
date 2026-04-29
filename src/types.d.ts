@@ -395,6 +395,48 @@ interface QuizAttemptsInfo {
   remaining: number;
 }
 
+// Orders
+interface OrderItem {
+  id?: number | string;
+  _id?: string;
+  name?: string;
+  title?: string;
+  category?: string;
+  unit?: string;
+  quantity: number;
+  price?: number;
+  priceTTC?: number;
+  image?: string;
+  imageUrl?: string;
+  description?: string;
+  shortDescription?: string;
+  selectedSessionId?: number;
+  sessionId?: number;
+}
+
+interface OrderAddress {
+  street: string;
+  city: string;
+  postalCode: string;
+  country: string;
+}
+
+interface Order {
+  _id: string;
+  userId: string;
+  items: OrderItem[];
+  totalAmount: number;
+  paymentStatus: "paid" | "pending" | "failed";
+  paymentMethod?: string;
+  address?: OrderAddress;
+  paydunyaToken?: string;
+  paydunyaStatus?: string;
+  paydunyaReceiptUrl?: string;
+  paydunyaFailReason?: string;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
 // Shop Types
 type ShopCategory = "engrais" | "phyto" | "semence" | "petit_materiel";
 type ShopOrigin = "tabs" | "tabs-job-seeker";

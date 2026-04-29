@@ -137,6 +137,11 @@ export default function ProfileScreen() {
                 onPress={() => router.push("/(tabs)/jobs")}
               />
               <MenuItem
+                icon="receipt-outline"
+                label="Mes commandes"
+                onPress={() => router.push("/orders" as any)}
+              />
+              <MenuItem
                 icon="notifications-outline"
                 label="Notifications"
                 onPress={() => router.push("/account/notifications")}
@@ -154,6 +159,11 @@ export default function ProfileScreen() {
                 icon="school-outline"
                 label="Mes formations"
                 onPress={() => router.push("/(tabs)/training")}
+              />
+              <MenuItem
+                icon="receipt-outline"
+                label="Mes commandes"
+                onPress={() => router.push("/orders" as any)}
               />
               <MenuItem
                 icon="notifications-outline"

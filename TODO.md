@@ -34,7 +34,7 @@
 - [x] List user orders
 - [x] Order created on payment success
 - [x] Order created on payment failure
-- [ ] Order detail endpoint
+- [x] Order detail endpoint
 - [ ] Order status tracking (shipped, delivered)
 - [ ] Cancel order
 - [ ] Admin: list all orders
@@ -162,7 +162,9 @@
 - [x] GET /api/products
 - [x] GET /api/products/:id
 - [x] GET /api/products/categories
-- [ ] GET /api/orders
+- [x] GET /api/orders
+- [x] GET /api/orders/:id
+- [x] POST /api/auth/onetime-token (one-time token bridge)
 - [x] GET /api/formations/online
 - [x] GET /api/formations/presential
 - [x] GET /api/formations/owned
@@ -198,12 +200,13 @@
 - [x] Categories from API
 
 ### Checkout / Payment
-- [ ] POST /api/payment/initiate
-- [ ] Handle return / cancel URLs
+- [x] POST /api/payment/initiate (reused, mobile redirects to web checkout)
+- [x] Handle return / cancel URLs (deep link agsmobile://payment/return)
+- [x] One-time token bridge (mobile → web checkout)
 
 ### Orders
-- [ ] History (API)
-- [ ] Detail (API)
+- [x] History (API)
+- [x] Detail (API)
 
 ### Training
 - [x] Courses from API

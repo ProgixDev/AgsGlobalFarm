@@ -1,15 +1,29 @@
-import React, { useEffect, useMemo } from "react";
-import { Image, ScrollView, Text, View } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import * as WebBrowser from "expo-web-browser";
+import * as Linking from "expo-linking";
 import { AnimatedPressable } from "@/components/animated";
 import { useTabBarInset } from "@/components/ui/FloatingTabBar";
 import { useShopStore } from "@/stores/shopStore";
+import { useOrdersStore } from "@/stores/ordersStore";
 import { colors } from "@/theme/colors";
 import { formatFcfa } from "@/utils/currency";
 import { haptic } from "@/utils/haptics";
 import { useHideTabBar } from "@/hooks/useHideTabBar";
+import {
+  buildMobileCheckoutUrl,
+  generateOneTimeToken,
+} from "@/lib/api/payment";
 
 type Props = {
   origin: ShopOrigin;
@@ -37,9 +51,12 @@ export default function CartScreen({ origin }: Props) {
   const incrementItem = useShopStore((state) => state.incrementItem);
   const decrementItem = useShopStore((state) => state.decrementItem);
   const removeItem = useShopStore((state) => state.removeItem);
+  const clearCart = useShopStore((state) => state.clearCart);
   const getCartTotals = useShopStore((state) => state.getCartTotals);
   const productsStatus = useShopStore((state) => state.productsStatus);
   const loadProducts = useShopStore((state) => state.loadProducts);
+  const loadOrders = useOrdersStore((state) => state.loadOrders);
+  const [paying, setPaying] = useState(false);
 
   useEffect(() => {
     if (productsStatus === "idle") {
@@ -62,6 +79,37 @@ export default function CartScreen({ origin }: Props) {
   );
 
   const totals = getCartTotals();
+
+  const handlePay = async () => {
+    if (cart.length === 0 || paying) return;
+    setPaying(true);
+    haptic.selection();
+    try {
+      const token = await generateOneTimeToken();
+      const url = buildMobileCheckoutUrl(
+        token,
+        cart.map((line) => ({
+          productId: line.productId,
+          quantity: line.quantity,
+        })),
+      );
+      const returnUrl = Linking.createURL("payment/return");
+      const result = await WebBrowser.openAuthSessionAsync(url, returnUrl);
+      // Refresh orders to reflect any new paid order
+      await loadOrders();
+      if (result.type === "success" || result.type === "dismiss") {
+        // Treat any close as completion; backend IPN is source of truth
+        clearCart();
+        router.replace("/payment/return" as any);
+      }
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Erreur lors du paiement";
+      Alert.alert("Paiement impossible", message);
+    } finally {
+      setPaying(false);
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -229,11 +277,21 @@ export default function CartScreen({ origin }: Props) {
           </ScrollView>
 
           <View className="bg-white border-t border-gray-200 px-5 py-4">
-            <View className="rounded-xl py-4 items-center bg-gray-200">
-              <Text className="text-gray-500 font-sans-bold">
-                Bientot disponible
-              </Text>
-            </View>
+            <AnimatedPressable
+              className={`rounded-xl py-4 items-center ${
+                paying ? "bg-primary/60" : "bg-primary"
+              }`}
+              disabled={paying}
+              onPress={handlePay}
+            >
+              {paying ? (
+                <ActivityIndicator color={colors.white} />
+              ) : (
+                <Text className="text-white font-sans-bold">
+                  Payer · {formatFcfa(totals.total)}
+                </Text>
+              )}
+            </AnimatedPressable>
           </View>
         </>
       )}
