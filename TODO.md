@@ -16,8 +16,7 @@
 - [x] CORS middleware
 - [x] 30-day session expiry
 - [x] Expo plugin trustedOrigins
-- [ ] Email verification
-- [ ] OAuth providers (Google, Facebook)
+- [x] Email verification (OTP, required for sign-in)
 
 ### Shop
 - [x] Product model

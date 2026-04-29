@@ -168,12 +168,12 @@ export default function Signup() {
         return;
       }
 
-      // Registration successful - route by role
+      // Registration successful - route to email verification
       haptic.success();
-      const role = formData.userType;
-      router.replace(
-        role === "farm_owner" ? "/(tabs)/map" : "/(tabs-job-seeker)/map",
-      );
+      router.replace({
+        pathname: "/(auth)/verify-email",
+        params: { email: formData.email, userType: formData.userType },
+      });
     } catch {
       setGeneralError(
         "Une erreur inattendue s'est produite. Veuillez réessayer.",

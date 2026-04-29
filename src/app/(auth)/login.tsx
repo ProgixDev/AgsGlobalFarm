@@ -80,6 +80,19 @@ export default function Login() {
 
       if (!result.success) {
         haptic.error();
+        // Email not verified - route to verify-email screen
+        const errorMsg = result.error?.toLowerCase() ?? "";
+        if (
+          errorMsg.includes("verif") ||
+          errorMsg.includes("not verified") ||
+          errorMsg.includes("email_not_verified")
+        ) {
+          router.replace({
+            pathname: "/(auth)/verify-email",
+            params: { email: formData.email },
+          });
+          return;
+        }
         // Set error for email or password based on the error message
         if (result.error?.includes("email")) {
           setErrors((prev) => ({ ...prev, email: result.error! }));

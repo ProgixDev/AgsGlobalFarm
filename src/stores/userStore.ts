@@ -54,6 +54,9 @@ interface UserStore {
   uploadAvatar: (
     localUri: string,
   ) => Promise<{ success: boolean; error?: string; secureUrl?: string }>;
+
+  requestEmailVerificationOtp: (email: string) => Promise<AuthResult>;
+  verifyEmailOtp: (email: string, otp: string) => Promise<AuthResult>;
 }
 
 type SessionUser = {
@@ -357,6 +360,57 @@ export const useUserStore = create<UserStore>()((set, get) => ({
         error: extractErrorMessage(
           err,
           "Échec de l'upload de l'avatar. Réessayez.",
+        ),
+      };
+    }
+  },
+
+  requestEmailVerificationOtp: async (email) => {
+    try {
+      const { error } = await authClient.emailOtp.sendVerificationOtp({
+        email: email.trim().toLowerCase(),
+        type: "email-verification",
+      });
+      if (error) {
+        return {
+          success: false,
+          error: extractErrorMessage(
+            error,
+            "Impossible d'envoyer le code. Réessayez.",
+          ),
+        };
+      }
+      return { success: true };
+    } catch (err) {
+      return {
+        success: false,
+        error: extractErrorMessage(
+          err,
+          "Une erreur réseau est survenue. Réessayez.",
+        ),
+      };
+    }
+  },
+
+  verifyEmailOtp: async (email, otp) => {
+    try {
+      const { error } = await authClient.emailOtp.verifyEmail({
+        email: email.trim().toLowerCase(),
+        otp,
+      });
+      if (error) {
+        return {
+          success: false,
+          error: extractErrorMessage(error, "Code invalide ou expiré."),
+        };
+      }
+      return { success: true };
+    } catch (err) {
+      return {
+        success: false,
+        error: extractErrorMessage(
+          err,
+          "Une erreur réseau est survenue. Réessayez.",
         ),
       };
     }
