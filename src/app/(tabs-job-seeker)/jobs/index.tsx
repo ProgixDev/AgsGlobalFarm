@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useUserStore } from "@/stores/userStore";
-import { useJobsStore } from "@/stores/jobsStore";
+import { useJobsStore, jobIdOf, appIdOf } from "@/stores/jobsStore";
 import { haptic } from "@/utils/haptics";
 import { colors } from "@/theme/colors";
 import { useTabBarInset } from "@/components/ui/FloatingTabBar";
@@ -29,10 +29,11 @@ export default function JobSeekerJobsScreen() {
   const tabBarInset = useTabBarInset();
   const router = useRouter();
   const currentUser = useUserStore((state) => state.currentUser);
-  const getPublicActiveJobs = useJobsStore(
-    (state) => state.getPublicActiveJobs,
-  );
-  const getMyApplications = useJobsStore((state) => state.getMyApplications);
+  const allJobs = useJobsStore((state) => state.allJobs);
+  const allJobsStatus = useJobsStore((state) => state.allJobsStatus);
+  const loadAllJobs = useJobsStore((state) => state.loadAllJobs);
+  const myApplications = useJobsStore((state) => state.myApplications);
+  const loadMyApplications = useJobsStore((state) => state.loadMyApplications);
   const getJobById = useJobsStore((state) => state.getJobById);
   const hasApplied = useJobsStore((state) => state.hasApplied);
 
@@ -40,12 +41,14 @@ export default function JobSeekerJobsScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [contractFilter, setContractFilter] = useState("Tous");
 
-  const userId = currentUser?.id ?? "";
-  const discoverJobs = getPublicActiveJobs();
-  const myApplications = currentUser ? getMyApplications(userId) : [];
+  useEffect(() => {
+    if (allJobsStatus === "idle") loadAllJobs();
+    if (currentUser) loadMyApplications();
+  }, [allJobsStatus, loadAllJobs, loadMyApplications, currentUser]);
 
   const filteredDiscoverJobs = useMemo(() => {
-    return discoverJobs.filter((job) => {
+    return allJobs.filter((job) => {
+      if (job.status !== "active") return false;
       const q = searchQuery.trim().toLowerCase();
       const matchesSearch =
         q.length === 0 ||
@@ -56,7 +59,7 @@ export default function JobSeekerJobsScreen() {
         contractFilter === "Tous" || job.contractType === contractFilter;
       return matchesSearch && matchesContract;
     });
-  }, [discoverJobs, searchQuery, contractFilter]);
+  }, [allJobs, searchQuery, contractFilter]);
 
   const openDetails = (jobId: string) => {
     router.push({
@@ -133,16 +136,19 @@ export default function JobSeekerJobsScreen() {
             contentContainerStyle={{ paddingBottom: tabBarInset }}
           >
             {filteredDiscoverJobs.length > 0 ? (
-              filteredDiscoverJobs.map((job) => (
-                <JobCard
-                  key={job.id}
-                  job={job}
-                  applied={currentUser ? hasApplied(job.id, userId) : false}
-                  onPress={() => openDetails(job.id)}
-                  onPrimaryAction={() => goApply(job.id)}
-                  primaryLabel="Postuler"
-                />
-              ))
+              filteredDiscoverJobs.map((job) => {
+                const id = jobIdOf(job);
+                return (
+                  <JobCard
+                    key={id}
+                    job={job}
+                    applied={currentUser ? hasApplied(id) : false}
+                    onPress={() => openDetails(id)}
+                    onPrimaryAction={() => goApply(id)}
+                    primaryLabel="Postuler"
+                  />
+                );
+              })
             ) : (
               <JobsEmptyState
                 icon="search-outline"
@@ -164,10 +170,10 @@ export default function JobSeekerJobsScreen() {
               const job = getJobById(application.jobId);
               return (
                 <ApplicationCard
-                  key={application.id}
+                  key={appIdOf(application)}
                   application={application}
                   job={job}
-                  onPress={() => job && openDetails(job.id)}
+                  onPress={() => job && openDetails(jobIdOf(job))}
                 />
               );
             })

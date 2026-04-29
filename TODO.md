@@ -101,21 +101,21 @@
 - [x] Send contact email
 
 ### Jobs
-- [ ] Job model
-- [ ] Create job
-- [ ] List jobs (filter by region/department/type)
-- [ ] Job detail
-- [ ] Update job
-- [ ] Delete job
-- [ ] Close / reopen job
+- [x] Job model
+- [x] Create job
+- [x] List jobs (filter by region/department/type)
+- [x] Job detail
+- [x] Update job
+- [x] Delete job
+- [x] Close / reopen job
 
 ### Job Applications
-- [ ] JobApplication model
-- [ ] Apply to job
-- [ ] List applications by job
-- [ ] List applications by user
-- [ ] Accept / reject application
-- [ ] Notify applicant on status change
+- [x] JobApplication model
+- [x] Apply to job
+- [x] List applications by job
+- [x] List applications by user
+- [x] Accept / reject application
+- [x] Notify applicant on status change
 
 ### Incidents
 - [ ] Incident model
@@ -219,19 +219,19 @@
 - [x] Presential session selection on purchase
 
 ### Jobs (Farm Owner)
-- [ ] List from API
-- [ ] Create (API)
-- [ ] Update (API)
-- [ ] Delete (API)
+- [x] List from API
+- [x] Create (API)
+- [x] Update (API)
+- [x] Delete (API)
 
 ### Applications (Farm Owner)
-- [ ] List (API)
-- [ ] Accept / reject (API)
+- [x] List (API)
+- [x] Accept / reject (API)
 
 ### Jobs (Job Seeker)
-- [ ] List from API
-- [ ] Apply (API)
-- [ ] My applications (API)
+- [x] List from API
+- [x] Apply (API)
+- [x] My applications (API)
 
 ### Profile
 - [x] Personal info sync (API)

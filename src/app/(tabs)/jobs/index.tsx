@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useUserStore } from "@/stores/userStore";
-import { useJobsStore } from "@/stores/jobsStore";
+import { useJobsStore, jobIdOf, appIdOf } from "@/stores/jobsStore";
 import { AnimatedPressable } from "@/components/animated";
 import { haptic } from "@/utils/haptics";
 import { colors } from "@/theme/colors";
@@ -34,17 +34,23 @@ export default function JobsScreen() {
   const currentUser = useUserStore((state) => state.currentUser);
   const userType = useUserStore((state) => state.userType);
 
-  const getPublicActiveJobs = useJobsStore(
-    (state) => state.getPublicActiveJobs,
+  const allJobs = useJobsStore((state) => state.allJobs);
+  const allJobsStatus = useJobsStore((state) => state.allJobsStatus);
+  const myJobs = useJobsStore((state) => state.myJobs);
+  const myJobsStatus = useJobsStore((state) => state.myJobsStatus);
+  const myApplications = useJobsStore((state) => state.myApplications);
+  const loadAllJobs = useJobsStore((state) => state.loadAllJobs);
+  const loadMyJobs = useJobsStore((state) => state.loadMyJobs);
+  const loadMyApplications = useJobsStore((state) => state.loadMyApplications);
+  const loadJobApplications = useJobsStore(
+    (state) => state.loadJobApplications,
   );
-  const getRecruiterJobs = useJobsStore((state) => state.getRecruiterJobs);
   const getRecruiterActiveOffersCount = useJobsStore(
     (state) => state.getRecruiterActiveOffersCount,
   );
   const getRecruiterApplications = useJobsStore(
     (state) => state.getRecruiterApplications,
   );
-  const getMyApplications = useJobsStore((state) => state.getMyApplications);
   const getJobById = useJobsStore((state) => state.getJobById);
   const hasApplied = useJobsStore((state) => state.hasApplied);
 
@@ -54,40 +60,64 @@ export default function JobsScreen() {
   const [contractFilter, setContractFilter] = useState("Tous");
 
   const isJobSeeker = (currentUser?.userType ?? userType) === "job_seeker";
-  const userId = currentUser?.id ?? "";
 
-  const discoverJobs = getPublicActiveJobs();
-  const recruiterJobs = getRecruiterJobs(userId);
-  const recruiterApplications = getRecruiterApplications(userId);
-  const myApplications = currentUser ? getMyApplications(userId) : [];
+  useEffect(() => {
+    if (isJobSeeker) {
+      if (allJobsStatus === "idle") loadAllJobs();
+      if (currentUser) loadMyApplications();
+    } else {
+      if (myJobsStatus === "idle") loadMyJobs();
+    }
+  }, [
+    isJobSeeker,
+    allJobsStatus,
+    myJobsStatus,
+    currentUser,
+    loadAllJobs,
+    loadMyJobs,
+    loadMyApplications,
+  ]);
+
+  // When recruiter views applications tab, load applications for each owned job
+  useEffect(() => {
+    if (!isJobSeeker && recruiterTab === "applications") {
+      myJobs.forEach((j) => {
+        const id = jobIdOf(j);
+        if (id) loadJobApplications(id);
+      });
+    }
+  }, [isJobSeeker, recruiterTab, myJobs, loadJobApplications]);
 
   const filteredDiscoverJobs = useMemo(() => {
-    return discoverJobs.filter((job) => {
-      const q = searchQuery.trim().toLowerCase();
-      const matchesSearch =
-        q.length === 0 ||
-        job.title.toLowerCase().includes(q) ||
-        job.farmName.toLowerCase().includes(q) ||
-        job.location.toLowerCase().includes(q);
-      const matchesContract =
-        contractFilter === "Tous" || job.contractType === contractFilter;
-      return matchesSearch && matchesContract;
-    });
-  }, [discoverJobs, searchQuery, contractFilter]);
+    return allJobs
+      .filter((job) => job.status === "active")
+      .filter((job) => {
+        const q = searchQuery.trim().toLowerCase();
+        const matchesSearch =
+          q.length === 0 ||
+          job.title.toLowerCase().includes(q) ||
+          job.farmName.toLowerCase().includes(q) ||
+          job.location.toLowerCase().includes(q);
+        const matchesContract =
+          contractFilter === "Tous" || job.contractType === contractFilter;
+        return matchesSearch && matchesContract;
+      });
+  }, [allJobs, searchQuery, contractFilter]);
 
+  const recruiterApplications = getRecruiterApplications();
   const recruiterApplicationsPending = recruiterApplications.filter(
     (app) => app.status === "pending",
   ).length;
-  const recruiterActiveOffers = getRecruiterActiveOffersCount(userId);
+  const recruiterActiveOffers = getRecruiterActiveOffersCount();
 
   const openDetails = (jobId: string) => {
     router.push({ pathname: "/(tabs)/jobs/[id]", params: { id: jobId } });
   };
 
   const goApply = (jobId: string) => {
-    const isJobSeeker = (currentUser?.userType ?? userType) === "job_seeker";
+    const isJobSeekerLocal = (currentUser?.userType ?? userType) === "job_seeker";
     router.push({
-      pathname: isJobSeeker
+      pathname: isJobSeekerLocal
         ? "/(tabs-job-seeker)/jobs/apply"
         : "/(tabs)/jobs/apply",
       params: { id: jobId },
@@ -172,16 +202,19 @@ export default function JobsScreen() {
                 contentContainerStyle={{ paddingBottom: tabBarInset }}
               >
                 {filteredDiscoverJobs.length > 0 ? (
-                  filteredDiscoverJobs.map((job) => (
-                    <JobCard
-                      key={job.id}
-                      job={job}
-                      applied={currentUser ? hasApplied(job.id, userId) : false}
-                      onPress={() => openDetails(job.id)}
-                      onPrimaryAction={() => goApply(job.id)}
-                      primaryLabel="Postuler"
-                    />
-                  ))
+                  filteredDiscoverJobs.map((job) => {
+                    const id = jobIdOf(job);
+                    return (
+                      <JobCard
+                        key={id}
+                        job={job}
+                        applied={currentUser ? hasApplied(id) : false}
+                        onPress={() => openDetails(id)}
+                        onPrimaryAction={() => goApply(id)}
+                        primaryLabel="Postuler"
+                      />
+                    );
+                  })
                 ) : (
                   <JobsEmptyState
                     icon="search-outline"
@@ -203,10 +236,10 @@ export default function JobsScreen() {
                   const job = getJobById(application.jobId);
                   return (
                     <ApplicationCard
-                      key={application.id}
+                      key={appIdOf(application)}
                       application={application}
                       job={job}
-                      onPress={() => job && openDetails(job.id)}
+                      onPress={() => job && openDetails(jobIdOf(job))}
                     />
                   );
                 })
@@ -233,7 +266,7 @@ export default function JobsScreen() {
               {
                 key: "posts",
                 label: "Mes offres",
-                count: recruiterJobs.length,
+                count: myJobs.length,
               },
               {
                 key: "applications",
@@ -294,16 +327,19 @@ export default function JobsScreen() {
 
             {recruiterTab === "posts" && (
               <View className="px-4 py-4">
-                {recruiterJobs.length > 0 ? (
-                  recruiterJobs.map((job) => (
-                    <JobCard
-                      key={job.id}
-                      job={job}
-                      onPress={() => openDetails(job.id)}
-                      onPrimaryAction={() => goApplications(job.id)}
-                      primaryLabel="Candidatures"
-                    />
-                  ))
+                {myJobs.length > 0 ? (
+                  myJobs.map((job) => {
+                    const id = jobIdOf(job);
+                    return (
+                      <JobCard
+                        key={id}
+                        job={job}
+                        onPress={() => openDetails(id)}
+                        onPrimaryAction={() => goApplications(id)}
+                        primaryLabel="Candidatures"
+                      />
+                    );
+                  })
                 ) : (
                   <JobsEmptyState
                     icon="briefcase-outline"
@@ -323,10 +359,10 @@ export default function JobsScreen() {
                     const job = getJobById(application.jobId);
                     return (
                       <ApplicationCard
-                        key={application.id}
+                        key={appIdOf(application)}
                         application={application}
                         job={job}
-                        onPress={() => job && goApplications(job.id)}
+                        onPress={() => job && goApplications(jobIdOf(job))}
                       />
                     );
                   })
@@ -339,8 +375,6 @@ export default function JobsScreen() {
                 )}
               </View>
             )}
-
-            {recruiterTab === "posts" && recruiterJobs.length > 0 && null}
           </ScrollView>
         </>
       )}

@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { View, Text, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams } from "expo-router";
-import { useJobsStore } from "@/stores/jobsStore";
+import { useJobsStore, appIdOf } from "@/stores/jobsStore";
 import { AnimatedPressable } from "@/components/animated";
 import { haptic } from "@/utils/haptics";
 import { colors } from "@/theme/colors";
@@ -15,8 +15,12 @@ export default function JobApplicationsScreen() {
   const tabBarInset = useTabBarInset();
   const params = useLocalSearchParams();
   const getJobById = useJobsStore((state) => state.getJobById);
+  const loadJobById = useJobsStore((state) => state.loadJobById);
   const getApplicationsByJobId = useJobsStore(
     (state) => state.getApplicationsByJobId,
+  );
+  const loadJobApplications = useJobsStore(
+    (state) => state.loadJobApplications,
   );
   const updateApplicationStatus = useJobsStore(
     (state) => state.updateApplicationStatus,
@@ -27,6 +31,13 @@ export default function JobApplicationsScreen() {
   const jobId = params.id as string;
   const job = getJobById(jobId);
   const applications = getApplicationsByJobId(jobId);
+
+  useEffect(() => {
+    if (jobId) {
+      if (!job) loadJobById(jobId);
+      loadJobApplications(jobId);
+    }
+  }, [jobId, job, loadJobById, loadJobApplications]);
   const sortedApplications = [...applications].sort((a, b) => {
     const aTime = new Date(a.appliedDate).getTime();
     const bTime = new Date(b.appliedDate).getTime();
@@ -64,7 +75,7 @@ export default function JobApplicationsScreen() {
         {sortedApplications.length > 0 ? (
           sortedApplications.map((applicant) => (
             <View
-              key={applicant.id}
+              key={appIdOf(applicant)}
               className="bg-white rounded-2xl p-4 mb-3 border border-gray-200"
             >
               {/* Header with Name and Status */}
@@ -199,7 +210,11 @@ export default function JobApplicationsScreen() {
                 <AnimatedPressable
                   onPress={() => {
                     haptic.success();
-                    updateApplicationStatus(applicant.id, jobId, "accepted");
+                    updateApplicationStatus(
+                      appIdOf(applicant),
+                      jobId,
+                      "accepted",
+                    );
                   }}
                   className="flex-1 bg-green-500 rounded-lg py-2.5 flex-row items-center justify-center"
                 >
@@ -211,7 +226,11 @@ export default function JobApplicationsScreen() {
                 <AnimatedPressable
                   onPress={() => {
                     haptic.warning();
-                    updateApplicationStatus(applicant.id, jobId, "rejected");
+                    updateApplicationStatus(
+                      appIdOf(applicant),
+                      jobId,
+                      "rejected",
+                    );
                   }}
                   className="flex-1 bg-red-500 rounded-lg py-2.5 flex-row items-center justify-center"
                 >

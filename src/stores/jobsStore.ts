@@ -1,237 +1,289 @@
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { mockJobs, mockMyJobs, mockApplicants } from "@/data/mockJobs";
+import {
+  fetchJobs,
+  fetchJobById,
+  fetchMyJobs,
+  createJob as createJobApi,
+  updateJob as updateJobApi,
+  deleteJobApi,
+  setJobStatusApi,
+  applyToJob as applyToJobApi,
+  fetchJobApplications,
+  fetchMyApplications,
+  setApplicationStatus as setApplicationStatusApi,
+  type ApplyJobInput,
+  type JobsQuery,
+} from "@/lib/api/jobs";
+
+type Status = "idle" | "loading" | "ready" | "error";
+
+export function jobIdOf(job: Job | undefined | null): string {
+  if (!job) return "";
+  return (job._id || job.id || "") as string;
+}
+
+export function appIdOf(app: JobApplication): string {
+  return (app._id || app.id || "") as string;
+}
 
 interface JobsStore {
-  // All available jobs (for job seekers)
   allJobs: Job[];
+  allJobsStatus: Status;
+  allJobsError: string | null;
 
-  // User's posted jobs (for recruiters) - persisted
   myJobs: Job[];
-  setMyJobs: (jobs: Job[]) => void;
+  myJobsStatus: Status;
+  myJobsError: string | null;
 
-  // Applications by job ID - persisted
-  applications: Record<string, JobApplication[]>;
+  detailById: Record<string, Job>;
+  applicationsByJobId: Record<string, JobApplication[]>;
+  myApplications: JobApplication[];
+  myApplicationsStatus: Status;
 
-  // CRUD operations
-  createJob: (job: Omit<Job, "id" | "postedDate" | "applicantsCount">) => void;
-  updateJob: (id: string, job: Partial<Job>) => void;
-  deleteJob: (id: string) => void;
-  duplicateJob: (id: string) => void;
-  getJobById: (id: string) => Job | undefined;
+  loadAllJobs: (params?: JobsQuery) => Promise<void>;
+  loadJobById: (id: string) => Promise<Job | null>;
+  loadMyJobs: () => Promise<void>;
+  createJob: (data: Partial<Job>) => Promise<Job | null>;
+  updateJobAction: (id: string, data: Partial<Job>) => Promise<Job | null>;
+  deleteJob: (id: string) => Promise<boolean>;
+  setJobStatus: (id: string, status: JobStatus) => Promise<Job | null>;
 
-  // Application operations
-  submitApplication: (
-    application: Omit<JobApplication, "id" | "appliedDate" | "status">,
-  ) => void;
+  applyToJob: (
+    jobId: string,
+    data: ApplyJobInput,
+  ) => Promise<{ ok: boolean; error?: string }>;
+  loadJobApplications: (jobId: string) => Promise<JobApplication[]>;
+  loadMyApplications: () => Promise<void>;
   updateApplicationStatus: (
     applicationId: string,
     jobId: string,
-    status: "pending" | "reviewed" | "accepted" | "rejected",
-  ) => void;
-  getApplicationsByJobId: (jobId: string) => JobApplication[];
-  getMyApplications: (applicantId: string) => JobApplication[];
-  getAcceptedJobsForUser: (applicantId: string) => Job[];
-  hasApplied: (jobId: string, applicantId: string) => boolean;
+    status: JobApplication["status"],
+    message?: string,
+  ) => Promise<JobApplication | null>;
 
-  // New unified selectors
-  getAllJobs: () => Job[];
-  getPublicActiveJobs: () => Job[];
-  getRecruiterJobs: (recruiterId: string) => Job[];
-  getRecruiterActiveOffersCount: (recruiterId: string) => number;
-  getRecruiterApplications: (recruiterId: string) => JobApplication[];
+  getJobById: (id: string) => Job | undefined;
+  getApplicationsByJobId: (jobId: string) => JobApplication[];
+  hasApplied: (jobId: string) => boolean;
+  getRecruiterActiveOffersCount: () => number;
+  getRecruiterApplications: () => JobApplication[];
+  getAcceptedJobsForUser: () => Job[];
 }
 
-export const useJobsStore = create<JobsStore>()(
-  persist(
-    (set, get) => ({
-      allJobs: mockJobs,
-      myJobs: mockMyJobs,
-      applications: mockApplicants,
+export const useJobsStore = create<JobsStore>((set, get) => ({
+  allJobs: [],
+  allJobsStatus: "idle",
+  allJobsError: null,
+  myJobs: [],
+  myJobsStatus: "idle",
+  myJobsError: null,
+  detailById: {},
+  applicationsByJobId: {},
+  myApplications: [],
+  myApplicationsStatus: "idle",
 
-      setMyJobs: (jobs: Job[]) => set({ myJobs: jobs }),
+  loadAllJobs: async (params) => {
+    set({ allJobsStatus: "loading", allJobsError: null });
+    try {
+      const { jobs } = await fetchJobs(params);
+      set({ allJobs: jobs, allJobsStatus: "ready" });
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Erreur de chargement";
+      set({ allJobsStatus: "error", allJobsError: message });
+    }
+  },
 
-      createJob: (jobData) => {
-        const newJob: Job = {
-          ...jobData,
-          id: `job-${Date.now()}`,
-          postedDate: new Date().toISOString().split("T")[0],
-          applicantsCount: 0,
-          status: jobData.status ?? "active",
-        };
-        set((state) => ({ myJobs: [newJob, ...state.myJobs] }));
-      },
+  loadJobById: async (id) => {
+    try {
+      const job = await fetchJobById(id);
+      set((state) => ({
+        detailById: { ...state.detailById, [jobIdOf(job)]: job },
+      }));
+      return job;
+    } catch {
+      return null;
+    }
+  },
 
-      updateJob: (id: string, jobData: Partial<Job>) => {
-        set((state) => ({
-          allJobs: state.allJobs.map((job) =>
-            job.id === id ? { ...job, ...jobData } : job,
+  loadMyJobs: async () => {
+    set({ myJobsStatus: "loading", myJobsError: null });
+    try {
+      const jobs = await fetchMyJobs();
+      set({ myJobs: jobs, myJobsStatus: "ready" });
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Erreur de chargement";
+      set({ myJobsStatus: "error", myJobsError: message });
+    }
+  },
+
+  createJob: async (data) => {
+    try {
+      const job = await createJobApi(data);
+      set((state) => ({ myJobs: [job, ...state.myJobs] }));
+      return job;
+    } catch (err) {
+      console.warn("Failed to create job", err);
+      return null;
+    }
+  },
+
+  updateJobAction: async (id, data) => {
+    try {
+      const job = await updateJobApi(id, data);
+      set((state) => ({
+        myJobs: state.myJobs.map((j) => (jobIdOf(j) === id ? job : j)),
+        allJobs: state.allJobs.map((j) => (jobIdOf(j) === id ? job : j)),
+        detailById: { ...state.detailById, [id]: job },
+      }));
+      return job;
+    } catch (err) {
+      console.warn("Failed to update job", err);
+      return null;
+    }
+  },
+
+  deleteJob: async (id) => {
+    try {
+      await deleteJobApi(id);
+      set((state) => ({
+        myJobs: state.myJobs.filter((j) => jobIdOf(j) !== id),
+        allJobs: state.allJobs.filter((j) => jobIdOf(j) !== id),
+      }));
+      return true;
+    } catch (err) {
+      console.warn("Failed to delete job", err);
+      return false;
+    }
+  },
+
+  setJobStatus: async (id, status) => {
+    try {
+      const job = await setJobStatusApi(id, status);
+      set((state) => ({
+        myJobs: state.myJobs.map((j) => (jobIdOf(j) === id ? job : j)),
+        allJobs: state.allJobs.map((j) => (jobIdOf(j) === id ? job : j)),
+      }));
+      return job;
+    } catch (err) {
+      console.warn("Failed to set job status", err);
+      return null;
+    }
+  },
+
+  applyToJob: async (jobId, data) => {
+    try {
+      const application = await applyToJobApi(jobId, data);
+      set((state) => ({
+        myApplications: [application, ...state.myApplications],
+        applicationsByJobId: {
+          ...state.applicationsByJobId,
+          [jobId]: [
+            ...(state.applicationsByJobId[jobId] || []),
+            application,
+          ],
+        },
+        allJobs: state.allJobs.map((j) =>
+          jobIdOf(j) === jobId
+            ? { ...j, applicantsCount: (j.applicantsCount || 0) + 1 }
+            : j,
+        ),
+      }));
+      return { ok: true };
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Échec de l'envoi";
+      return { ok: false, error: message };
+    }
+  },
+
+  loadJobApplications: async (jobId) => {
+    try {
+      const applications = await fetchJobApplications(jobId);
+      set((state) => ({
+        applicationsByJobId: {
+          ...state.applicationsByJobId,
+          [jobId]: applications,
+        },
+      }));
+      return applications;
+    } catch {
+      return [];
+    }
+  },
+
+  loadMyApplications: async () => {
+    set({ myApplicationsStatus: "loading" });
+    try {
+      const applications = await fetchMyApplications();
+      set({ myApplications: applications, myApplicationsStatus: "ready" });
+    } catch {
+      set({ myApplicationsStatus: "error" });
+    }
+  },
+
+  updateApplicationStatus: async (applicationId, jobId, status, message) => {
+    try {
+      const application = await setApplicationStatusApi(
+        applicationId,
+        status,
+        message,
+      );
+      set((state) => ({
+        applicationsByJobId: {
+          ...state.applicationsByJobId,
+          [jobId]: (state.applicationsByJobId[jobId] || []).map((a) =>
+            appIdOf(a) === applicationId ? application : a,
           ),
-          myJobs: state.myJobs.map((job) =>
-            job.id === id ? { ...job, ...jobData } : job,
-          ),
-        }));
-      },
+        },
+        myApplications: state.myApplications.map((a) =>
+          appIdOf(a) === applicationId ? application : a,
+        ),
+      }));
+      return application;
+    } catch (err) {
+      console.warn("Failed to update application status", err);
+      return null;
+    }
+  },
 
-      deleteJob: (id: string) => {
-        set((state) => ({
-          allJobs: state.allJobs.filter((job) => job.id !== id),
-          myJobs: state.myJobs.filter((job) => job.id !== id),
-        }));
-      },
+  getJobById: (id) => {
+    const state = get();
+    if (state.detailById[id]) return state.detailById[id];
+    return (
+      state.myJobs.find((j) => jobIdOf(j) === id) ||
+      state.allJobs.find((j) => jobIdOf(j) === id)
+    );
+  },
 
-      duplicateJob: (id: string) => {
-        const jobToDuplicate = get().myJobs.find((job) => job.id === id);
-        if (!jobToDuplicate) return;
+  getApplicationsByJobId: (jobId) => {
+    return get().applicationsByJobId[jobId] || [];
+  },
 
-        const newJob: Job = {
-          ...jobToDuplicate,
-          id: `job-${Date.now()}`,
-          title: `${jobToDuplicate.title} (Copie)`,
-          postedDate: new Date().toISOString().split("T")[0],
-          applicantsCount: 0,
-          status: "active",
-        };
-        set((state) => ({ myJobs: [newJob, ...state.myJobs] }));
-      },
+  hasApplied: (jobId) => {
+    return get().myApplications.some((a) => a.jobId === jobId);
+  },
 
-      getJobById: (id: string) => {
-        const state = get();
-        return (
-          state.myJobs.find((job) => job.id === id) ||
-          state.allJobs.find((job) => job.id === id)
-        );
-      },
+  getRecruiterActiveOffersCount: () => {
+    return get().myJobs.filter((j) => j.status === "active").length;
+  },
 
-      submitApplication: (applicationData) => {
-        if (
-          applicationData.applicantId &&
-          get().hasApplied(applicationData.jobId, applicationData.applicantId)
-        ) {
-          return;
-        }
+  getRecruiterApplications: () => {
+    const myJobIds = new Set(get().myJobs.map(jobIdOf));
+    const apps: JobApplication[] = [];
+    Object.entries(get().applicationsByJobId).forEach(([jobId, list]) => {
+      if (myJobIds.has(jobId)) apps.push(...list);
+    });
+    return apps;
+  },
 
-        const newApplication: JobApplication = {
-          ...applicationData,
-          id: `app-${Date.now()}`,
-          appliedDate: new Date().toISOString().split("T")[0],
-          status: "pending",
-        };
-
-        set((state) => {
-          const existing = state.applications[applicationData.jobId] ?? [];
-          return {
-            allJobs: state.allJobs.map((job) =>
-              job.id === applicationData.jobId
-                ? { ...job, applicantsCount: (job.applicantsCount ?? 0) + 1 }
-                : job,
-            ),
-            myJobs: state.myJobs.map((job) =>
-              job.id === applicationData.jobId
-                ? { ...job, applicantsCount: (job.applicantsCount ?? 0) + 1 }
-                : job,
-            ),
-            applications: {
-              ...state.applications,
-              [applicationData.jobId]: [...existing, newApplication],
-            },
-          };
-        });
-      },
-
-      updateApplicationStatus: (
-        applicationId: string,
-        jobId: string,
-        status: "pending" | "reviewed" | "accepted" | "rejected",
-      ) => {
-        set((state) => {
-          const jobApps = state.applications[jobId] ?? [];
-          return {
-            applications: {
-              ...state.applications,
-              [jobId]: jobApps.map((app) =>
-                app.id === applicationId ? { ...app, status } : app,
-              ),
-            },
-          };
-        });
-      },
-
-      getApplicationsByJobId: (jobId: string) => {
-        return get().applications[jobId] ?? [];
-      },
-
-      getMyApplications: (applicantId: string) => {
-        return Object.values(get().applications)
-          .flat()
-          .filter((app) => app.applicantId === applicantId);
-      },
-
-      hasApplied: (jobId: string, applicantId: string) => {
-        return (get().applications[jobId] ?? []).some(
-          (app) => app.applicantId === applicantId,
-        );
-      },
-
-      getAcceptedJobsForUser: (applicantId: string) => {
-        const state = get();
-        const acceptedJobIds = Object.entries(state.applications)
-          .filter(([, apps]) =>
-            apps.some(
-              (app) =>
-                app.applicantId === applicantId && app.status === "accepted",
-            ),
-          )
-          .map(([jobId]) => jobId);
-
-        return [...state.allJobs, ...state.myJobs].filter((job) =>
-          acceptedJobIds.includes(job.id),
-        );
-      },
-
-      getAllJobs: () => {
-        const state = get();
-        const byId = new Map<string, Job>();
-        state.allJobs.forEach((job) => byId.set(job.id, job));
-        state.myJobs.forEach((job) => byId.set(job.id, job));
-        return Array.from(byId.values());
-      },
-
-      getPublicActiveJobs: () => {
-        return get()
-          .getAllJobs()
-          .filter((job) => job.status === "active");
-      },
-
-      getRecruiterJobs: (recruiterId: string) => {
-        return get().myJobs.filter((job) => job.createdBy === recruiterId);
-      },
-
-      getRecruiterActiveOffersCount: (recruiterId: string) => {
-        return get()
-          .getRecruiterJobs(recruiterId)
-          .filter((job) => job.status === "active").length;
-      },
-
-      getRecruiterApplications: (recruiterId: string) => {
-        const recruiterJobIds = new Set(
-          get()
-            .getRecruiterJobs(recruiterId)
-            .map((job) => job.id),
-        );
-        return Object.entries(get().applications)
-          .filter(([jobId]) => recruiterJobIds.has(jobId))
-          .flatMap(([, apps]) => apps);
-      },
-    }),
-    {
-      name: "@ags_jobs_storage",
-      storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) => ({
-        myJobs: state.myJobs,
-        applications: state.applications,
-      }),
-    },
-  ),
-);
+  getAcceptedJobsForUser: () => {
+    const state = get();
+    const acceptedJobIds = new Set(
+      state.myApplications
+        .filter((a) => a.status === "accepted")
+        .map((a) => a.jobId),
+    );
+    return state.allJobs.filter((j) => acceptedJobIds.has(jobIdOf(j)));
+  },
+}));

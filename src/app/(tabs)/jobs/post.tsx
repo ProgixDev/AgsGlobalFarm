@@ -31,8 +31,10 @@ export default function JobPostScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const createJob = useJobsStore((state) => state.createJob);
-  const updateJob = useJobsStore((state) => state.updateJob);
+  const updateJobAction = useJobsStore((state) => state.updateJobAction);
   const getJobById = useJobsStore((state) => state.getJobById);
+  const loadJobById = useJobsStore((state) => state.loadJobById);
+  const [submitting, setSubmitting] = useState(false);
   const currentUser = useUserStore((state) => state.currentUser);
   const farmLocations = useMapStore((state) => state.farmLocations);
 
@@ -76,6 +78,12 @@ export default function JobPostScreen() {
   );
 
   // Load job data if editing
+  useEffect(() => {
+    if (isEditing && jobId && !getJobById(jobId)) {
+      loadJobById(jobId);
+    }
+  }, [isEditing, jobId, getJobById, loadJobById]);
+
   useEffect(() => {
     if (isEditing && jobId) {
       const job = getJobById(jobId);
@@ -194,7 +202,7 @@ export default function JobPostScreen() {
   };
 
   // Handle submit
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateForm()) {
       Alert.alert("Erreur", "Veuillez remplir tous les champs requis");
       return;
@@ -204,33 +212,40 @@ export default function JobPostScreen() {
       .split("\n")
       .filter((r) => r.trim() !== "");
 
+    setSubmitting(true);
+    let result: Job | null = null;
     if (isEditing && jobId) {
-      updateJob(jobId, {
+      result = await updateJobAction(jobId, {
         title: jobFormData.title,
         farmName: jobFormData.farmName,
         location: jobFormData.location,
         region: jobFormData.region,
         department: jobFormData.department,
-        contractType: jobFormData.contractType as any,
-        status: jobFormData.status as any,
+        contractType: jobFormData.contractType as JobContractType,
+        status: jobFormData.status as JobStatus,
         salaryRange: jobFormData.salaryRange,
         description: jobFormData.description,
         requirements: requirementsArray,
       });
     } else {
-      createJob({
+      result = await createJob({
         title: jobFormData.title,
         farmName: jobFormData.farmName,
         location: jobFormData.location,
         region: jobFormData.region,
         department: jobFormData.department,
-        contractType: jobFormData.contractType as any,
-        status: jobFormData.status as any,
+        contractType: jobFormData.contractType as JobContractType,
+        status: jobFormData.status as JobStatus,
         salaryRange: jobFormData.salaryRange,
         description: jobFormData.description,
         requirements: requirementsArray,
-        createdBy: currentUser?.id,
       });
+    }
+    setSubmitting(false);
+
+    if (!result) {
+      Alert.alert("Erreur", "Échec de l'enregistrement de l'offre.");
+      return;
     }
 
     haptic.success();

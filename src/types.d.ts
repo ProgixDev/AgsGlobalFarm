@@ -157,25 +157,32 @@ interface UserContextType {
 }
 
 // Job Types
+type JobContractType = "CDI" | "CDD" | "Saisonnier" | "Stage";
+type JobStatus = "active" | "paused" | "closed" | "expired";
+
 interface Job {
-  id: string;
+  _id?: string;
+  id?: string;
   title: string;
   farmName: string;
   location: string;
   region: string;
   department: string;
-  contractType: "CDI" | "CDD" | "Saisonnier" | "Stage";
+  contractType: JobContractType;
   salaryRange: string;
   description: string;
   requirements: string[];
   postedDate: string;
   applicantsCount: number;
-  status: "active" | "paused" | "closed" | "expired";
+  status: JobStatus;
   createdBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface JobApplication {
-  id: string;
+  _id?: string;
+  id?: string;
   jobId: string;
   applicantId?: string;
   applicantName: string;
@@ -191,6 +198,8 @@ interface JobApplication {
   appliedDate: string;
   status: "pending" | "reviewed" | "accepted" | "rejected";
   coverLetter?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // Job Application Form Types (candidate)

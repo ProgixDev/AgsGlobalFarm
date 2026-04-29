@@ -51,14 +51,20 @@ export default function JobApplyScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const getJobById = useJobsStore((state) => state.getJobById);
-  const submitApplication = useJobsStore((state) => state.submitApplication);
+  const loadJobById = useJobsStore((state) => state.loadJobById);
+  const applyToJob = useJobsStore((state) => state.applyToJob);
   const hasApplied = useJobsStore((state) => state.hasApplied);
   const currentUser = useUserStore((state) => state.currentUser);
 
   useHideTabBar();
+  const [submitting, setSubmitting] = useState(false);
 
   const jobId = params.id as string;
   const job = getJobById(jobId);
+
+  React.useEffect(() => {
+    if (!job && jobId) loadJobById(jobId);
+  }, [job, jobId, loadJobById]);
 
   const [formData, setFormData] = useState<JobApplicationFormData>({
     firstName: currentUser?.firstName ?? "",
@@ -154,7 +160,7 @@ export default function JobApplyScreen() {
     return valid;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!currentUser?.id) {
       Alert.alert("Erreur", "Vous devez etre connecte pour postuler.");
       return;
@@ -162,7 +168,7 @@ export default function JobApplyScreen() {
 
     if (!validate()) return;
 
-    if (hasApplied(jobId, currentUser.id)) {
+    if (hasApplied(jobId)) {
       Alert.alert(
         "Candidature deja envoyee",
         "Vous avez deja postule a cette offre.",
@@ -170,9 +176,8 @@ export default function JobApplyScreen() {
       return;
     }
 
-    submitApplication({
-      jobId,
-      applicantId: currentUser.id,
+    setSubmitting(true);
+    const result = await applyToJob(jobId, {
       applicantName: `${formData.firstName} ${formData.lastName}`,
       applicantEmail: formData.email,
       applicantPhone: formData.phone,
@@ -185,6 +190,12 @@ export default function JobApplyScreen() {
       salaryExpectation: formData.salaryExpectation,
       coverLetter: formData.coverLetter || undefined,
     });
+    setSubmitting(false);
+
+    if (!result.ok) {
+      Alert.alert("Erreur", result.error || "Échec de l'envoi.");
+      return;
+    }
 
     Alert.alert(
       "Candidature envoyée",
@@ -562,11 +573,14 @@ export default function JobApplyScreen() {
         <View className="px-4 py-4 bg-white border-t border-gray-200">
           <TouchableOpacity
             onPress={handleSubmit}
-            className="bg-primary rounded-xl py-4 flex-row items-center justify-center"
+            disabled={submitting}
+            className={`rounded-xl py-4 flex-row items-center justify-center ${
+              submitting ? "bg-primary/60" : "bg-primary"
+            }`}
           >
             <Ionicons name="send" size={20} color="white" />
             <Text className="text-white text-lg font-sans-bold ml-2">
-              Envoyer ma candidature
+              {submitting ? "Envoi..." : "Envoyer ma candidature"}
             </Text>
           </TouchableOpacity>
         </View>

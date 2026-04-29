@@ -1,9 +1,9 @@
-import React, { useState } from "react";
-import { View, Text, ScrollView, Modal } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Alert, View, Text, ScrollView, Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { useJobsStore } from "@/stores/jobsStore";
+import { useJobsStore, jobIdOf } from "@/stores/jobsStore";
 import { useUserStore } from "@/stores/userStore";
 import { useMapStore } from "@/stores/mapStore";
 import { AnimatedPressable } from "@/components/animated";
@@ -45,8 +45,9 @@ export default function JobDetailsScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const getJobById = useJobsStore((state) => state.getJobById);
+  const loadJobById = useJobsStore((state) => state.loadJobById);
   const deleteJob = useJobsStore((state) => state.deleteJob);
-  const duplicateJob = useJobsStore((state) => state.duplicateJob);
+  const createJob = useJobsStore((state) => state.createJob);
   const hasApplied = useJobsStore((state) => state.hasApplied);
   const userType = useUserStore((state) => state.userType);
   const currentUser = useUserStore((state) => state.currentUser);
@@ -60,13 +61,16 @@ export default function JobDetailsScreen() {
   const [showActionMenu, setShowActionMenu] = useState(false);
   const [showStatsModal, setShowStatsModal] = useState(false);
 
+  useEffect(() => {
+    if (!job && jobId) loadJobById(jobId);
+  }, [job, jobId, loadJobById]);
+
   const isRecruiter = (currentUser?.userType ?? userType) === "farm_owner";
   const isMyJob =
     !!job &&
     isRecruiter &&
     (!!currentUser?.id ? job.createdBy === currentUser.id : false);
-  const alreadyApplied =
-    !isRecruiter && !!currentUser && hasApplied(jobId, currentUser.id);
+  const alreadyApplied = !isRecruiter && !!currentUser && hasApplied(jobId);
   const isJobSeeker = !isRecruiter;
 
   const candidateFarms = farmLocations.filter((farm) => {
@@ -138,13 +142,40 @@ export default function JobDetailsScreen() {
 
   const handleDelete = () => {
     haptic.warning();
-    deleteJob(jobId);
-    router.back();
+    Alert.alert(
+      "Supprimer cette offre ?",
+      "Cette action est définitive.",
+      [
+        { text: "Annuler", style: "cancel" },
+        {
+          text: "Supprimer",
+          style: "destructive",
+          onPress: async () => {
+            const ok = await deleteJob(jobId);
+            if (ok) router.back();
+            else Alert.alert("Erreur", "Suppression échouée.");
+          },
+        },
+      ],
+    );
   };
 
-  const handleDuplicate = () => {
-    duplicateJob(jobId);
-    router.back();
+  const handleDuplicate = async () => {
+    if (!job) return;
+    const created = await createJob({
+      title: `${job.title} (Copie)`,
+      farmName: job.farmName,
+      location: job.location,
+      region: job.region,
+      department: job.department,
+      contractType: job.contractType,
+      salaryRange: job.salaryRange,
+      description: job.description,
+      requirements: job.requirements,
+      status: "active",
+    });
+    if (created) router.back();
+    else Alert.alert("Erreur", "Duplication échouée.");
   };
 
   const handleViewApplications = () => {
