@@ -145,6 +145,7 @@ interface UserProfile {
   phone: string;
   userType: UserType;
   gender?: string;
+  image?: string;
 }
 
 interface UserContextType {

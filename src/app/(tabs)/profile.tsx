@@ -1,8 +1,16 @@
-import React from "react";
-import { View, Text, ScrollView } from "react-native";
+import React, { useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as ImagePicker from "expo-image-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useUserStore } from "@/stores/userStore";
 import { AnimatedPressable, FadeInView } from "@/components/animated";
@@ -16,6 +24,40 @@ export default function ProfileScreen() {
   const tabBarInset = useTabBarInset();
   const currentUser = useUserStore((state) => state.currentUser);
   const logout = useUserStore((state) => state.logout);
+  const uploadAvatar = useUserStore((state) => state.uploadAvatar);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  const handlePickAvatar = async () => {
+    if (uploadingAvatar) return;
+    haptic.selection();
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert(
+        "Permission requise",
+        "Autorisez l'accès aux photos pour changer votre avatar.",
+      );
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (result.canceled || result.assets.length === 0) return;
+    const uri = result.assets[0].uri;
+    setUploadingAvatar(true);
+    const upload = await uploadAvatar(uri);
+    setUploadingAvatar(false);
+    if (!upload.success) {
+      Alert.alert(
+        "Échec de l'upload",
+        upload.error ?? "Impossible d'envoyer la photo. Réessayez.",
+      );
+    } else {
+      haptic.success();
+    }
+  };
 
   const handleLogout = async () => {
     haptic.warning();
@@ -74,11 +116,27 @@ export default function ProfileScreen() {
         </Text>
 
         <View className="bg-white border border-gray-100 rounded-3xl p-4 flex-row items-center">
-          <View className="w-14 h-14 rounded-2xl bg-primary items-center justify-center mr-3">
-            <Text className="text-white text-lg font-heading-bold">
-              {initials}
-            </Text>
-          </View>
+          <AnimatedPressable
+            onPress={handlePickAvatar}
+            disabled={uploadingAvatar}
+            className="w-14 h-14 rounded-2xl bg-primary items-center justify-center mr-3 overflow-hidden"
+          >
+            {uploadingAvatar ? (
+              <ActivityIndicator color={colors.white} />
+            ) : currentUser?.image ? (
+              <Image
+                source={{ uri: currentUser.image }}
+                style={{ width: 56, height: 56 }}
+              />
+            ) : (
+              <Text className="text-white text-lg font-heading-bold">
+                {initials}
+              </Text>
+            )}
+            <View className="absolute bottom-0 right-0 bg-white rounded-full p-0.5 border border-gray-200">
+              <Ionicons name="camera" size={10} color={colors.primary} />
+            </View>
+          </AnimatedPressable>
 
           <View className="flex-1">
             <Text

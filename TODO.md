@@ -137,7 +137,7 @@
 ### File Upload
 - [x] Storage provider chosen (Cloudinary)
 - [x] Upload signature endpoint (POST /api/upload/signature)
-- [ ] Avatar upload
+- [x] Avatar upload
 - [ ] Job photo upload
 - [ ] Incident photo upload
 - [ ] Product image upload (admin)
@@ -235,8 +235,8 @@
 - [ ] My applications (API)
 
 ### Profile
-- [ ] Personal info sync (API)
-- [ ] Avatar upload
+- [x] Personal info sync (API)
+- [x] Avatar upload
 
 ### Notifications
 - [ ] Register push token (API)

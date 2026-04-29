@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { authClient } from "@/lib/auth-client";
+import { pickAndUploadImage } from "@/lib/api/upload";
 
 interface RegisterData {
   firstName: string;
@@ -9,6 +10,14 @@ interface RegisterData {
   userType: UserType;
   gender?: string;
   password: string;
+}
+
+interface ProfileUpdate {
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  gender?: string;
+  image?: string;
 }
 
 interface AuthResult {
@@ -40,6 +49,11 @@ interface UserStore {
     otp: string,
     newPassword: string,
   ) => Promise<AuthResult>;
+
+  updateProfile: (update: ProfileUpdate) => Promise<AuthResult>;
+  uploadAvatar: (
+    localUri: string,
+  ) => Promise<{ success: boolean; error?: string; secureUrl?: string }>;
 }
 
 type SessionUser = {
@@ -50,6 +64,7 @@ type SessionUser = {
   phone?: string;
   gender?: string;
   role?: string;
+  image?: string | null;
 };
 
 function mapSessionUserToProfile(user: SessionUser): UserProfile {
@@ -62,6 +77,7 @@ function mapSessionUserToProfile(user: SessionUser): UserProfile {
     phone: user.phone ?? "",
     userType: role,
     gender: user.gender,
+    image: user.image ?? undefined,
   };
 }
 
@@ -266,6 +282,81 @@ export const useUserStore = create<UserStore>()((set, get) => ({
         error: extractErrorMessage(
           err,
           "Une erreur réseau est survenue. Réessayez.",
+        ),
+      };
+    }
+  },
+
+  updateProfile: async (update) => {
+    try {
+      const payload: Record<string, unknown> = {};
+      if (update.firstName !== undefined) payload.firstName = update.firstName;
+      if (update.lastName !== undefined) payload.lastName = update.lastName;
+      if (update.phone !== undefined) payload.phone = update.phone;
+      if (update.gender !== undefined) payload.gender = update.gender;
+      if (update.image !== undefined) payload.image = update.image;
+
+      const { error } = await authClient.updateUser(
+        payload as Parameters<typeof authClient.updateUser>[0],
+      );
+      if (error) {
+        return {
+          success: false,
+          error: extractErrorMessage(
+            error,
+            "Mise à jour impossible. Réessayez.",
+          ),
+        };
+      }
+
+      const current = get().currentUser;
+      if (current) {
+        set({
+          currentUser: {
+            ...current,
+            firstName: update.firstName ?? current.firstName,
+            lastName: update.lastName ?? current.lastName,
+            phone: update.phone ?? current.phone,
+            gender: update.gender ?? current.gender,
+            image: update.image ?? current.image,
+          },
+        });
+      } else {
+        // Refresh from session if no local profile
+        try {
+          const { data } = await authClient.getSession();
+          if (data?.user) {
+            const profile = mapSessionUserToProfile(data.user as SessionUser);
+            set({ currentUser: profile, userType: profile.userType });
+          }
+        } catch {}
+      }
+      return { success: true };
+    } catch (err) {
+      return {
+        success: false,
+        error: extractErrorMessage(
+          err,
+          "Une erreur réseau est survenue. Réessayez.",
+        ),
+      };
+    }
+  },
+
+  uploadAvatar: async (localUri) => {
+    try {
+      const { secureUrl } = await pickAndUploadImage("ags/avatars", localUri);
+      const update = await get().updateProfile({ image: secureUrl });
+      if (!update.success) {
+        return { success: false, error: update.error };
+      }
+      return { success: true, secureUrl };
+    } catch (err) {
+      return {
+        success: false,
+        error: extractErrorMessage(
+          err,
+          "Échec de l'upload de l'avatar. Réessayez.",
         ),
       };
     }

@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, ScrollView } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useUserStore } from "@/stores/userStore";
@@ -9,34 +16,49 @@ import Button from "@/components/ui/Button";
 import { haptic } from "@/utils/haptics";
 import { colors } from "@/theme/colors";
 
+const GENDER_OPTIONS: { key: string; label: string }[] = [
+  { key: "male", label: "Homme" },
+  { key: "female", label: "Femme" },
+  { key: "other", label: "Autre" },
+];
+
 export default function PersonalInfoScreen() {
   const router = useRouter();
   const currentUser = useUserStore((state) => state.currentUser);
-  const setCurrentUser = useUserStore((state) => state.setCurrentUser);
+  const updateProfile = useUserStore((state) => state.updateProfile);
 
   const [formData, setFormData] = useState({
     firstName: currentUser?.firstName ?? "",
     lastName: currentUser?.lastName ?? "",
-    email: currentUser?.email ?? "",
     phone: currentUser?.phone ?? "",
     gender: currentUser?.gender ?? "",
   });
+  const [saving, setSaving] = useState(false);
 
   const userTypeLabel: Record<string, string> = {
     job_seeker: "Chercheur d'emploi",
     farm_owner: "Propriétaire de ferme / Recruteur",
   };
 
-  const genderLabel: Record<string, string> = {
-    male: "Homme",
-    female: "Femme",
-    other: "Autre",
-  };
-
-  const handleSave = () => {
-    if (!currentUser) return;
+  const handleSave = async () => {
+    if (!currentUser || saving) return;
+    setSaving(true);
+    haptic.selection();
+    const result = await updateProfile({
+      firstName: formData.firstName.trim(),
+      lastName: formData.lastName.trim(),
+      phone: formData.phone.trim(),
+      gender: formData.gender || undefined,
+    });
+    setSaving(false);
+    if (!result.success) {
+      Alert.alert(
+        "Mise à jour impossible",
+        result.error ?? "Une erreur est survenue.",
+      );
+      return;
+    }
     haptic.success();
-    setCurrentUser({ ...currentUser, ...formData });
     router.back();
   };
 
@@ -116,15 +138,12 @@ export default function PersonalInfoScreen() {
             <Text className="text-xs font-sans text-muted-foreground mb-1">
               Email
             </Text>
-            <TextInput
-              className="text-base text-foreground"
-              value={formData.email}
-              onChangeText={(text) => setFormData({ ...formData, email: text })}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              placeholder="votre@email.com"
-              placeholderTextColor={colors.placeholder}
-            />
+            <Text className="text-base font-sans text-muted-foreground">
+              {currentUser?.email ?? "—"}
+            </Text>
+            <Text className="text-[11px] font-sans text-gray-400 mt-1">
+              L&apos;email ne peut pas être modifié pour le moment.
+            </Text>
           </View>
 
           <View className="px-4 pt-4 pb-3 border-b border-gray-100">
@@ -148,13 +167,37 @@ export default function PersonalInfoScreen() {
             </View>
           </View>
 
-          <View className="px-4 pt-4 pb-3">
-            <Text className="text-xs font-sans text-muted-foreground mb-1">
+          <View className="px-4 pt-4 pb-4">
+            <Text className="text-xs font-sans text-muted-foreground mb-2">
               Genre
             </Text>
-            <Text className="text-base font-sans text-foreground">
-              {genderLabel[formData.gender] ?? "—"}
-            </Text>
+            <View className="flex-row gap-2">
+              {GENDER_OPTIONS.map((opt) => {
+                const selected = formData.gender === opt.key;
+                return (
+                  <AnimatedPressable
+                    key={opt.key}
+                    className={`flex-1 px-3 py-2.5 rounded-xl border items-center ${
+                      selected
+                        ? "bg-primary border-primary"
+                        : "bg-white border-gray-200"
+                    }`}
+                    onPress={() => {
+                      haptic.selection();
+                      setFormData({ ...formData, gender: opt.key });
+                    }}
+                  >
+                    <Text
+                      className={`text-sm font-sans-semibold ${
+                        selected ? "text-white" : "text-gray-700"
+                      }`}
+                    >
+                      {opt.label}
+                    </Text>
+                  </AnimatedPressable>
+                );
+              })}
+            </View>
           </View>
         </View>
 
@@ -189,7 +232,13 @@ export default function PersonalInfoScreen() {
           </AnimatedPressable>
         </View>
 
-        <Button onPress={handleSave} title="Enregistrer" className="mt-1" />
+        {saving ? (
+          <View className="items-center py-3">
+            <ActivityIndicator color={colors.primary} />
+          </View>
+        ) : (
+          <Button onPress={handleSave} title="Enregistrer" className="mt-1" />
+        )}
       </FadeInView>
     </ScrollView>
   );
