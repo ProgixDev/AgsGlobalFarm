@@ -1,7 +1,15 @@
 import React, { useMemo, useState, useCallback } from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
+import * as ImagePicker from "expo-image-picker";
 import FormInput from "@/components/ui/FormInput";
 import SwipeableBottomSheet from "@/components/ui/SwipeableBottomSheet";
 import { AnimatedPressable } from "@/components/animated";
@@ -12,8 +20,12 @@ import {
   getCategoryConfig,
   type IncidentCategoryConfig,
 } from "@/data/incident-categories";
+import IncidentCategoryIcon from "@/components/map/IncidentCategoryIcon";
 import { findRegionAtPoint } from "@/utils/geo";
 import { colors } from "@/theme/colors";
+import { pickAndUploadImage } from "@/lib/api/upload";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { haptic } from "@/utils/haptics";
 
 interface IncidentManagerSheetProps {
   visible?: boolean;
@@ -88,6 +100,7 @@ export function IncidentManagerSheet({
   const addIncident = useMapStore((s) => s.addIncident);
   const resolveIncident = useMapStore((s) => s.resolveIncident);
   const currentUser = useUserStore((s) => s.currentUser);
+  const { ensureAuth } = useRequireAuth();
 
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedCategory, setSelectedCategory] =
@@ -96,6 +109,10 @@ export function IncidentManagerSheet({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [severity, setSeverity] = useState<IncidentSeverity | null>(null);
+  const [images, setImages] = useState<string[]>([]);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const regionName = useMemo(() => {
     if (!coordinates) return null;
@@ -109,48 +126,126 @@ export function IncidentManagerSheet({
     setTitle("");
     setDescription("");
     setSeverity(null);
+    setImages([]);
+    setSubmitError(null);
   }, []);
 
-  const canSubmit =
-    selectedCategory !== null &&
-    title.trim().length >= 5 &&
-    description.trim().length >= 10 &&
-    severity !== null &&
-    (selectedCategory !== "other" || customCategory.trim().length >= 3);
-
-  const handleSubmit = useCallback(() => {
-    if (!canSubmit || !selectedCategory || !severity) return;
-
-    addIncident({
-      reporterId: currentUser?.id ?? "anonymous",
-      reporterName: currentUser
-        ? `${currentUser.firstName} ${currentUser.lastName}`
-        : "Utilisateur anonyme",
-      category: selectedCategory,
-      customCategory:
-        selectedCategory === "other" ? customCategory.trim() : undefined,
-      title: title.trim(),
-      description: description.trim(),
-      severity,
-      coordinates: coordinates ?? {
-        longitude: -14.4524,
-        latitude: 14.4974,
-      },
-      images: [],
+  const handlePickImage = useCallback(async () => {
+    if (uploadingImage || images.length >= 3) return;
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      setSubmitError(
+        "Autorisez l'accès aux photos pour ajouter une image.",
+      );
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: false,
+      quality: 0.7,
     });
+    if (result.canceled || result.assets.length === 0) return;
+    const localUri = result.assets[0].uri;
+    setUploadingImage(true);
+    setSubmitError(null);
+    try {
+      const upload = await pickAndUploadImage("ags/incidents", localUri);
+      setImages((prev) => [...prev, upload.secureUrl]);
+      haptic.success();
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Échec de l'upload de la photo.";
+      setSubmitError(message);
+      haptic.error();
+    } finally {
+      setUploadingImage(false);
+    }
+  }, [uploadingImage, images.length]);
 
-    resetForm();
-    setShowCreateForm(false);
+  const handleRemoveImage = useCallback((idx: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== idx));
+  }, []);
+
+  const validationErrors = useMemo(() => {
+    const errors: string[] = [];
+    if (!selectedCategory) errors.push("Sélectionnez un type d'incident");
+    if (
+      selectedCategory === "other" &&
+      customCategory.trim().length < 3
+    )
+      errors.push("Précisez le type (au moins 3 caractères)");
+    if (title.trim().length < 5)
+      errors.push("Titre trop court (5 caractères minimum)");
+    if (description.trim().length < 10)
+      errors.push("Description trop courte (10 caractères minimum)");
+    if (!severity) errors.push("Choisissez la gravité");
+    if (!coordinates)
+      errors.push("Position GPS requise (toucher Repositionner)");
+    return errors;
   }, [
-    canSubmit,
+    selectedCategory,
+    customCategory,
+    title,
+    description,
+    severity,
+    coordinates,
+  ]);
+
+  const canSubmit = validationErrors.length === 0;
+
+  const handleSubmit = useCallback(async () => {
+    if (!selectedCategory || !severity || !coordinates) return;
+    if (
+      !ensureAuth({
+        message: "Connectez-vous pour signaler un incident.",
+      })
+    )
+      return;
+
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const region =
+        findRegionAtPoint(coordinates.longitude, coordinates.latitude)
+          ?.properties.name ?? undefined;
+
+      await addIncident({
+        reporterId: currentUser?.id ?? "anonymous",
+        reporterName: currentUser
+          ? `${currentUser.firstName} ${currentUser.lastName}`
+          : "Utilisateur anonyme",
+        category: selectedCategory,
+        customCategory:
+          selectedCategory === "other" ? customCategory.trim() : undefined,
+        title: title.trim(),
+        description: description.trim(),
+        severity,
+        coordinates,
+        region,
+        images,
+      });
+      haptic.success();
+      resetForm();
+      setShowCreateForm(false);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Erreur d'enregistrement.";
+      setSubmitError(message);
+      haptic.error();
+    } finally {
+      setSubmitting(false);
+    }
+  }, [
     selectedCategory,
     severity,
+    coordinates,
+    ensureAuth,
     addIncident,
     currentUser,
     customCategory,
     title,
     description,
-    coordinates,
+    images,
     resetForm,
   ]);
 
@@ -371,18 +466,80 @@ export function IncidentManagerSheet({
               </View>
             </TouchableOpacity>
 
+            <Text className="text-xs text-gray-500 font-sans mb-2">
+              Photos (optionnel) — {images.length}/3
+            </Text>
+            <View className="flex-row flex-wrap gap-2 mb-3">
+              {images.map((url, idx) => (
+                <View
+                  key={`${url}-${idx}`}
+                  className="relative w-20 h-20 rounded-xl overflow-hidden border border-gray-200"
+                >
+                  <Image source={{ uri: url }} style={{ flex: 1 }} />
+                  <TouchableOpacity
+                    onPress={() => handleRemoveImage(idx)}
+                    className="absolute top-1 right-1 bg-black/60 rounded-full p-1"
+                  >
+                    <Ionicons name="close" size={12} color={colors.white} />
+                  </TouchableOpacity>
+                </View>
+              ))}
+              {images.length < 3 && (
+                <TouchableOpacity
+                  onPress={handlePickImage}
+                  disabled={uploadingImage}
+                  className="w-20 h-20 rounded-xl border border-dashed border-gray-300 items-center justify-center bg-gray-50"
+                >
+                  {uploadingImage ? (
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  ) : (
+                    <Ionicons
+                      name="camera-outline"
+                      size={22}
+                      color={colors.muted}
+                    />
+                  )}
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {submitError && (
+              <View className="bg-red-50 border border-red-200 rounded-xl px-3 py-2 mb-2">
+                <Text className="text-red-700 text-xs font-sans">
+                  {submitError}
+                </Text>
+              </View>
+            )}
+
+            {!canSubmit && validationErrors.length > 0 && (
+              <View className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mb-2">
+                {validationErrors.map((msg) => (
+                  <Text
+                    key={msg}
+                    className="text-amber-800 text-xs font-sans"
+                  >
+                    • {msg}
+                  </Text>
+                ))}
+              </View>
+            )}
+
             <AnimatedPressable
               onPress={handleSubmit}
-              disabled={!canSubmit}
+              disabled={!canSubmit || submitting}
               className={`rounded-xl py-3 items-center ${
-                canSubmit ? "bg-emerald-500" : "bg-gray-200"
+                canSubmit && !submitting ? "bg-emerald-500" : "bg-gray-200"
               }`}
             >
-              <Text
-                className={`font-sans-bold ${canSubmit ? "text-white" : "text-gray-400"}`}
-              >
-                Enregistrer le signalement
-              </Text>
+              {submitting ? (
+                <ActivityIndicator color={colors.white} />
+              ) : (
+                <Text
+                  className={`font-sans-bold ${canSubmit ? "text-white" : "text-gray-400"}`}
+                >
+                  Enregistrer le signalement
+                </Text>
+              )}
             </AnimatedPressable>
           </View>
         )}
@@ -437,8 +594,9 @@ export function IncidentManagerSheet({
                         className="w-8 h-8 rounded-full items-center justify-center"
                         style={{ backgroundColor: category.color }}
                       >
-                        <Ionicons
-                          name={category.icon}
+                        <IncidentCategoryIcon
+                          icon={category.icon}
+                          iconSet={category.iconSet}
                           size={16}
                           color={colors.white}
                         />
@@ -497,8 +655,9 @@ function CategoryChip({
       }}
       activeOpacity={0.75}
     >
-      <Ionicons
-        name={category.icon}
+      <IncidentCategoryIcon
+        icon={category.icon}
+        iconSet={category.iconSet}
         size={13}
         color={selected ? colors.white : colors.muted}
       />

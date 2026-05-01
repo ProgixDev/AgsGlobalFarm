@@ -19,6 +19,7 @@ import {
   getCategoryConfig,
   type IncidentCategoryConfig,
 } from "@/data/incident-categories";
+import IncidentCategoryIcon from "@/components/map/IncidentCategoryIcon";
 import { useMapStore } from "@/stores/mapStore";
 import { useUserStore } from "@/stores/userStore";
 import { findRegionAtPoint } from "@/utils/geo";
@@ -595,7 +596,12 @@ function CategoryCard({
           className="w-10 h-10 rounded-full items-center justify-center mb-2"
           style={{ backgroundColor: `${category.color}20` }}
         >
-          <Ionicons name={category.icon} size={20} color={category.color} />
+          <IncidentCategoryIcon
+            icon={category.icon}
+            iconSet={category.iconSet}
+            size={20}
+            color={category.color}
+          />
         </View>
         <Text
           className="text-xs font-sans-semibold text-center"

@@ -244,6 +244,11 @@ export default function ProfileScreen() {
                 onPress={() => router.push("/orders" as any)}
               />
               <MenuItem
+                icon="warning-outline"
+                label="Mes signalements"
+                onPress={() => router.push("/incidents" as any)}
+              />
+              <MenuItem
                 icon="notifications-outline"
                 label="Notifications"
                 onPress={() => router.push("/account/notifications")}
@@ -266,6 +271,11 @@ export default function ProfileScreen() {
                 icon="receipt-outline"
                 label="Mes commandes"
                 onPress={() => router.push("/orders" as any)}
+              />
+              <MenuItem
+                icon="warning-outline"
+                label="Mes signalements"
+                onPress={() => router.push("/incidents" as any)}
               />
               <MenuItem
                 icon="notifications-outline"

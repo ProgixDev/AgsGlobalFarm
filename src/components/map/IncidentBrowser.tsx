@@ -15,7 +15,10 @@ import { useUserStore } from "@/stores/userStore";
 import {
   incidentCategories,
   getCategoryConfig,
+  type IncidentIconName,
+  type IncidentIconSet,
 } from "@/data/incident-categories";
+import IncidentCategoryIcon from "@/components/map/IncidentCategoryIcon";
 import { findRegionAtPoint } from "@/utils/geo";
 import SwipeableBottomSheet from "@/components/ui/SwipeableBottomSheet";
 import { AnimatedPressable } from "@/components/animated";
@@ -266,6 +269,7 @@ export function IncidentBrowser({
         <FilterChip
           label="Tous"
           icon="list"
+          iconSet="ionicons"
           count={activeIncidents.length}
           color={colors.primary}
           active={activeFilter === "all"}
@@ -276,6 +280,7 @@ export function IncidentBrowser({
             key={cat.id}
             label={cat.label}
             icon={cat.icon}
+            iconSet={cat.iconSet}
             count={categoryCounts[cat.id] ?? 0}
             color={cat.color}
             active={activeFilter === cat.id}
@@ -319,13 +324,15 @@ export function IncidentBrowser({
 function FilterChip({
   label,
   icon,
+  iconSet,
   count,
   color,
   active,
   onPress,
 }: {
   label: string;
-  icon: React.ComponentProps<typeof Ionicons>["name"];
+  icon: IncidentIconName;
+  iconSet: IncidentIconSet;
   count: number;
   color: string;
   active: boolean;
@@ -342,8 +349,9 @@ function FilterChip({
       ]}
       activeOpacity={0.7}
     >
-      <Ionicons
-        name={icon}
+      <IncidentCategoryIcon
+        icon={icon}
+        iconSet={iconSet}
         size={14}
         color={active ? colors.white : colors.muted}
       />
@@ -405,7 +413,12 @@ function IncidentCard({
         className="w-8 h-8 rounded-full items-center justify-center mr-3"
         style={{ backgroundColor: catConfig.color }}
       >
-        <Ionicons name={catConfig.icon} size={16} color={colors.white} />
+        <IncidentCategoryIcon
+          icon={catConfig.icon}
+          iconSet={catConfig.iconSet}
+          size={16}
+          color={colors.white}
+        />
       </View>
 
       {/* Center: text */}
@@ -504,7 +517,12 @@ function IncidentDetail({
             className="w-10 h-10 rounded-full items-center justify-center mr-3"
             style={{ backgroundColor: catConfig.color + "20" }}
           >
-            <Ionicons name={catConfig.icon} size={20} color={catConfig.color} />
+            <IncidentCategoryIcon
+              icon={catConfig.icon}
+              iconSet={catConfig.iconSet}
+              size={20}
+              color={catConfig.color}
+            />
           </View>
           <View className="flex-1">
             <Text
@@ -531,8 +549,9 @@ function IncidentDetail({
             <View className="flex-row items-start justify-between">
               <View className="flex-1 mr-3">
                 <View className="flex-row items-center mb-2">
-                  <Ionicons
-                    name={catConfig.icon}
+                  <IncidentCategoryIcon
+                    icon={catConfig.icon}
+                    iconSet={catConfig.iconSet}
                     size={24}
                     color={colors.white}
                   />
@@ -655,8 +674,9 @@ function IncidentDetail({
             label="Catégorie"
             value={
               <View className="flex-row items-center">
-                <Ionicons
-                  name={catConfig.icon}
+                <IncidentCategoryIcon
+                  icon={catConfig.icon}
+                  iconSet={catConfig.iconSet}
                   size={14}
                   color={catConfig.color}
                 />

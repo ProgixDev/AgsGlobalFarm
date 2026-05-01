@@ -118,11 +118,15 @@
 - [x] Notify applicant on status change
 
 ### Incidents
-- [ ] Incident model
-- [ ] Report incident
-- [ ] List incidents
-- [ ] Incident categories endpoint
-- [ ] Photo upload
+- [x] Incident model
+- [x] Report incident (POST /api/incidents)
+- [x] List incidents (GET /api/incidents)
+- [x] List my incidents (GET /api/incidents/mine)
+- [x] Update / resolve (PATCH /api/incidents/:id)
+- [x] Delete (DELETE /api/incidents/:id)
+- [x] Photo upload (Cloudinary, ags/incidents folder)
+- [x] Seed script (scripts/seed-incidents.ts)
+- [ ] Incident categories endpoint (kept static client-side for now)
 
 ### Itineraries
 - [ ] Decide: static or DB
@@ -138,7 +142,7 @@
 - [x] Upload signature endpoint (POST /api/upload/signature)
 - [x] Avatar upload
 - [ ] Job photo upload
-- [ ] Incident photo upload
+- [x] Incident photo upload
 - [ ] Product image upload (admin)
 
 ### Admin
@@ -247,9 +251,12 @@
 - [ ] Data source decision
 
 ### Incidents
-- [ ] Submit (API)
-- [ ] Photo upload
-- [ ] My incidents list (API)
+- [x] List from API (loadIncidentsFromBackend)
+- [x] Submit (API) — optimistic + retry on error
+- [x] Photo upload (Cloudinary)
+- [x] My incidents list (API) — /incidents screen + profile link
+- [x] Resolve / delete (API)
+- [x] Form-discard bug fix (sheet stays mounted during pin mode)
 
 ### Support
 - [ ] Contact form → API

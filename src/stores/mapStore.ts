@@ -9,6 +9,15 @@ import {
   type FarmDTO,
   type FarmInput,
 } from "@/lib/api/farms";
+import {
+  createIncidentApi,
+  deleteIncidentApi,
+  fetchIncidents,
+  fetchMyIncidents,
+  updateIncidentApi,
+  type IncidentDTO,
+  type IncidentInput,
+} from "@/lib/api/incidents";
 
 function farmFromDTO(dto: FarmDTO): FarmLocation {
   return {
@@ -48,118 +57,39 @@ function farmToInput(farm: FarmLocation): FarmInput {
   };
 }
 
-const mockIncidents: IncidentReport[] = [
-  {
-    id: "incident-seed-1",
-    reporterId: "mock-1",
-    reporterName: "Moussa Diallo",
-    category: "crop_disease",
-    title: "Mildiou sur cultures maraîchères",
-    description:
-      "Le mildiou a été détecté sur plusieurs parcelles de tomates et de pommes de terre dans la zone de Ziguinchor. Les feuilles présentent des taches brunes et un flétrissement rapide. Environ 3 hectares sont touchés.",
-    severity: "high",
-    coordinates: { longitude: -16.27, latitude: 12.56 },
-    images: [
-      "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400",
-    ],
-    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-    status: "active",
-  },
-  {
-    id: "incident-seed-2",
-    reporterId: "mock-2",
-    reporterName: "Awa Ndiaye",
-    category: "locusts",
-    title: "Invasion de criquets pèlerins",
-    description:
-      "Des essaims de criquets pèlerins ont été observés dans les champs de mil et de sorgho au nord de Saint-Louis. Les cultures sur environ 15 hectares ont été partiellement détruites.",
-    severity: "high",
-    coordinates: { longitude: -16.02, latitude: 16.02 },
-    images: [
-      "https://images.unsplash.com/photo-1470058869958-2a77ade41c02?w=400",
-    ],
-    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    status: "active",
-  },
-  {
-    id: "incident-seed-3",
-    reporterId: "mock-3",
-    reporterName: "Ibrahima Sow",
-    category: "flood",
-    title: "Inondation des rizières",
-    description:
-      "Les fortes pluies ont provoqué l'inondation de plusieurs rizières dans le département de Fatick. Les plants de riz sont submergés depuis 3 jours.",
-    severity: "medium",
-    coordinates: { longitude: -16.41, latitude: 14.33 },
-    images: ["https://images.unsplash.com/photo-1547683905-f686c993aae5?w=400"],
-    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    status: "active",
-  },
-  {
-    id: "incident-seed-4",
-    reporterId: "mock-4",
-    reporterName: "Ousmane Ba",
-    category: "fire",
-    title: "Feu de brousse",
-    description:
-      "Un feu de brousse s'est déclaré à l'est de Tambacounda, menaçant les plantations d'anacardiers et les pâturages. Les pompiers sont sur place.",
-    severity: "high",
-    coordinates: { longitude: -13.68, latitude: 13.77 },
-    images: [
-      "https://images.unsplash.com/photo-1473448912268-2022ce9509d8?w=400",
-    ],
-    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    status: "active",
-  },
-  {
-    id: "incident-seed-5",
-    reporterId: "mock-5",
-    reporterName: "Fatou Sarr",
-    category: "pests",
-    title: "Pucerons sur arachide",
-    description:
-      "Une forte infestation de pucerons a été constatée sur les cultures d'arachide dans le bassin arachidier. Les rendements risquent d'être affectés de 30%.",
-    severity: "medium",
-    coordinates: { longitude: -16.07, latitude: 14.15 },
-    images: [
-      "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=400",
-    ],
-    createdAt: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(),
-    status: "active",
-  },
-  {
-    id: "incident-seed-6",
-    reporterId: "mock-6",
-    reporterName: "Abdoulaye Fall",
-    category: "drought",
-    title: "Sécheresse prolongée",
-    description:
-      "La saison des pluies est en retard de 3 semaines dans la région de Louga. Les cultures pluviales n'ont pas encore pu être semées.",
-    severity: "low",
-    coordinates: { longitude: -15.62, latitude: 15.62 },
-    images: [
-      "https://images.unsplash.com/photo-1504297050568-910d24c426d3?w=400",
-    ],
-    createdAt: new Date(Date.now() - 11 * 24 * 60 * 60 * 1000).toISOString(),
-    status: "active",
-  },
-  {
-    id: "incident-seed-7",
-    reporterId: "mock-7",
-    reporterName: "Mariama Diop",
-    category: "pests",
-    title: "Chenilles légionnaires d'automne",
-    description:
-      "Des chenilles légionnaires d'automne ont été identifiées dans les champs de maïs. Les larves se nourrissent des feuilles et des épis en formation.",
-    severity: "medium",
-    coordinates: { longitude: -15.55, latitude: 14.1 },
-    images: [
-      "https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?w=400",
-    ],
-    createdAt: new Date(Date.now() - 13 * 24 * 60 * 60 * 1000).toISOString(),
-    status: "active",
-  },
-];
+function incidentFromDTO(dto: IncidentDTO): IncidentReport {
+  return {
+    id: dto._id,
+    remoteId: dto._id,
+    reporterId: dto.reporterId,
+    reporterName: dto.reporterName,
+    category: dto.category,
+    customCategory: dto.customCategory,
+    title: dto.title,
+    description: dto.description,
+    severity: dto.severity,
+    coordinates: dto.coordinates,
+    region: dto.region,
+    images: dto.images ?? [],
+    createdAt: dto.createdAt,
+    updatedAt: dto.updatedAt,
+    status: dto.status,
+    syncStatus: "synced",
+  };
+}
+
+function incidentToInput(incident: IncidentReport): IncidentInput {
+  return {
+    category: incident.category,
+    customCategory: incident.customCategory,
+    title: incident.title,
+    description: incident.description,
+    severity: incident.severity,
+    coordinates: incident.coordinates,
+    region: incident.region,
+    images: incident.images,
+  };
+}
 
 interface MapStore {
   // Farm
@@ -169,6 +99,8 @@ interface MapStore {
 
   // Incidents
   incidents: IncidentReport[];
+  incidentsLoading: boolean;
+  incidentsError: string | null;
 
   // Farm actions
   addFarmLocation: (farm: FarmLocation) => Promise<void>;
@@ -178,11 +110,16 @@ interface MapStore {
   retryFarmSync: (id: string) => Promise<void>;
 
   // Incident actions
+  loadIncidentsFromBackend: () => Promise<void>;
   addIncident: (
-    incident: Omit<IncidentReport, "id" | "createdAt" | "status">,
-  ) => void;
-  resolveIncident: (id: string) => void;
-  deleteIncident: (id: string) => void;
+    incident: Omit<
+      IncidentReport,
+      "id" | "createdAt" | "status" | "syncStatus"
+    >,
+  ) => Promise<void>;
+  resolveIncident: (id: string) => Promise<void>;
+  deleteIncident: (id: string) => Promise<void>;
+  retryIncidentSync: (id: string) => Promise<void>;
   getActiveIncidents: () => IncidentReport[];
   getIncidentsByCategory: (category: IncidentCategory) => IncidentReport[];
 }
@@ -193,7 +130,9 @@ export const useMapStore = create<MapStore>()(
       farmLocations: [],
       farmsLoading: false,
       farmsError: null,
-      incidents: mockIncidents,
+      incidents: [],
+      incidentsLoading: false,
+      incidentsError: null,
 
       loadFarmsFromBackend: async () => {
         set({ farmsLoading: true, farmsError: null });
@@ -313,32 +252,122 @@ export const useMapStore = create<MapStore>()(
         }
       },
 
-      addIncident: (incidentData) => {
-        const newIncident: IncidentReport = {
-          ...incidentData,
-          id: `incident-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-          createdAt: new Date().toISOString(),
-          status: "active",
-        };
-        set((state) => ({
-          incidents: [newIncident, ...state.incidents],
-        }));
+      loadIncidentsFromBackend: async () => {
+        set({ incidentsLoading: true, incidentsError: null });
+        try {
+          const result = await fetchIncidents({ limit: 500 });
+          const remote = result.incidents.map(incidentFromDTO);
+          const remoteIds = new Set(remote.map((i) => i.remoteId));
+          const localPending = get().incidents.filter(
+            (i) => i.syncStatus !== "synced" && !remoteIds.has(i.remoteId),
+          );
+          set({
+            incidents: [...remote, ...localPending],
+            incidentsLoading: false,
+          });
+        } catch (err) {
+          const message = err instanceof Error ? err.message : "Sync error";
+          set({ incidentsLoading: false, incidentsError: message });
+        }
       },
 
-      resolveIncident: (id: string) => {
+      addIncident: async (incidentData) => {
+        const localId = `incident-${Date.now()}-${Math.random()
+          .toString(36)
+          .slice(2, 7)}`;
+        const now = new Date().toISOString();
+        const optimistic: IncidentReport = {
+          ...incidentData,
+          id: localId,
+          createdAt: now,
+          updatedAt: now,
+          status: "active",
+          syncStatus: "pending",
+        };
+        set((state) => ({
+          incidents: [optimistic, ...state.incidents],
+        }));
+        try {
+          const dto = await createIncidentApi(incidentToInput(optimistic));
+          const synced = incidentFromDTO(dto);
+          set((state) => ({
+            incidents: state.incidents.map((i) =>
+              i.id === localId ? synced : i,
+            ),
+          }));
+        } catch (err) {
+          const message = err instanceof Error ? err.message : "Sync error";
+          set((state) => ({
+            incidents: state.incidents.map((i) =>
+              i.id === localId ? { ...i, syncStatus: "error" } : i,
+            ),
+            incidentsError: message,
+          }));
+        }
+      },
+
+      resolveIncident: async (id: string) => {
+        const target = get().incidents.find((i) => i.id === id);
+        if (!target) return;
         set((state) => ({
           incidents: state.incidents.map((incident) =>
             incident.id === id
-              ? { ...incident, status: "resolved" as const }
+              ? {
+                  ...incident,
+                  status: "resolved" as const,
+                  syncStatus: "pending",
+                }
               : incident,
           ),
         }));
+        if (!target.remoteId) return;
+        try {
+          const dto = await updateIncidentApi(target.remoteId, {
+            status: "resolved",
+          });
+          const synced = incidentFromDTO(dto);
+          set((state) => ({
+            incidents: state.incidents.map((i) =>
+              i.id === id ? synced : i,
+            ),
+          }));
+        } catch (err) {
+          const message = err instanceof Error ? err.message : "Sync error";
+          set((state) => ({
+            incidents: state.incidents.map((i) =>
+              i.id === id ? { ...i, syncStatus: "error" } : i,
+            ),
+            incidentsError: message,
+          }));
+        }
       },
 
-      deleteIncident: (id: string) => {
+      deleteIncident: async (id: string) => {
+        const target = get().incidents.find((i) => i.id === id);
         set((state) => ({
           incidents: state.incidents.filter((incident) => incident.id !== id),
         }));
+        if (!target?.remoteId) return;
+        try {
+          await deleteIncidentApi(target.remoteId);
+        } catch (err) {
+          const message = err instanceof Error ? err.message : "Sync error";
+          set({ incidentsError: message });
+        }
+      },
+
+      retryIncidentSync: async (id: string) => {
+        const target = get().incidents.find((i) => i.id === id);
+        if (!target) return;
+        if (!target.remoteId) {
+          // Re-create
+          set((state) => ({
+            incidents: state.incidents.filter((i) => i.id !== id),
+          }));
+          await get().addIncident(target);
+        } else {
+          await get().resolveIncident(id);
+        }
       },
 
       getActiveIncidents: () => {

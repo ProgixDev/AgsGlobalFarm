@@ -187,13 +187,22 @@ export default function MapScreen() {
     "all_farms" | "selected_farm"
   >("all_farms");
 
-  const { farmLocations, incidents, loadFarmsFromBackend } = useMapStore();
+  const {
+    farmLocations,
+    incidents,
+    loadFarmsFromBackend,
+    loadIncidentsFromBackend,
+  } = useMapStore();
 
   useEffect(() => {
     if (isFarmOwner) {
       loadFarmsFromBackend();
     }
   }, [isFarmOwner, loadFarmsFromBackend]);
+
+  useEffect(() => {
+    loadIncidentsFromBackend();
+  }, [loadIncidentsFromBackend]);
 
   const zoomToFarm = useCallback((farm: FarmLocation) => {
     if (!cameraRef.current) return;
@@ -1001,31 +1010,29 @@ export default function MapScreen() {
 
       {mapMode === "incidents" && (
         <>
-          {!incidentLocationPinMode && (
-            <IncidentManagerSheet
-              selectedIncident={selectedIncident}
-              onSelectIncident={setSelectedIncident}
-              onCameraMove={handleIncidentCameraMove}
-              onDismiss={() => setIncidentSheetVisible(false)}
-              visible={incidentSheetVisible}
-              filteredIncidents={filteredIncidents}
-              radiusKm={incidentRadiusKm}
-              onChangeRadiusKm={setIncidentRadiusKm}
-              radiusMode={incidentRadiusMode}
-              onChangeRadiusMode={setIncidentRadiusMode}
-              hasFarms={farmLocations.length > 0}
-              coordinates={
-                incidentCoordinates ?? {
-                  longitude: mapCenter[0],
-                  latitude: mapCenter[1],
-                }
+          <IncidentManagerSheet
+            selectedIncident={selectedIncident}
+            onSelectIncident={setSelectedIncident}
+            onCameraMove={handleIncidentCameraMove}
+            onDismiss={() => setIncidentSheetVisible(false)}
+            visible={incidentSheetVisible && !incidentLocationPinMode}
+            filteredIncidents={filteredIncidents}
+            radiusKm={incidentRadiusKm}
+            onChangeRadiusKm={setIncidentRadiusKm}
+            radiusMode={incidentRadiusMode}
+            onChangeRadiusMode={setIncidentRadiusMode}
+            hasFarms={farmLocations.length > 0}
+            coordinates={
+              incidentCoordinates ?? {
+                longitude: mapCenter[0],
+                latitude: mapCenter[1],
               }
-              onEditLocation={() => {
-                setIncidentSheetVisible(false);
-                setIncidentLocationPinMode(true);
-              }}
-            />
-          )}
+            }
+            onEditLocation={() => {
+              setIncidentLocationPinMode(true);
+            }}
+          />
+
 
           {incidentLocationPinMode && (
             <>

@@ -121,6 +121,7 @@ type IncidentSeverity = "low" | "medium" | "high";
 
 interface IncidentReport {
   id: string;
+  remoteId?: string;
   reporterId: string;
   reporterName: string;
   category: IncidentCategory;
@@ -132,9 +133,12 @@ interface IncidentReport {
     longitude: number;
     latitude: number;
   };
+  region?: string;
   images: string[];
   createdAt: string;
+  updatedAt?: string;
   status: "active" | "resolved";
+  syncStatus?: "pending" | "synced" | "error";
 }
 
 // User Context Types
