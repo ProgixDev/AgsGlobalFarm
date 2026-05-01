@@ -161,7 +161,7 @@ export default function StudentDashboardScreen() {
       {ownedOnline.length > 0 && (
         <FadeInView className="px-5 mb-6" delay={100}>
           <Text className="text-lg font-heading-bold text-gray-800 mb-4">
-            Mes formations en ligne
+            Mes formations
           </Text>
 
           {ownedOnline.map((f) => {
@@ -238,7 +238,7 @@ export default function StudentDashboardScreen() {
       {ownedPresential.length > 0 && (
         <FadeInView className="px-5 mb-6" delay={150}>
           <Text className="text-lg font-heading-bold text-gray-800 mb-4">
-            Mes formations présentielles
+            {ownedOnline.length > 0 ? "Autres formations" : "Mes formations"}
           </Text>
 
           {ownedPresential.map((f) => (

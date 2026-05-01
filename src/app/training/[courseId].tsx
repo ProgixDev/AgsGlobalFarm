@@ -219,17 +219,6 @@ export default function FormationDetailScreen() {
         </View>
 
         <View className="px-5 pt-6 pb-4">
-          <View className="flex-row items-center mb-2">
-            <View
-              className={`px-2 py-0.5 rounded-full mr-2 ${isOnline ? "bg-blue-100" : "bg-purple-100"}`}
-            >
-              <Text
-                className={`text-[10px] font-sans-bold uppercase ${isOnline ? "text-blue-700" : "text-purple-700"}`}
-              >
-                {isOnline ? "En ligne" : "Présentiel"}
-              </Text>
-            </View>
-          </View>
           <Text className="text-2xl font-heading-bold text-gray-800 mb-3">
             {formation.title}
           </Text>

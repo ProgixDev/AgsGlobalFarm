@@ -229,17 +229,6 @@ export default function TrainingScreen() {
                     resizeMode="cover"
                   />
                   <View className="p-4">
-                    <View className="flex-row items-center mb-1.5">
-                      <View
-                        className={`px-2 py-0.5 rounded-full ${isOnline ? "bg-blue-100" : "bg-purple-100"}`}
-                      >
-                        <Text
-                          className={`text-[10px] font-sans-bold uppercase ${isOnline ? "text-blue-700" : "text-purple-700"}`}
-                        >
-                          {isOnline ? "En ligne" : "Présentiel"}
-                        </Text>
-                      </View>
-                    </View>
                     <Text
                       className="text-base font-heading-bold text-gray-900 mb-3"
                       numberOfLines={2}
@@ -372,16 +361,6 @@ export default function TrainingScreen() {
                     </Text>
 
                     <View className="flex-row items-center flex-wrap gap-1.5">
-                      <View
-                        className={`px-2.5 py-1 rounded-full ${isOnline ? "bg-blue-100 border border-blue-200" : "bg-purple-100 border border-purple-200"}`}
-                      >
-                        <Text
-                          className={`text-xs font-sans-semibold ${isOnline ? "text-blue-700" : "text-purple-700"}`}
-                        >
-                          {isOnline ? "En ligne" : "Présentiel"}
-                        </Text>
-                      </View>
-
                       <View
                         className={`${getLevelBgColor(f.level)} border border-black/5 px-2.5 py-1 rounded-full`}
                       >
