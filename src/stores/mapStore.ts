@@ -1,6 +1,52 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  createFarmApi,
+  deleteFarmApi,
+  fetchMyFarms,
+  updateFarmApi,
+  type FarmDTO,
+  type FarmInput,
+} from "@/lib/api/farms";
+
+function farmFromDTO(dto: FarmDTO): FarmLocation {
+  return {
+    id: dto._id,
+    remoteId: dto._id,
+    userId: dto.userId,
+    name: dto.name,
+    geometryType: dto.geometryType,
+    coordinates: dto.coordinates,
+    boundaryCoordinates: dto.boundaryCoordinates,
+    surfaceHectares: dto.surfaceHectares,
+    area: dto.area,
+    farmType: dto.farmType,
+    currentCrops: dto.currentCrops,
+    contact: dto.contact,
+    hidePersonalInfo: dto.hidePersonalInfo,
+    gpsCaptured: dto.gpsCaptured,
+    syncStatus: "synced",
+    createdAt: dto.createdAt,
+    updatedAt: dto.updatedAt,
+  };
+}
+
+function farmToInput(farm: FarmLocation): FarmInput {
+  return {
+    name: farm.name,
+    geometryType: farm.geometryType,
+    coordinates: farm.coordinates,
+    boundaryCoordinates: farm.boundaryCoordinates,
+    surfaceHectares: farm.surfaceHectares,
+    area: farm.area,
+    farmType: farm.farmType,
+    currentCrops: farm.currentCrops,
+    contact: farm.contact,
+    hidePersonalInfo: farm.hidePersonalInfo,
+    gpsCaptured: farm.gpsCaptured,
+  };
+}
 
 const mockIncidents: IncidentReport[] = [
   {
@@ -118,14 +164,18 @@ const mockIncidents: IncidentReport[] = [
 interface MapStore {
   // Farm
   farmLocations: FarmLocation[];
+  farmsLoading: boolean;
+  farmsError: string | null;
 
   // Incidents
   incidents: IncidentReport[];
 
   // Farm actions
-  addFarmLocation: (farm: FarmLocation) => void;
-  updateFarmLocation: (farm: FarmLocation) => void;
-  deleteFarmLocation: (id: string) => void;
+  addFarmLocation: (farm: FarmLocation) => Promise<void>;
+  updateFarmLocation: (farm: FarmLocation) => Promise<void>;
+  deleteFarmLocation: (id: string) => Promise<void>;
+  loadFarmsFromBackend: () => Promise<void>;
+  retryFarmSync: (id: string) => Promise<void>;
 
   // Incident actions
   addIncident: (
@@ -141,25 +191,127 @@ export const useMapStore = create<MapStore>()(
   persist(
     (set, get) => ({
       farmLocations: [],
+      farmsLoading: false,
+      farmsError: null,
       incidents: mockIncidents,
 
-      addFarmLocation: (farm: FarmLocation) =>
-        set((state) => ({ farmLocations: [farm, ...state.farmLocations] })),
-
-      updateFarmLocation: (farm: FarmLocation) => {
-        set((state) => ({
-          farmLocations: state.farmLocations.map((existing) =>
-            existing.id === farm.id
-              ? { ...farm, updatedAt: new Date().toISOString() }
-              : existing,
-          ),
-        }));
+      loadFarmsFromBackend: async () => {
+        set({ farmsLoading: true, farmsError: null });
+        try {
+          const remoteFarms = await fetchMyFarms();
+          const remote = remoteFarms.map(farmFromDTO);
+          const remoteIds = new Set(remote.map((f) => f.remoteId));
+          const localPending = get().farmLocations.filter(
+            (f) => f.syncStatus !== "synced" && !remoteIds.has(f.remoteId),
+          );
+          set({
+            farmLocations: [...remote, ...localPending],
+            farmsLoading: false,
+          });
+        } catch (err) {
+          const message = err instanceof Error ? err.message : "Sync error";
+          set({ farmsLoading: false, farmsError: message });
+        }
       },
 
-      deleteFarmLocation: (id: string) =>
+      addFarmLocation: async (farm: FarmLocation) => {
+        const optimistic: FarmLocation = { ...farm, syncStatus: "pending" };
+        set((state) => ({
+          farmLocations: [optimistic, ...state.farmLocations],
+        }));
+        try {
+          const dto = await createFarmApi(farmToInput(farm));
+          const synced = farmFromDTO(dto);
+          set((state) => ({
+            farmLocations: state.farmLocations.map((f) =>
+              f.id === farm.id ? { ...synced, id: synced.remoteId! } : f,
+            ),
+          }));
+        } catch (err) {
+          const message = err instanceof Error ? err.message : "Sync error";
+          set((state) => ({
+            farmLocations: state.farmLocations.map((f) =>
+              f.id === farm.id ? { ...f, syncStatus: "error" } : f,
+            ),
+            farmsError: message,
+          }));
+        }
+      },
+
+      updateFarmLocation: async (farm: FarmLocation) => {
+        const updatedAt = new Date().toISOString();
+        const optimistic: FarmLocation = {
+          ...farm,
+          updatedAt,
+          syncStatus: "pending",
+        };
+        set((state) => ({
+          farmLocations: state.farmLocations.map((existing) =>
+            existing.id === farm.id ? optimistic : existing,
+          ),
+        }));
+        if (!farm.remoteId) {
+          try {
+            const dto = await createFarmApi(farmToInput(farm));
+            const synced = farmFromDTO(dto);
+            set((state) => ({
+              farmLocations: state.farmLocations.map((f) =>
+                f.id === farm.id ? { ...synced, id: synced.remoteId! } : f,
+              ),
+            }));
+          } catch (err) {
+            const message = err instanceof Error ? err.message : "Sync error";
+            set((state) => ({
+              farmLocations: state.farmLocations.map((f) =>
+                f.id === farm.id ? { ...f, syncStatus: "error" } : f,
+              ),
+              farmsError: message,
+            }));
+          }
+          return;
+        }
+        try {
+          const dto = await updateFarmApi(farm.remoteId, farmToInput(farm));
+          const synced = farmFromDTO(dto);
+          set((state) => ({
+            farmLocations: state.farmLocations.map((f) =>
+              f.id === farm.id ? { ...synced, id: synced.remoteId! } : f,
+            ),
+          }));
+        } catch (err) {
+          const message = err instanceof Error ? err.message : "Sync error";
+          set((state) => ({
+            farmLocations: state.farmLocations.map((f) =>
+              f.id === farm.id ? { ...f, syncStatus: "error" } : f,
+            ),
+            farmsError: message,
+          }));
+        }
+      },
+
+      deleteFarmLocation: async (id: string) => {
+        const target = get().farmLocations.find((f) => f.id === id);
         set((state) => ({
           farmLocations: state.farmLocations.filter((farm) => farm.id !== id),
-        })),
+        }));
+        if (!target?.remoteId) return;
+        try {
+          await deleteFarmApi(target.remoteId);
+        } catch (err) {
+          const message = err instanceof Error ? err.message : "Sync error";
+          set({ farmsError: message });
+        }
+      },
+
+      retryFarmSync: async (id: string) => {
+        const target = get().farmLocations.find((f) => f.id === id);
+        if (!target) return;
+        if (target.remoteId) {
+          await get().updateFarmLocation(target);
+        } else {
+          await get().addFarmLocation(target);
+        }
+      },
 
       addIncident: (incidentData) => {
         const newIncident: IncidentReport = {

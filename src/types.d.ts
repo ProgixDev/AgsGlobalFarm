@@ -82,6 +82,7 @@ type FarmType =
 
 interface FarmLocation {
   id: string;
+  remoteId?: string;
   userId: string;
   name: string;
   geometryType: "point" | "polygon";
@@ -99,6 +100,8 @@ interface FarmLocation {
   currentCrops?: string;
   contact?: string;
   hidePersonalInfo?: boolean;
+  gpsCaptured?: boolean;
+  syncStatus?: "pending" | "synced" | "error";
   createdAt: string;
   updatedAt: string;
 }

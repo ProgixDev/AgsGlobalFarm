@@ -21,7 +21,8 @@
       "bundleIdentifier": "pro.progix.agsmobile",
       "infoPlist": {
         "UIStatusBarHidden": true,
-        "UIViewControllerBasedStatusBarAppearance": false
+        "UIViewControllerBasedStatusBarAppearance": false,
+        "NSLocationWhenInUseUsageDescription": "AGS utilise votre position GPS pour localiser votre ferme avec précision."
       }
     },
     "android": {
@@ -31,7 +32,11 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "pro.progix.agsmobile"
+      "package": "pro.progix.agsmobile",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "output": "static",
@@ -58,6 +63,12 @@
       ],
       [
         "@rnmapbox/maps"
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "AGS utilise votre position GPS pour localiser votre ferme avec précision."
+        }
       ],
       "expo-secure-store"
     ],

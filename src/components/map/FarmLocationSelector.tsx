@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   Switch,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { Camera } from "@rnmapbox/maps";
 import { Ionicons } from "@expo/vector-icons";
@@ -25,6 +26,7 @@ import { findRegionAtPoint } from "@/utils/geo";
 import { calculatePolygonSurfaceHectares } from "@/utils/farm-geometry";
 import { useMapStore } from "@/stores/mapStore";
 import { useUserStore } from "@/stores/userStore";
+import { useDeviceLocation } from "@/hooks/useDeviceLocation";
 
 interface FarmLocationSelectorProps {
   cameraRef: React.RefObject<Camera | null>;
@@ -142,6 +144,14 @@ export const FarmLocationSelector = forwardRef<
   const [showForm, setShowForm] = useState(false);
   const [editingFarmId, setEditingFarmId] = useState<string | null>(null);
 
+  const {
+    loading: gpsLoading,
+    error: gpsError,
+    requestLocation,
+    reset: resetGpsError,
+  } = useDeviceLocation();
+  const [gpsCaptured, setGpsCaptured] = useState(false);
+
   const [farmName, setFarmName] = useState("");
   const [locationMode, setLocationMode] = useState<"point" | "polygon">(
     "point",
@@ -178,10 +188,38 @@ export const FarmLocationSelector = forwardRef<
     setCurrentCrops("");
     setContact("");
     setHidePersonalInfo(false);
+    setGpsCaptured(false);
+    resetGpsError();
     setEditingFarmId(null);
     setIsEditing(false);
     setShowForm(false);
-  }, []);
+  }, [resetGpsError]);
+
+  const handleUseGps = useCallback(async () => {
+    resetGpsError();
+    const coords = await requestLocation();
+    if (!coords) {
+      haptic.error();
+      return;
+    }
+    haptic.success();
+    setCoordinates(coords);
+    setLocationMode("point");
+    setGpsCaptured(true);
+    onPointPinModeChange(false);
+    onPolygonDrawModeChange(false);
+    cameraRef.current?.setCamera({
+      centerCoordinate: [coords.longitude, coords.latitude],
+      zoomLevel: 14,
+      animationDuration: 800,
+    });
+  }, [
+    cameraRef,
+    onPointPinModeChange,
+    onPolygonDrawModeChange,
+    requestLocation,
+    resetGpsError,
+  ]);
 
   const handlePlacePoint = useCallback(() => {
     onPointPinModeChange(true);
@@ -195,6 +233,7 @@ export const FarmLocationSelector = forwardRef<
   const confirmPointPin = useCallback(() => {
     setCoordinates({ longitude: mapCenter[0], latitude: mapCenter[1] });
     setLocationMode("point");
+    setGpsCaptured(false);
     onPointPinModeChange(false);
   }, [mapCenter, onPointPinModeChange]);
 
@@ -250,6 +289,7 @@ export const FarmLocationSelector = forwardRef<
 
     const farmData: FarmLocation = {
       id,
+      remoteId: editingFarm?.remoteId,
       userId: currentUser?.id || "anonymous",
       name: farmName || "Ma Ferme",
       geometryType: locationMode,
@@ -266,14 +306,15 @@ export const FarmLocationSelector = forwardRef<
       currentCrops: currentCrops || undefined,
       contact: contact || undefined,
       hidePersonalInfo,
+      gpsCaptured: locationMode === "point" ? gpsCaptured : undefined,
       createdAt: editingFarm?.createdAt || now,
       updatedAt: now,
     };
 
     if (isEditing && editingFarm) {
-      updateFarmLocation(farmData);
+      void updateFarmLocation(farmData);
     } else {
-      addFarmLocation(farmData);
+      void addFarmLocation(farmData);
     }
 
     onSelectFarm(id);
@@ -292,6 +333,7 @@ export const FarmLocationSelector = forwardRef<
     currentCrops,
     contact,
     hidePersonalInfo,
+    gpsCaptured,
     isEditing,
     updateFarmLocation,
     addFarmLocation,
@@ -312,6 +354,7 @@ export const FarmLocationSelector = forwardRef<
     setCurrentCrops(farm.currentCrops ?? "");
     setContact(farm.contact ?? "");
     setHidePersonalInfo(farm.hidePersonalInfo ?? false);
+    setGpsCaptured(farm.gpsCaptured ?? false);
   }, []);
 
   const handleDelete = useCallback(
@@ -325,7 +368,7 @@ export const FarmLocationSelector = forwardRef<
             text: "Supprimer",
             style: "destructive",
             onPress: () => {
-              deleteFarmLocation(farmId);
+              void deleteFarmLocation(farmId);
               if (editingFarmId === farmId) {
                 resetForm();
               }
@@ -664,6 +707,46 @@ export const FarmLocationSelector = forwardRef<
             <View className="mx-5 mt-4">
               <SectionHeader icon="location" title="Emplacement" />
 
+              <TouchableOpacity
+                onPress={handleUseGps}
+                disabled={gpsLoading}
+                className="rounded-xl py-3 items-center mb-3 flex-row justify-center"
+                style={{
+                  backgroundColor: gpsLoading
+                    ? colors.borderLight
+                    : colors.primaryDark,
+                }}
+                activeOpacity={0.75}
+              >
+                {gpsLoading ? (
+                  <ActivityIndicator size="small" color={colors.primary} />
+                ) : (
+                  <Ionicons name="navigate" size={16} color={colors.white} />
+                )}
+                <Text className="text-white font-sans-bold text-sm ml-2">
+                  {gpsLoading
+                    ? "Localisation en cours..."
+                    : "Utiliser ma position GPS"}
+                </Text>
+              </TouchableOpacity>
+
+              {gpsError && (
+                <View className="bg-red-50 rounded-xl p-3 border border-red-200 mb-3">
+                  <Text className="text-red-700 font-sans-semibold text-sm">
+                    {gpsError.message}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={handleUseGps}
+                    className="mt-2 self-start rounded-lg px-3 py-1.5"
+                    style={{ backgroundColor: colors.danger }}
+                  >
+                    <Text className="text-white font-sans-semibold text-xs">
+                      Réessayer
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
               <View className="flex-row gap-2 mb-3">
                 <TouchableOpacity
                   onPress={handlePlacePoint}
@@ -709,12 +792,26 @@ export const FarmLocationSelector = forwardRef<
 
               {locationMode === "point" && coordinates && (
                 <View className="bg-emerald-50 rounded-xl p-3 border border-emerald-200">
-                  <Text className="text-emerald-800 font-sans-semibold text-sm">
-                    {getLocationLabel(coordinates)}
-                  </Text>
+                  <View className="flex-row items-center">
+                    <Text className="text-emerald-800 font-sans-semibold text-sm flex-1">
+                      {getLocationLabel(coordinates)}
+                    </Text>
+                    {gpsCaptured && (
+                      <View className="flex-row items-center bg-emerald-100 rounded-full px-2 py-0.5">
+                        <Ionicons
+                          name="navigate"
+                          size={11}
+                          color={colors.primaryDark}
+                        />
+                        <Text className="text-emerald-800 text-[11px] font-sans-semibold ml-1">
+                          GPS
+                        </Text>
+                      </View>
+                    )}
+                  </View>
                   <Text className="text-emerald-600/70 text-xs font-sans mt-0.5">
-                    {coordinates.latitude.toFixed(4)}°N,{" "}
-                    {coordinates.longitude.toFixed(4)}°W
+                    {coordinates.latitude.toFixed(5)}°N,{" "}
+                    {coordinates.longitude.toFixed(5)}°W
                   </Text>
                 </View>
               )}

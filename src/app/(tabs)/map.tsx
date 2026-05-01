@@ -187,7 +187,13 @@ export default function MapScreen() {
     "all_farms" | "selected_farm"
   >("all_farms");
 
-  const { farmLocations, incidents } = useMapStore();
+  const { farmLocations, incidents, loadFarmsFromBackend } = useMapStore();
+
+  useEffect(() => {
+    if (isFarmOwner) {
+      loadFarmsFromBackend();
+    }
+  }, [isFarmOwner, loadFarmsFromBackend]);
 
   const zoomToFarm = useCallback((farm: FarmLocation) => {
     if (!cameraRef.current) return;
