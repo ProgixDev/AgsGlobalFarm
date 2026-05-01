@@ -289,6 +289,14 @@ export const technicalItineraries: CropItineraryDefinition[] = [
     baselineAreaM2: 1000,
     sourcePdf: ["Itinéraire tomate 1000 m2.pdf"],
     cultivationNote: "Adapté serre et plein champ.",
+    specs: {
+      ph: "5,8 – 6,5",
+      conductivity: "2,0 – 3,5 mS/cm",
+      temperature: "18 – 28 °C",
+      cycleDuration: "4 – 5 mois",
+      averageYield: "8 – 12 t / 1 000 m²",
+      plantSpacing: "0,4 m × 1,0 m — 2 500 pieds / 1 000 m²",
+    },
     program: tomateProgram,
   },
   {
@@ -299,6 +307,14 @@ export const technicalItineraries: CropItineraryDefinition[] = [
     baselineAreaM2: 1000,
     sourcePdf: ["Itinéraire Aubergine 1000 m2.pdf"],
     cultivationNote: "Adapté serre et plein champ.",
+    specs: {
+      ph: "5,5 – 6,8",
+      conductivity: "1,8 – 3,0 mS/cm",
+      temperature: "20 – 30 °C",
+      cycleDuration: "5 – 6 mois",
+      averageYield: "6 – 9 t / 1 000 m²",
+      plantSpacing: "0,5 m × 1,0 m — 2 000 pieds / 1 000 m²",
+    },
     program: aubergineProgram,
   },
   {
@@ -309,6 +325,14 @@ export const technicalItineraries: CropItineraryDefinition[] = [
     baselineAreaM2: 1000,
     sourcePdf: ["Itinéraire poivron et piment 1000 m2.pdf"],
     cultivationNote: "Adapté serre et plein champ.",
+    specs: {
+      ph: "5,8 – 6,8",
+      conductivity: "1,8 – 2,8 mS/cm",
+      temperature: "20 – 30 °C",
+      cycleDuration: "5 – 7 mois",
+      averageYield: "4 – 7 t / 1 000 m²",
+      plantSpacing: "0,4 m × 1,0 m — 2 500 pieds / 1 000 m²",
+    },
     program: pimentProgram,
   },
   {
@@ -319,6 +343,14 @@ export const technicalItineraries: CropItineraryDefinition[] = [
     baselineAreaM2: 1000,
     sourcePdf: ["Itinéraire poivron et piment 1000 m2.pdf"],
     cultivationNote: "Programme commun avec le piment.",
+    specs: {
+      ph: "5,8 – 6,8",
+      conductivity: "2,0 – 3,0 mS/cm",
+      temperature: "20 – 28 °C",
+      cycleDuration: "5 – 6 mois",
+      averageYield: "5 – 8 t / 1 000 m²",
+      plantSpacing: "0,4 m × 1,0 m — 2 500 pieds / 1 000 m²",
+    },
     program: pimentProgram,
   },
   {
@@ -329,6 +361,14 @@ export const technicalItineraries: CropItineraryDefinition[] = [
     baselineAreaM2: 1000,
     sourcePdf: ["Itinéraire concombre 1000 m2.pdf"],
     cultivationNote: "Programme calibré sous serre uniquement (6 jours sur 7).",
+    specs: {
+      ph: "6,0 – 6,8",
+      conductivity: "2,0 – 3,0 mS/cm",
+      temperature: "22 – 30 °C",
+      cycleDuration: "2,5 – 3,5 mois",
+      averageYield: "10 – 14 t / 1 000 m²",
+      plantSpacing: "0,5 m × 1,2 m — 1 600 pieds / 1 000 m²",
+    },
     program: concombreProgram,
   },
 ];

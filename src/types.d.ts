@@ -528,6 +528,15 @@ interface ItineraryProgramDefinition {
   notes?: string[];
 }
 
+interface CropAgronomicSpecs {
+  ph?: string;
+  conductivity?: string;
+  temperature?: string;
+  cycleDuration?: string;
+  averageYield?: string;
+  plantSpacing?: string;
+}
+
 interface CropItineraryDefinition {
   id: string;
   cropName: string;
@@ -536,6 +545,7 @@ interface CropItineraryDefinition {
   baselineAreaM2: number;
   sourcePdf: string[];
   cultivationNote: string;
+  specs?: CropAgronomicSpecs;
   program: ItineraryProgramDefinition;
 }
 
@@ -564,6 +574,7 @@ interface ScaledCropItinerary {
   scaleFactor: number;
   baselineAreaM2: number;
   sourcePdf: string[];
+  specs?: CropAgronomicSpecs;
   program: ScaledItineraryProgram;
 }
 

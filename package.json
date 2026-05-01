@@ -27,6 +27,7 @@
     "@rnmapbox/maps": "^10.2.10",
     "better-auth": "^1.6.9",
     "expo": "^54.0.0",
+    "expo-asset": "^55.0.16",
     "expo-constants": "~18.0.13",
     "expo-dev-client": "~6.0.20",
     "expo-file-system": "~19.0.21",

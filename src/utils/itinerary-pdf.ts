@@ -7,6 +7,7 @@ import {
   formatNumber,
   getScheduleLabel,
 } from "@/utils/itinerary-calc";
+import { getLogoDataUri } from "@/utils/pdf-assets";
 
 const PDF_DIR_NAME = "itineraires";
 
@@ -20,6 +21,7 @@ function escapeHtml(value: string) {
 }
 
 function buildFertilizationRows(itinerary: ScaledCropItinerary) {
+  const isWeekly = itinerary.program.scheduleType === "weekly";
   return itinerary.program.fertilization
     .map((step) => {
       const doses = step.doses
@@ -34,7 +36,7 @@ function buildFertilizationRows(itinerary: ScaledCropItinerary) {
       return `
       <section class="card">
         <h3>${escapeHtml(step.label)}</h3>
-        <p class="period">${escapeHtml(getScheduleLabel(itinerary.program.scheduleType))} : ${escapeHtml(step.schedule)}</p>
+        <p class="period">${escapeHtml(getScheduleLabel(itinerary.program.scheduleType))} : ${escapeHtml(step.schedule)}${isWeekly ? "" : ""}</p>
         ${doses}
       </section>
     `;
@@ -56,8 +58,54 @@ function buildPhytoRows(itinerary: ScaledCropItinerary) {
     .join("");
 }
 
-function buildHtml(itinerary: ScaledCropItinerary) {
+function buildSpecsBlock(itinerary: ScaledCropItinerary): string {
+  const specs = itinerary.specs;
+  if (!specs) return "";
+  const rows: { label: string; value?: string }[] = [
+    { label: "pH", value: specs.ph },
+    { label: "Conductivité", value: specs.conductivity },
+    { label: "Température", value: specs.temperature },
+    { label: "Durée du cycle", value: specs.cycleDuration },
+    { label: "Rendement moyen", value: specs.averageYield },
+    { label: "Pieds & écartement", value: specs.plantSpacing },
+  ].filter((row) => !!row.value);
+
+  if (rows.length === 0) return "";
+
+  const cells = rows
+    .map(
+      (row) => `
+        <div class="spec-cell">
+          <span class="spec-label">${escapeHtml(row.label)}</span>
+          <span class="spec-value">${escapeHtml(row.value!)}</span>
+        </div>
+      `,
+    )
+    .join("");
+
+  return `
+    <section class="specs-card">
+      <h3>Caractéristiques agronomiques</h3>
+      <div class="specs-grid">${cells}</div>
+    </section>
+  `;
+}
+
+function stripDuplicateLabel(label: string, value: string): string {
+  // Server data sometimes ships the value with the label re-prepended
+  // ("En cas d'attaque : En cas d'attaque : 2 fois..."). Strip the
+  // redundant prefix while keeping the original value otherwise intact.
+  const trimmed = value.trim();
+  const prefix = `${label.trim()} :`;
+  if (trimmed.toLowerCase().startsWith(prefix.toLowerCase())) {
+    return trimmed.slice(prefix.length).trim();
+  }
+  return trimmed;
+}
+
+function buildHtml(itinerary: ScaledCropItinerary, logoDataUri: string | null) {
   const generatedAt = new Date().toLocaleString("fr-FR");
+  const isWeekly = itinerary.program.scheduleType === "weekly";
 
   const notes = (itinerary.program.notes ?? [])
     .map((note) => `<li>${escapeHtml(note)}</li>`)
@@ -67,22 +115,75 @@ function buildHtml(itinerary: ScaledCropItinerary) {
     ? `<section class="card"><h3>Notes</h3><ul>${notes}</ul></section>`
     : "";
 
-  const sources = itinerary.sourcePdf
-    .map((source) => `<li>${escapeHtml(source)}</li>`)
-    .join("");
+  const fertilizationTitle = isWeekly
+    ? "Programme de fertilisation par semaine"
+    : "Programme de fertilisation";
+
+  const preventiveValue = stripDuplicateLabel(
+    "Préventif",
+    itinerary.program.phyto.frequency,
+  );
+  const emergencyValue = stripDuplicateLabel(
+    "En cas d'attaque",
+    itinerary.program.phyto.emergencyFrequency,
+  );
+
+  const logoHeader = logoDataUri
+    ? `<img class="brand-logo" src="${logoDataUri}" alt="AGS Global Farm" />`
+    : "";
+
+  const watermark = logoDataUri
+    ? `<div class="watermark"><img src="${logoDataUri}" alt="" /></div>`
+    : "";
 
   return `
   <html>
     <head>
       <meta charset="utf-8" />
       <style>
-        @page { margin: 24mm 16mm; }
-        body {
+        @page {
+          margin: 18mm 0 14mm 0;
+        }
+        html, body {
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
           color: #1f2937;
           background: #fffdf5;
         }
-        h1 { margin: 0 0 6px 0; color: #166534; font-size: 24px; }
+        body {
+          position: relative;
+          padding-bottom: 28mm;
+        }
+        .watermark {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          z-index: -1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0.06;
+          pointer-events: none;
+        }
+        .watermark img {
+          width: 70%;
+          max-width: 480px;
+          transform: rotate(-18deg);
+        }
+        .brand-header {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          margin-bottom: 6px;
+        }
+        .brand-logo {
+          width: 56px;
+          height: 56px;
+          object-fit: contain;
+        }
+        .brand-text { flex: 1; }
+        h1 { margin: 0 0 4px 0; color: #166534; font-size: 24px; }
         h2 {
           margin-top: 26px; margin-bottom: 10px;
           color: #854d0e; font-size: 17px;
@@ -96,7 +197,37 @@ function buildHtml(itinerary: ScaledCropItinerary) {
           background: #f7fee7;
           border-radius: 14px;
           padding: 14px;
+          margin-bottom: 12px;
+        }
+        .specs-card {
+          border: 1px solid #e5e7eb;
+          background: #ffffff;
+          border-radius: 14px;
+          padding: 14px;
           margin-bottom: 18px;
+        }
+        .specs-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 6px 18px;
+        }
+        .spec-cell {
+          display: flex;
+          flex-direction: column;
+          padding: 4px 0;
+          border-bottom: 1px dashed #f3f4f6;
+        }
+        .spec-cell:last-child { border-bottom: none; }
+        .spec-label {
+          font-size: 11px;
+          color: #6b7280;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+        }
+        .spec-value {
+          font-size: 13px;
+          color: #1f2937;
+          font-weight: 600;
         }
         .card {
           border: 1px solid #e5e7eb;
@@ -106,6 +237,19 @@ function buildHtml(itinerary: ScaledCropItinerary) {
           background: white;
         }
         .card.compact { padding: 10px; }
+        .page-footer {
+          position: fixed;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          font-size: 10px;
+          color: #92400e;
+          border-top: 1px solid #fcd34d;
+          background: #fffbeb;
+          padding: 6px 14mm;
+          text-align: center;
+          z-index: 100;
+        }
         .dose-row {
           display: flex;
           justify-content: space-between;
@@ -117,20 +261,19 @@ function buildHtml(itinerary: ScaledCropItinerary) {
         .dose-row:last-child { border-bottom: none; }
         ul { margin: 8px 0 0 18px; padding: 0; }
         li { margin-bottom: 4px; font-size: 12px; }
-        .disclaimer {
-          margin-top: 12px;
-          font-size: 11px;
-          color: #92400e;
-          border: 1px solid #fcd34d;
-          background: #fffbeb;
-          padding: 10px;
-          border-radius: 10px;
-        }
       </style>
     </head>
     <body>
-      <h1>Itinéraire technique – ${escapeHtml(itinerary.cropName)}</h1>
-      <p class="meta">Document généré le ${escapeHtml(generatedAt)}</p>
+      ${watermark}
+      <div class="page-footer">Veuillez lire la notice d&#x27;emballage et respecter la dose des produits phytosanitaires</div>
+
+      <div class="brand-header">
+        ${logoHeader}
+        <div class="brand-text">
+          <h1>Itinéraire technique – ${escapeHtml(itinerary.cropName)}</h1>
+          <p class="meta">Document généré le ${escapeHtml(generatedAt)} • AGS Global Farm</p>
+        </div>
+      </div>
 
       <section class="header-card">
         <p class="meta"><strong>Superficie :</strong> ${escapeHtml(formatArea(itinerary.areaM2))}</p>
@@ -139,19 +282,19 @@ function buildHtml(itinerary: ScaledCropItinerary) {
         <p class="meta"><strong>Note :</strong> ${escapeHtml(itinerary.cultivationNote)}</p>
       </section>
 
-      <h2>Programme de fertilisation</h2>
+      ${buildSpecsBlock(itinerary)}
+
+      <h2>${escapeHtml(fertilizationTitle)}</h2>
       ${buildFertilizationRows(itinerary)}
 
       <h2>Protocole phytosanitaire</h2>
       <section class="card">
-        <p class="meta"><strong>Préventif :</strong> ${escapeHtml(itinerary.program.phyto.frequency)}</p>
-        <p class="meta"><strong>En cas d'attaque :</strong> ${escapeHtml(itinerary.program.phyto.emergencyFrequency)}</p>
+        <p class="meta"><strong>Préventif :</strong> ${escapeHtml(preventiveValue)}</p>
+        <p class="meta"><strong>En cas d'attaque :</strong> ${escapeHtml(emergencyValue)}</p>
       </section>
       ${buildPhytoRows(itinerary)}
 
       ${notesBlock}
-
-      <div class="disclaimer">${escapeHtml(itinerary.program.phyto.disclaimer)}</div>
     </body>
   </html>
   `;
@@ -193,7 +336,8 @@ export interface GeneratedPdf {
 export async function generatePdf(
   itinerary: ScaledCropItinerary,
 ): Promise<GeneratedPdf> {
-  const html = buildHtml(itinerary);
+  const logoDataUri = await getLogoDataUri();
+  const html = buildHtml(itinerary, logoDataUri);
   const fileName = buildPdfFileName(itinerary.cropName, itinerary.areaM2);
 
   const printResult = await Print.printToFileAsync({ html });

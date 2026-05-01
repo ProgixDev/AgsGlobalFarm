@@ -31,6 +31,7 @@ export function calculateScaledItinerary({
     scaleFactor,
     baselineAreaM2: definition.baselineAreaM2,
     sourcePdf: definition.sourcePdf,
+    specs: definition.specs,
     program: {
       scheduleType: program.scheduleType,
       notes: program.notes,
