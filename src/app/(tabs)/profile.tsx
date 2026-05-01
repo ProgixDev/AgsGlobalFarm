@@ -77,6 +77,50 @@ export default function ProfileScreen() {
   const initials =
     `${currentUser?.firstName?.[0] ?? "U"}${currentUser?.lastName?.[0] ?? ""}`.toUpperCase();
 
+  if (!currentUser) {
+    return (
+      <View
+        className="flex-1 bg-gray-50 items-center justify-center px-6"
+        style={{ paddingTop: insets.top, paddingBottom: tabBarInset }}
+      >
+        <View className="bg-primary/10 rounded-full p-4 mb-4">
+          <Ionicons
+            name="person-circle-outline"
+            size={48}
+            color={colors.primary}
+          />
+        </View>
+        <Text className="text-xl font-heading-bold text-gray-900 mb-2 text-center">
+          Connectez-vous
+        </Text>
+        <Text className="text-sm font-sans text-gray-600 mb-6 text-center">
+          Accédez à votre profil, vos candidatures et vos commandes.
+        </Text>
+        <AnimatedPressable
+          className="rounded-2xl py-3.5 px-8 items-center mb-2 w-full"
+          style={{ backgroundColor: colors.primary }}
+          onPress={() => router.push("/(auth)/login")}
+        >
+          <Text className="text-white font-sans-bold text-base">
+            Se connecter
+          </Text>
+        </AnimatedPressable>
+        <AnimatedPressable
+          className="rounded-2xl py-3.5 px-8 items-center border w-full"
+          style={{ borderColor: colors.primary }}
+          onPress={() => router.push("/(auth)/signup")}
+        >
+          <Text
+            className="font-sans-semibold text-base"
+            style={{ color: colors.primary }}
+          >
+            Créer un compte
+          </Text>
+        </AnimatedPressable>
+      </View>
+    );
+  }
+
   const MenuItem = ({
     icon,
     label,

@@ -34,20 +34,11 @@ export default function Index() {
       return;
     }
 
-    if (currentUser) {
-      const target =
-        currentUser.userType === "farm_owner"
-          ? "/(tabs)/map"
-          : "/(tabs-job-seeker)/map";
-      router.replace(target);
+    if (currentUser?.userType === "farm_owner") {
+      router.replace("/(tabs)/map");
       return;
     }
-
-    if (__DEV__) {
-      router.replace("/(auth)/dev-login");
-    } else {
-      router.replace("/(auth)/login");
-    }
+    router.replace("/(tabs-job-seeker)/map");
   }, [isOnboardingCompleted, isInitialized, currentUser, router]);
 
   return (

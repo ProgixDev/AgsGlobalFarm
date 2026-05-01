@@ -11,6 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useUserStore } from "@/stores/userStore";
 import { useJobsStore, jobIdOf, appIdOf } from "@/stores/jobsStore";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { haptic } from "@/utils/haptics";
 import { colors } from "@/theme/colors";
 import { useTabBarInset } from "@/components/ui/FloatingTabBar";
@@ -36,6 +37,8 @@ export default function JobSeekerJobsScreen() {
   const loadMyApplications = useJobsStore((state) => state.loadMyApplications);
   const getJobById = useJobsStore((state) => state.getJobById);
   const hasApplied = useJobsStore((state) => state.hasApplied);
+
+  const { requireAuth } = useRequireAuth();
 
   const [tab, setTab] = useState<JobSeekerTab>("discover");
   const [searchQuery, setSearchQuery] = useState("");
@@ -69,10 +72,24 @@ export default function JobSeekerJobsScreen() {
   };
 
   const goApply = (jobId: string) => {
-    router.push({
-      pathname: "/(tabs-job-seeker)/jobs/apply",
-      params: { id: jobId },
-    });
+    requireAuth(
+      () =>
+        router.push({
+          pathname: "/(tabs-job-seeker)/jobs/apply",
+          params: { id: jobId },
+        }),
+      { message: "Connectez-vous pour postuler à cette offre." },
+    );
+  };
+
+  const handleSelectTab = (key: JobSeekerTab) => {
+    if (key === "applications") {
+      requireAuth(() => setTab("applications"), {
+        message: "Connectez-vous pour voir vos candidatures.",
+      });
+      return;
+    }
+    setTab(key);
   };
 
   return (
@@ -98,7 +115,7 @@ export default function JobSeekerJobsScreen() {
           },
         ]}
         activeKey={tab}
-        onChange={(key) => setTab(key as JobSeekerTab)}
+        onChange={(key) => handleSelectTab(key as JobSeekerTab)}
       />
 
       {tab === "discover" && (

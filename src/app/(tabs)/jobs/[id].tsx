@@ -6,6 +6,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { useJobsStore, jobIdOf } from "@/stores/jobsStore";
 import { useUserStore } from "@/stores/userStore";
 import { useMapStore } from "@/stores/mapStore";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { AnimatedPressable } from "@/components/animated";
 import { haptic } from "@/utils/haptics";
 import { colors } from "@/theme/colors";
@@ -52,6 +53,7 @@ export default function JobDetailsScreen() {
   const userType = useUserStore((state) => state.userType);
   const currentUser = useUserStore((state) => state.currentUser);
   const farmLocations = useMapStore((state) => state.farmLocations);
+  const { requireAuth } = useRequireAuth();
 
   useHideTabBar();
 
@@ -186,8 +188,13 @@ export default function JobDetailsScreen() {
   };
 
   const handleApply = () => {
-    haptic.success();
-    router.push({ pathname: "/(tabs)/jobs/apply", params: { id: jobId } });
+    requireAuth(
+      () => {
+        haptic.success();
+        router.push({ pathname: "/(tabs)/jobs/apply", params: { id: jobId } });
+      },
+      { message: "Connectez-vous pour postuler à cette offre." },
+    );
   };
 
   const handleStatistics = () => {

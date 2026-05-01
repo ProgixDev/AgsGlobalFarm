@@ -7,6 +7,7 @@ import * as SplashScreen from "expo-splash-screen";
 import * as NavigationBar from "expo-navigation-bar";
 import { loadFonts } from "@/utils/loadFonts";
 import { colors } from "@/theme/colors";
+import AuthGateModal from "@/components/auth/AuthGateModal";
 import "./global.css";
 
 SplashScreen.preventAutoHideAsync();
@@ -60,6 +61,7 @@ export default function RootLayout() {
           animation: "slide_from_right",
         }}
       />
+      <AuthGateModal />
     </GestureHandlerRootView>
   );
 }

@@ -16,6 +16,7 @@ import { AnimatedPressable } from "@/components/animated";
 import { useTabBarInset } from "@/components/ui/FloatingTabBar";
 import { useShopStore } from "@/stores/shopStore";
 import { useOrdersStore } from "@/stores/ordersStore";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { colors } from "@/theme/colors";
 import { formatFcfa } from "@/utils/currency";
 import { haptic } from "@/utils/haptics";
@@ -56,6 +57,7 @@ export default function CartScreen({ origin }: Props) {
   const productsStatus = useShopStore((state) => state.productsStatus);
   const loadProducts = useShopStore((state) => state.loadProducts);
   const loadOrders = useOrdersStore((state) => state.loadOrders);
+  const { ensureAuth } = useRequireAuth();
   const [paying, setPaying] = useState(false);
 
   useEffect(() => {
@@ -82,6 +84,12 @@ export default function CartScreen({ origin }: Props) {
 
   const handlePay = async () => {
     if (cart.length === 0 || paying) return;
+    if (
+      !ensureAuth({
+        message: "Connectez-vous pour finaliser votre commande.",
+      })
+    )
+      return;
     setPaying(true);
     haptic.selection();
     try {

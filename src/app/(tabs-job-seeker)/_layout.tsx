@@ -1,21 +1,8 @@
-import { Tabs, useRouter } from "expo-router";
-import { useEffect } from "react";
+import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useUserStore } from "@/stores/userStore";
 import FloatingTabBar from "@/components/ui/FloatingTabBar";
 
 export default function JobSeekerTabsLayout() {
-  const router = useRouter();
-  const currentUser = useUserStore((state) => state.currentUser);
-
-  useEffect(() => {
-    if (!currentUser) {
-      router.replace(__DEV__ ? "/(auth)/dev-login" : "/(auth)/login");
-    }
-  }, [currentUser, router]);
-
-  if (!currentUser) return null;
-
   return (
     <Tabs
       tabBar={(props) => <FloatingTabBar {...props} />}
