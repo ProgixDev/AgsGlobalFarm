@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
+  Linking,
   ScrollView,
   Text,
   TextInput,
@@ -16,6 +17,7 @@ import { useShopStore } from "@/stores/shopStore";
 import { colors } from "@/theme/colors";
 import { formatFcfa } from "@/utils/currency";
 import { haptic } from "@/utils/haptics";
+import { storeInfo } from "@/constants/store-info";
 
 type Props = {
   origin: ShopOrigin;
@@ -166,6 +168,74 @@ export default function ShopListScreen({ origin }: Props) {
           <Text className="text-xs font-sans text-gray-500 mt-0.5">
             Semences, engrais, produits phyto et petit materiel
           </Text>
+        </View>
+
+        <View className="bg-white border border-gray-100 rounded-3xl p-4 mt-3">
+          <View className="flex-row items-start mb-3">
+            <View className="w-9 h-9 rounded-full bg-emerald-50 items-center justify-center mr-3">
+              <Ionicons
+                name="location-outline"
+                size={18}
+                color={colors.primaryDark}
+              />
+            </View>
+            <View className="flex-1">
+              <Text className="text-[11px] font-sans-semibold uppercase tracking-wider text-gray-500">
+                Localisation
+              </Text>
+              <AnimatedPressable
+                onPress={() => Linking.openURL(storeInfo.mapsUrl)}
+              >
+                {storeInfo.addressLines.map((line) => (
+                  <Text
+                    key={line}
+                    className="text-sm font-sans-semibold text-gray-800"
+                  >
+                    {line}
+                  </Text>
+                ))}
+              </AnimatedPressable>
+            </View>
+          </View>
+
+          <View className="flex-row items-start mb-3">
+            <View className="w-9 h-9 rounded-full bg-emerald-50 items-center justify-center mr-3">
+              <Ionicons
+                name="call-outline"
+                size={18}
+                color={colors.primaryDark}
+              />
+            </View>
+            <View className="flex-1">
+              <Text className="text-[11px] font-sans-semibold uppercase tracking-wider text-gray-500">
+                Téléphone
+              </Text>
+              <AnimatedPressable
+                onPress={() => Linking.openURL(`tel:${storeInfo.phoneTel}`)}
+              >
+                <Text className="text-sm font-sans-semibold text-gray-800">
+                  {storeInfo.phone}
+                </Text>
+              </AnimatedPressable>
+              <Text className="text-[11px] font-sans text-gray-500 mt-0.5">
+                {storeInfo.hours}
+              </Text>
+            </View>
+          </View>
+
+          <AnimatedPressable
+            className="rounded-2xl py-3 items-center flex-row justify-center"
+            style={{ backgroundColor: colors.primary }}
+            onPress={() => {
+              haptic.selection();
+              Linking.openURL(`tel:${storeInfo.phoneTel}`);
+            }}
+          >
+            <Ionicons name="call" size={16} color={colors.white} />
+            <Text className="text-white font-sans-bold text-sm ml-2">
+              Contacter le fournisseur
+            </Text>
+          </AnimatedPressable>
         </View>
       </View>
 
