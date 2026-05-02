@@ -1,10 +1,12 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, Alert, Linking } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import ScreenHeader from "@/components/ui/ScreenHeader";
 import { AnimatedPressable, FadeInView } from "@/components/animated";
 import { haptic } from "@/utils/haptics";
 import { colors } from "@/theme/colors";
+import { SUPPORT_EMAIL, SUPPORT_SUBJECT } from "@/config/contact";
+import { useUserStore } from "@/stores/userStore";
 
 interface FaqItem {
   id: string;
@@ -91,6 +93,7 @@ const CATEGORIES = Array.from(new Set(FAQ_ITEMS.map((f) => f.category)));
 export default function HelpScreen() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const currentUser = useUserStore((state) => state.currentUser);
 
   const filtered = activeCategory
     ? FAQ_ITEMS.filter((f) => f.category === activeCategory)
@@ -99,6 +102,31 @@ export default function HelpScreen() {
   const toggle = (id: string) => {
     haptic.selection();
     setExpandedId((prev) => (prev === id ? null : id));
+  };
+
+  const handleContactSupport = async () => {
+    haptic.selection();
+    const userLine = currentUser
+      ? `\n\n---\nUtilisateur: ${currentUser.firstName} ${currentUser.lastName}\nEmail: ${currentUser.email}`
+      : "";
+    const body = `Bonjour,\n\nDécrivez votre demande ici.${userLine}`;
+    const url = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(SUPPORT_SUBJECT)}&body=${encodeURIComponent(body)}`;
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (!supported) {
+        Alert.alert(
+          "Application email indisponible",
+          `Veuillez nous écrire à ${SUPPORT_EMAIL}`,
+        );
+        return;
+      }
+      await Linking.openURL(url);
+    } catch {
+      Alert.alert(
+        "Impossible d'ouvrir l'application email",
+        `Veuillez nous écrire à ${SUPPORT_EMAIL}`,
+      );
+    }
   };
 
   return (
@@ -223,7 +251,11 @@ export default function HelpScreen() {
           <Text className="text-sm font-sans text-muted-foreground mb-4">
             Notre équipe est disponible pour répondre à vos questions.
           </Text>
-          <AnimatedPressable className="bg-primary rounded-xl py-3 items-center">
+          <AnimatedPressable
+            onPress={handleContactSupport}
+            hapticType="none"
+            className="bg-primary rounded-xl py-3 items-center"
+          >
             <Text className="text-white font-sans-semibold text-sm">
               Contacter le support
             </Text>

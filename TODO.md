@@ -128,11 +128,6 @@
 - [x] Seed script (scripts/seed-incidents.ts)
 - [ ] Incident categories endpoint (kept static client-side for now)
 
-### Itineraries
-- [ ] Decide: static or DB
-- [ ] Itinerary model (if DB)
-- [ ] Generator endpoint
-
 ### Map / Regions
 - [ ] Senegal regions endpoint (or keep static)
 - [ ] Departments endpoint
@@ -151,15 +146,6 @@
 - [ ] User management
 - [ ] Product / formation CRUD endpoints
 
-### Infra
-- [x] MongoDB Atlas
-- [x] Env vars configured
-- [x] Live PayDunya keys
-- [ ] middleware.ts (auth + CORS)
-- [ ] Rate limiting
-- [ ] Sandbox / staging deploy
-- [ ] Sentry / error tracking
-- [ ] API documentation
 
 ### Mobile-callable REST wrappers (server actions → routes)
 - [x] GET /api/products
@@ -179,7 +165,6 @@
 - [x] GET /api/formations/:id/quiz/result
 - [x] GET /api/formations/:id/quiz/attempts
 - [x] POST /api/formations/:id/certificate/resend
-- [ ] POST /api/contact
 
 ---
 
@@ -241,14 +226,8 @@
 - [x] Personal info sync (API)
 - [x] Avatar upload
 
-### Notifications
-- [ ] Register push token (API)
-
 ### Map
-- [ ] Markers from API (jobs / incidents)
-
-### Itinéraire
-- [ ] Data source decision
+- [x] Markers from API (incidents)
 
 ### Incidents
 - [x] List from API (loadIncidentsFromBackend)
@@ -259,7 +238,5 @@
 - [x] Form-discard bug fix (sheet stays mounted during pin mode)
 
 ### Support
-- [ ] Contact form → API
+- [x] Contact support → mailto (opens device email with prefilled subject + user info)
 
-### Cleanup
-- [ ] Remove all mock data files when unused
