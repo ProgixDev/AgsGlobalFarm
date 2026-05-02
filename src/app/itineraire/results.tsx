@@ -16,6 +16,7 @@ import {
 } from "@/utils/itinerary-calc";
 import {
   generatePdf,
+  openPdf,
   pdfFileExists,
   sharePdf,
 } from "@/utils/itinerary-pdf";
@@ -73,7 +74,7 @@ export default function ItineraryResultsScreen() {
 
     try {
       setSharing(true);
-      await sharePdf(entry.pdfUri, entry.cropName);
+      await openPdf(entry.pdfUri, entry.cropName);
       haptic.success();
     } catch (error) {
       console.error("[itinerary] share failed", error);

@@ -1,6 +1,9 @@
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
+import * as IntentLauncher from "expo-intent-launcher";
+import { Platform } from "react-native";
 import { Directory, File, Paths } from "expo-file-system";
+import * as FileSystemLegacy from "expo-file-system/legacy";
 import {
   formatArea,
   formatDose,
@@ -128,10 +131,6 @@ function buildHtml(itinerary: ScaledCropItinerary, logoDataUri: string | null) {
     itinerary.program.phyto.emergencyFrequency,
   );
 
-  const logoHeader = logoDataUri
-    ? `<img class="brand-logo" src="${logoDataUri}" alt="AGS Global Farm" />`
-    : "";
-
   const watermark = logoDataUri
     ? `<div class="watermark"><img src="${logoDataUri}" alt="" /></div>`
     : "";
@@ -151,7 +150,7 @@ function buildHtml(itinerary: ScaledCropItinerary, logoDataUri: string | null) {
         }
         body {
           position: relative;
-          padding-bottom: 28mm;
+          padding-bottom: 8mm;
         }
         .watermark {
           position: fixed;
@@ -171,16 +170,20 @@ function buildHtml(itinerary: ScaledCropItinerary, logoDataUri: string | null) {
           max-width: 480px;
           transform: rotate(-18deg);
         }
-        .brand-header {
+        .brand-top {
           display: flex;
+          flex-direction: column;
           align-items: center;
-          gap: 16px;
-          margin-bottom: 6px;
+          margin-bottom: 14px;
         }
-        .brand-logo {
-          width: 56px;
-          height: 56px;
+        .brand-logo-top {
+          width: 64px;
+          height: 64px;
           object-fit: contain;
+          margin-bottom: 8px;
+        }
+        .brand-header {
+          margin-bottom: 6px;
         }
         .brand-text { flex: 1; }
         h1 { margin: 0 0 4px 0; color: #166534; font-size: 24px; }
@@ -238,17 +241,15 @@ function buildHtml(itinerary: ScaledCropItinerary, logoDataUri: string | null) {
         }
         .card.compact { padding: 10px; }
         .page-footer {
-          position: fixed;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          font-size: 10px;
+          margin-top: 32px;
+          padding: 10px 16px;
+          font-size: 11px;
           color: #92400e;
-          border-top: 1px solid #fcd34d;
+          border: 1px solid #fcd34d;
           background: #fffbeb;
-          padding: 6px 14mm;
+          border-radius: 10px;
           text-align: center;
-          z-index: 100;
+          font-style: italic;
         }
         .dose-row {
           display: flex;
@@ -265,10 +266,10 @@ function buildHtml(itinerary: ScaledCropItinerary, logoDataUri: string | null) {
     </head>
     <body>
       ${watermark}
-      <div class="page-footer">Veuillez lire la notice d&#x27;emballage et respecter la dose des produits phytosanitaires</div>
+
+      ${logoDataUri ? `<div class="brand-top"><img class="brand-logo-top" src="${logoDataUri}" alt="AGS Global Farm" /></div>` : ""}
 
       <div class="brand-header">
-        ${logoHeader}
         <div class="brand-text">
           <h1>Itinéraire technique – ${escapeHtml(itinerary.cropName)}</h1>
           <p class="meta">Document généré le ${escapeHtml(generatedAt)} • AGS Global Farm</p>
@@ -295,6 +296,7 @@ function buildHtml(itinerary: ScaledCropItinerary, logoDataUri: string | null) {
       ${buildPhytoRows(itinerary)}
 
       ${notesBlock}
+      <div class="page-footer">Veuillez lire la notice d&#x27;emballage et respecter la dose des produits phytosanitaires</div>
     </body>
   </html>
   `;
@@ -337,6 +339,7 @@ export async function generatePdf(
   itinerary: ScaledCropItinerary,
 ): Promise<GeneratedPdf> {
   const logoDataUri = await getLogoDataUri();
+  console.log("[pdf] logoDataUri", logoDataUri ? `data:image/png;base64,... (${logoDataUri.length} chars)` : "NULL");
   const html = buildHtml(itinerary, logoDataUri);
   const fileName = buildPdfFileName(itinerary.cropName, itinerary.areaM2);
 
@@ -383,6 +386,36 @@ export async function sharePdf(uri: string, cropName: string) {
   // expo-sharing uses FileProvider with correct path config — works on Android API 30+
   // react-native-share v12.1.1+ broke FileProvider, causing getScheme() null crash
   const fileUri = uri.startsWith("file://") ? uri : `file://${uri}`;
+  const available = await Sharing.isAvailableAsync();
+  if (!available) throw new Error("Le partage n'est pas disponible sur cet appareil.");
+  await Sharing.shareAsync(fileUri, {
+    mimeType: "application/pdf",
+    dialogTitle: `Itinéraire ${cropName}`,
+    UTI: "com.adobe.pdf",
+  });
+}
+
+/**
+ * Open the PDF directly in a viewer app (Android) or fall back to share sheet (iOS).
+ * On Android, IntentLauncher fires ACTION_VIEW with the file:// URI — the system
+ * resolves it to a PDF viewer without showing the full share sheet.
+ * On iOS there is no direct "open file" API; share sheet is the only mechanism.
+ */
+export async function openPdf(uri: string, cropName: string) {
+  if (!uri) throw new Error("URI du PDF manquant.");
+
+  const fileUri = uri.startsWith("file://") ? uri : `file://${uri}`;
+
+  if (Platform.OS === "android") {
+    const contentUri = await FileSystemLegacy.getContentUriAsync(fileUri);
+    await IntentLauncher.startActivityAsync("android.intent.action.VIEW", {
+      data: contentUri,
+      flags: 1, // FLAG_GRANT_READ_URI_PERMISSION
+      type: "application/pdf",
+    });
+    return;
+  }
+
   const available = await Sharing.isAvailableAsync();
   if (!available) throw new Error("Le partage n'est pas disponible sur cet appareil.");
   await Sharing.shareAsync(fileUri, {
