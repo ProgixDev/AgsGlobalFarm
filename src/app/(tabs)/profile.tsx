@@ -106,7 +106,7 @@ export default function ProfileScreen() {
           </Text>
         </AnimatedPressable>
         <AnimatedPressable
-          className="rounded-2xl py-3.5 px-8 items-center border w-full"
+          className="rounded-2xl py-3.5 px-8 items-center border w-full mb-2"
           style={{ borderColor: colors.primary }}
           onPress={() => router.push("/(auth)/signup")}
         >
@@ -115,6 +115,16 @@ export default function ProfileScreen() {
             style={{ color: colors.primary }}
           >
             Créer un compte
+          </Text>
+        </AnimatedPressable>
+
+        <AnimatedPressable
+          className="rounded-2xl py-3.5 px-8 items-center w-full bg-blue-500 flex-row justify-center"
+          onPress={() => router.push("/(auth)/dev-login")}
+        >
+          <Ionicons name="bug" size={18} color={colors.white} />
+          <Text className="text-white font-sans-bold text-base ml-2">
+            DEV LOGIN
           </Text>
         </AnimatedPressable>
       </View>
@@ -214,6 +224,21 @@ export default function ProfileScreen() {
       </View>
 
       <FadeInView className="flex-1 px-5 py-2">
+        <AnimatedPressable
+          onPress={async () => {
+            haptic.medium();
+            await logout();
+            router.replace("/(auth)/dev-login");
+          }}
+          hapticType="medium"
+          className="flex-row items-center justify-center bg-blue-500 rounded-2xl py-4 mb-4"
+        >
+          <Ionicons name="bug" size={20} color={colors.white} />
+          <Text className="text-white font-sans-bold text-base ml-2">
+            DEV LOGIN
+          </Text>
+        </AnimatedPressable>
+
         <View className="bg-primary/5 border border-primary/15 rounded-2xl px-4 py-3 mb-5">
           <Text className="text-sm font-sans-semibold text-primary">
             {isRecruiter
@@ -329,19 +354,17 @@ export default function ProfileScreen() {
           </Text>
         </AnimatedPressable>
 
-        {/* Dev: Reset Onboarding */}
-        {__DEV__ && (
-          <AnimatedPressable
-            onPress={handleResetOnboarding}
-            hapticType="medium"
-            className="flex-row items-center justify-center bg-orange-50 border border-orange-200 rounded-2xl py-4 mt-3"
-          >
-            <Ionicons name="refresh-outline" size={20} color={colors.warning} />
-            <Text className="text-orange-500 font-sans-semibold text-base ml-2">
-              Réinitialiser l&apos;onboarding
-            </Text>
-          </AnimatedPressable>
-        )}
+        <AnimatedPressable
+          onPress={handleResetOnboarding}
+          hapticType="medium"
+          className="flex-row items-center justify-center bg-orange-50 border border-orange-200 rounded-2xl py-4 mt-3"
+        >
+          <Ionicons name="refresh-outline" size={20} color={colors.warning} />
+          <Text className="text-orange-500 font-sans-semibold text-base ml-2">
+            Réinitialiser l&apos;onboarding
+          </Text>
+        </AnimatedPressable>
+
       </FadeInView>
     </ScrollView>
   );

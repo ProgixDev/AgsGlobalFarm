@@ -244,10 +244,10 @@
 
 ## New Updates (Client Feedback — 2026-05-12)
 
-- [ ] **Ma Ferme** — GPS point not visible after adding; map cursor/marker not showing
+- [x] **Ma Ferme** — GPS point not visible after adding; map cursor/marker not showing (added colored circle backdrop + crosshair zIndex/border)
 - [x] **Explorer** — bottom nav bar shows only colors, no text labels (boutique / emploi / etc.)
-- [ ] **Incident** — no cursor/marker to place incident position on map
-- [ ] **Incident** — all pictograms missing (client sent replacement icons, nothing shows now)
+- [x] **Incident** — no cursor/marker to place incident position on map (crosshair moved inside map container + visible backdrop)
+- [x] **Incident** — all pictograms missing (switched PointAnnotation → MarkerView; live RN render, no snapshot timing issue)
 - [x] **Partout (Back button)** — back button has no "retour" text; entire app shows only colored dots with no button labels (added BackButton component + FloatingTabBar labels)
 - [ ] **Formations** — all courses should be free, no payment required; revert to previous behavior
 - [x] **Itinéraire PDF** — add AGS logo + full-page logo watermark (embedded base64, opacity 0.10)

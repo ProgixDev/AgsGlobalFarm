@@ -22,6 +22,8 @@ import Mapbox, {
   VectorSource,
   FillLayer,
   LineLayer,
+  CircleLayer,
+  SymbolLayer,
 } from "@rnmapbox/maps";
 import type { FeatureCollection, Feature, Polygon } from "geojson";
 import { Ionicons } from "@expo/vector-icons";
@@ -395,6 +397,38 @@ export default function MapScreen() {
           properties: { id: "drawing-farm-polygon" },
         } as Feature<Polygon>,
       ],
+    };
+  }, [polygonPoints]);
+
+  // Connecting line preview: shows from 2nd tap onward, before polygon fill kicks in.
+  const drawingFarmLineGeoJSON = useMemo(() => {
+    if (polygonPoints.length < 2) {
+      return { type: "FeatureCollection" as const, features: [] };
+    }
+    return {
+      type: "FeatureCollection" as const,
+      features: [
+        {
+          type: "Feature" as const,
+          geometry: {
+            type: "LineString" as const,
+            coordinates: polygonPoints,
+          },
+          properties: { id: "drawing-farm-line" },
+        },
+      ],
+    };
+  }, [polygonPoints]);
+
+  // Per-point markers: each tap renders a numbered dot so user sees immediate feedback.
+  const drawingFarmPointsGeoJSON = useMemo(() => {
+    return {
+      type: "FeatureCollection" as const,
+      features: polygonPoints.map((coord, index) => ({
+        type: "Feature" as const,
+        geometry: { type: "Point" as const, coordinates: coord },
+        properties: { id: `drawing-point-${index}`, index: index + 1 },
+      })),
     };
   }, [polygonPoints]);
 
@@ -792,7 +826,55 @@ export default function MapScreen() {
             </ShapeSource>
           )}
 
-          {/* Drawing preview polygon */}
+          {/* Drawing preview line (2+ points, before polygon fills) */}
+          {polygonDrawMode && drawingFarmLineGeoJSON.features.length > 0 && (
+            <ShapeSource
+              id="farm-line-drawing"
+              shape={drawingFarmLineGeoJSON}
+            >
+              <LineLayer
+                id="farm-line-drawing-stroke"
+                style={{
+                  lineColor: colors.warning,
+                  lineWidth: 2.5,
+                  lineDasharray: [2, 2],
+                  lineCap: "round",
+                  lineJoin: "round",
+                }}
+              />
+            </ShapeSource>
+          )}
+
+          {/* Drawing point markers — one per tap, with index labels */}
+          {polygonDrawMode && drawingFarmPointsGeoJSON.features.length > 0 && (
+            <ShapeSource
+              id="farm-points-drawing"
+              shape={drawingFarmPointsGeoJSON}
+            >
+              <CircleLayer
+                id="farm-points-drawing-circle"
+                style={{
+                  circleRadius: 9,
+                  circleColor: colors.warning,
+                  circleStrokeColor: colors.white,
+                  circleStrokeWidth: 2.5,
+                }}
+              />
+              <SymbolLayer
+                id="farm-points-drawing-label"
+                style={{
+                  textField: ["get", "index"],
+                  textSize: 11,
+                  textColor: colors.white,
+                  textFont: ["Open Sans Bold", "Arial Unicode MS Bold"],
+                  textAllowOverlap: true,
+                  textIgnorePlacement: true,
+                }}
+              />
+            </ShapeSource>
+          )}
+
+          {/* Drawing preview polygon (3+ points, closed shape) */}
           {polygonDrawMode && drawingFarmPolygonGeoJSON.features.length > 0 && (
             <ShapeSource
               id="farm-polygon-drawing"
@@ -800,7 +882,7 @@ export default function MapScreen() {
             >
               <FillLayer
                 id="farm-polygon-drawing-fill"
-                style={{ fillColor: colors.warning, fillOpacity: 0.15 }}
+                style={{ fillColor: colors.warning, fillOpacity: 0.2 }}
               />
               <LineLayer
                 id="farm-polygon-drawing-border"
@@ -818,31 +900,45 @@ export default function MapScreen() {
             .filter(
               (farm) => farm.geometryType === "point" && !!farm.coordinates,
             )
-            .map((farm) => (
-              <PointAnnotation
-                key={farm.id}
-                id={`farm-marker-${farm.id}`}
-                coordinate={[
-                  farm.coordinates!.longitude,
-                  farm.coordinates!.latitude,
-                ]}
-                onSelected={() => focusFarmFromMap(farm)}
-              >
-                <View
-                  style={{ alignItems: "center", justifyContent: "center" }}
+            .map((farm) => {
+              const isSelected = selectedFarmId === farm.id;
+              const dotColor = isSelected ? colors.primaryDark : colors.info;
+              return (
+                <PointAnnotation
+                  key={farm.id}
+                  id={`farm-marker-${farm.id}`}
+                  coordinate={[
+                    farm.coordinates!.longitude,
+                    farm.coordinates!.latitude,
+                  ]}
+                  onSelected={() => focusFarmFromMap(farm)}
                 >
-                  <Ionicons
-                    name="location"
-                    size={34}
-                    color={
-                      selectedFarmId === farm.id
-                        ? colors.primaryDark
-                        : colors.info
-                    }
-                  />
-                </View>
-              </PointAnnotation>
-            ))}
+                  <View
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 16,
+                      backgroundColor: dotColor,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      borderWidth: isSelected ? 3 : 2,
+                      borderColor: colors.white,
+                      shadowColor: colors.black,
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.25,
+                      shadowRadius: 3,
+                      elevation: 5,
+                    }}
+                  >
+                    <Ionicons
+                      name="location"
+                      size={18}
+                      color={colors.white}
+                    />
+                  </View>
+                </PointAnnotation>
+              );
+            })}
 
           {/* Incident markers */}
           {mapMode === "incidents" && (
@@ -858,10 +954,10 @@ export default function MapScreen() {
           <>
             <View
               className="absolute"
-              style={styles.crosshairContainer}
+              style={[styles.crosshairContainer, { borderColor: colors.primary }]}
               pointerEvents="none"
             >
-              <Ionicons name="locate" size={48} color={colors.primary} />
+              <Ionicons name="locate" size={36} color={colors.primary} />
             </View>
 
             <View
@@ -903,58 +999,123 @@ export default function MapScreen() {
 
         {polygonDrawMode && (
           <>
+            {/* Top banner with instruction + point counter */}
             <View
               testID="overlay-polygon-banner"
               className="absolute top-4 left-4 right-4 z-20"
             >
-              <View className="bg-white rounded-2xl px-5 py-3 shadow-lg">
-                <Text className="text-gray-700 text-sm text-center font-sans-medium">
-                  Touchez la carte pour ajouter les points de la limite (
-                  {polygonPoints.length})
-                </Text>
+              <View className="bg-white rounded-2xl px-4 py-3 shadow-lg flex-row items-center">
+                <View
+                  className="w-9 h-9 rounded-full items-center justify-center mr-3"
+                  style={{ backgroundColor: colors.warningLight }}
+                >
+                  <Text
+                    className="font-sans-bold text-base"
+                    style={{ color: colors.warningDark }}
+                  >
+                    {polygonPoints.length}
+                  </Text>
+                </View>
+                <View className="flex-1">
+                  <Text className="text-gray-900 font-sans-semibold text-sm">
+                    Dessiner la limite
+                  </Text>
+                  <Text className="text-gray-500 text-xs font-sans">
+                    {polygonPoints.length === 0
+                      ? "Touchez la carte pour ajouter le 1er point"
+                      : polygonPoints.length < 3
+                        ? `Encore ${3 - polygonPoints.length} point(s) min. pour fermer`
+                        : "Limite valide. Ajoutez plus de points ou terminez."}
+                  </Text>
+                </View>
               </View>
             </View>
 
-            <View className="absolute bottom-28 left-4 right-4 z-20 flex-row gap-2">
-              <TouchableOpacity
-                onPress={() => {
-                  setPolygonPoints((prev) => prev.slice(0, -1));
-                }}
-                disabled={polygonPoints.length === 0}
-                className="flex-1 bg-gray-200 rounded-xl py-3.5 items-center"
-                activeOpacity={0.7}
-              >
-                <Text className="text-gray-600 font-sans-semibold text-sm">
-                  Retirer le dernier
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  setPolygonPoints([]);
-                  farmSelectorRef.current?.cancelPolygon();
-                }}
-                className="flex-1 bg-gray-200 rounded-xl py-3.5 items-center"
-                activeOpacity={0.7}
-              >
-                <Text className="text-gray-600 font-sans-semibold text-sm">
-                  Annuler
-                </Text>
-              </TouchableOpacity>
+            {/* Bottom action bar */}
+            <View className="absolute bottom-28 left-4 right-4 z-20">
+              {/* Secondary actions row */}
+              <View className="flex-row gap-2 mb-2">
+                <TouchableOpacity
+                  onPress={() => {
+                    setPolygonPoints((prev) => prev.slice(0, -1));
+                    haptic.selection();
+                  }}
+                  disabled={polygonPoints.length === 0}
+                  className="flex-1 bg-white border border-gray-200 rounded-xl py-3 flex-row items-center justify-center"
+                  activeOpacity={0.7}
+                  style={{
+                    opacity: polygonPoints.length === 0 ? 0.4 : 1,
+                  }}
+                >
+                  <Ionicons
+                    name="arrow-undo-outline"
+                    size={16}
+                    color={colors.muted}
+                  />
+                  <Text className="text-gray-600 font-sans-semibold text-xs ml-1.5">
+                    Retirer
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    setPolygonPoints([]);
+                    farmSelectorRef.current?.cancelPolygon();
+                    haptic.warning();
+                  }}
+                  className="flex-1 bg-white border border-gray-200 rounded-xl py-3 flex-row items-center justify-center"
+                  activeOpacity={0.7}
+                >
+                  <Ionicons
+                    name="close-outline"
+                    size={16}
+                    color={colors.muted}
+                  />
+                  <Text className="text-gray-600 font-sans-semibold text-xs ml-1.5">
+                    Annuler
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Primary action: Terminer */}
               <TouchableOpacity
                 onPress={() => {
                   farmSelectorRef.current?.confirmPolygon();
                   setPolygonPoints([]);
+                  haptic.success();
                 }}
                 disabled={polygonPoints.length < 3}
-                className="flex-1 bg-primary rounded-xl py-3.5 items-center"
-                activeOpacity={0.7}
+                className="rounded-xl py-3.5 items-center flex-row justify-center"
+                style={{
+                  backgroundColor:
+                    polygonPoints.length < 3
+                      ? colors.mutedLighter
+                      : colors.primary,
+                }}
+                activeOpacity={0.8}
               >
-                <Text className="text-white font-sans-bold text-sm">
-                  Terminer
+                <Ionicons
+                  name="checkmark-circle"
+                  size={20}
+                  color={colors.white}
+                />
+                <Text className="text-white font-sans-bold text-base ml-2">
+                  Terminer{polygonPoints.length >= 3
+                    ? ` (${polygonPoints.length} pts)`
+                    : ""}
                 </Text>
               </TouchableOpacity>
             </View>
           </>
+        )}
+
+        {incidentLocationPinMode && (
+          <View
+            className="absolute"
+            style={[styles.crosshairContainer, { borderColor: colors.danger }]}
+            pointerEvents="none"
+          >
+            <Ionicons name="locate" size={36} color={colors.danger} />
+          </View>
         )}
       </View>
 
@@ -1036,14 +1197,6 @@ export default function MapScreen() {
 
           {incidentLocationPinMode && (
             <>
-              <View
-                className="absolute"
-                style={styles.crosshairContainer}
-                pointerEvents="none"
-              >
-                <Ionicons name="locate" size={48} color={colors.danger} />
-              </View>
-
               <View className="absolute top-4 left-4 right-4 z-20">
                 <View className="bg-white rounded-2xl px-5 py-3 shadow-lg">
                   <Text className="text-gray-700 text-sm text-center font-sans-medium">
@@ -1098,7 +1251,20 @@ const styles = StyleSheet.create({
   crosshairContainer: {
     top: "50%",
     left: "50%",
-    marginTop: -24,
-    marginLeft: -24,
+    marginTop: -32,
+    marginLeft: -32,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.92)",
+    borderWidth: 3,
+    zIndex: 20,
+    elevation: 20,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
   },
 });
