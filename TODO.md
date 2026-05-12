@@ -249,6 +249,6 @@
 - [x] **Incident** — no cursor/marker to place incident position on map (crosshair moved inside map container + visible backdrop)
 - [x] **Incident** — all pictograms missing (switched PointAnnotation → MarkerView; live RN render, no snapshot timing issue)
 - [x] **Partout (Back button)** — back button has no "retour" text; entire app shows only colored dots with no button labels (added BackButton component + FloatingTabBar labels)
-- [ ] **Formations** — all courses should be free, no payment required; revert to previous behavior
+- [x] **Formations** — all courses should be free, no payment required; revert to previous behavior (paywall removed, auth-gated enroll endpoint on both mobile + web)
 - [x] **Itinéraire PDF** — add AGS logo + full-page logo watermark (embedded base64, opacity 0.10)
 

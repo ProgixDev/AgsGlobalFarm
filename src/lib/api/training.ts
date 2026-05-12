@@ -120,3 +120,14 @@ export async function resendCertificate(formationId: string): Promise<void> {
     },
   );
 }
+
+export async function enrollFormation(
+  formationId: string,
+  sessionId?: number,
+): Promise<{ ok: boolean; type: "online" | "presentiel"; sessionId?: number }> {
+  return apiFetch(`/api/formations/enroll`, {
+    method: "POST",
+    body: { formationId, sessionId },
+    auth: true,
+  });
+}

@@ -12,6 +12,7 @@ import {
   fetchQuizResult,
   fetchQuizAttempts,
   resendCertificate as resendCertificateApi,
+  enrollFormation as enrollFormationApi,
 } from "@/lib/api/training";
 
 type Status = "idle" | "loading" | "ready" | "error";
@@ -43,6 +44,11 @@ interface TrainingStore {
   unmarkLessonComplete: (
     formationId: string,
     lessonKey: string,
+  ) => Promise<void>;
+
+  enrollFormation: (
+    formationId: string,
+    sessionId?: number,
   ) => Promise<void>;
 
   loadQuiz: (formationId: string) => Promise<FormationQuizSection[] | null>;
@@ -194,6 +200,16 @@ export const useTrainingStore = create<TrainingStore>((set, get) => ({
       }));
       throw err;
     }
+  },
+
+  enrollFormation: async (formationId: string, sessionId?: number) => {
+    const result = await enrollFormationApi(formationId, sessionId);
+    if (result.type === "online") {
+      await get().loadOnlineById(formationId);
+    } else {
+      await get().loadPresentialById(formationId);
+    }
+    await get().loadOwned();
   },
 
   loadQuiz: async (formationId: string) => {

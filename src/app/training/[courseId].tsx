@@ -13,7 +13,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTrainingStore } from "@/stores/trainingStore";
 import { colors } from "@/theme/colors";
-import { formatFcfa } from "@/utils/currency";
 
 function getLevelBgColor(level: string) {
   const l = level.toLowerCase();
@@ -63,9 +62,11 @@ export default function FormationDetailScreen() {
   const quizResultByFormationId = useTrainingStore(
     (state) => state.quizResultByFormationId,
   );
+  const enrollFormation = useTrainingStore((state) => state.enrollFormation);
 
   const formation = getFormationById(formationId);
   const [status, setStatus] = useState<"idle" | "loading" | "missing">("idle");
+  const [enrolling, setEnrolling] = useState(false);
 
   useEffect(() => {
     if (!formationId) return;
@@ -146,21 +147,6 @@ export default function FormationDetailScreen() {
   const progress = isOnline ? getProgressPercentage(formationId) : 0;
   const quizResult = quizResultByFormationId[formationId];
 
-  const isLessonCompleted = (sectionId: number, lessonId: number) => {
-    return completedLessons.includes(`${sectionId}-${lessonId}`);
-  };
-
-  const handleLessonPress = (sectionId: number, lessonId: number) => {
-    if (!owned) {
-      Alert.alert(
-        "Formation non acquise",
-        "Vous devez acquérir cette formation pour accéder aux leçons.",
-      );
-      return;
-    }
-    router.push(`/training/${formationId}/${sectionId}-${lessonId}` as any);
-  };
-
   const onlineFormation = isOnline ? (formation as OnlineFormation) : null;
   const presentialFormation = !isOnline
     ? (formation as PresentialFormation)
@@ -171,6 +157,59 @@ export default function FormationDetailScreen() {
       (sum, s) => sum + (s.lessons?.length || 0),
       0,
     ) || onlineFormation?.stats?.totalLessons || 0;
+
+  const isLessonCompleted = (sectionId: number, lessonId: number) => {
+    return completedLessons.includes(`${sectionId}-${lessonId}`);
+  };
+
+  const handleLessonPress = async (sectionId: number, lessonId: number) => {
+    if (!owned) {
+      try {
+        setEnrolling(true);
+        await enrollFormation(formationId);
+      } catch (err) {
+        console.warn("Enroll failed", err);
+        Alert.alert(
+          "Erreur",
+          "Impossible d'accéder à la formation pour le moment.",
+        );
+        return;
+      } finally {
+        setEnrolling(false);
+      }
+    }
+    router.push(`/training/${formationId}/${sectionId}-${lessonId}` as any);
+  };
+
+  const handleStartFormation = async () => {
+    if (enrolling) return;
+    try {
+      setEnrolling(true);
+      await enrollFormation(formationId);
+      if (isOnline) {
+        const firstSection = onlineFormation?.sections?.[0];
+        const firstLesson = firstSection?.lessons?.[0];
+        if (firstSection && firstLesson) {
+          router.push(
+            `/training/${formationId}/${firstSection.id}-${firstLesson.id}` as any,
+          );
+        }
+      } else {
+        Alert.alert(
+          "Inscription confirmée",
+          "Votre place est réservée pour cette session.",
+        );
+      }
+    } catch (err) {
+      console.warn("Enroll failed", err);
+      Alert.alert(
+        "Erreur",
+        "Impossible de vous inscrire pour le moment. Réessayez.",
+      );
+    } finally {
+      setEnrolling(false);
+    }
+  };
 
   const allLessonsDone =
     isOnline && totalLessons > 0 && completedLessons.length >= totalLessons;
@@ -300,9 +339,9 @@ export default function FormationDetailScreen() {
           {!owned && (
             <View className="bg-primary/5 border border-primary/15 rounded-2xl p-4 mb-4 flex-row items-center justify-between">
               <View className="flex-1 mr-3">
-                <Text className="text-xs font-sans text-gray-500">Prix</Text>
+                <Text className="text-xs font-sans text-gray-500">Accès</Text>
                 <Text className="text-2xl font-heading-bold text-primary">
-                  {formatFcfa(formation.price)}
+                  Gratuit
                 </Text>
               </View>
             </View>
@@ -548,7 +587,7 @@ export default function FormationDetailScreen() {
         )}
       </ScrollView>
 
-      {/* Purchase CTA */}
+      {/* Enroll CTA */}
       {!owned && (
         <View
           className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-5 pt-3"
@@ -556,16 +595,19 @@ export default function FormationDetailScreen() {
         >
           <TouchableOpacity
             className="bg-primary py-4 rounded-2xl items-center"
-            onPress={() =>
-              Alert.alert(
-                "Bientôt disponible",
-                "L'achat de formations sera disponible prochainement.",
-              )
-            }
+            onPress={handleStartFormation}
+            disabled={enrolling}
+            style={{ opacity: enrolling ? 0.7 : 1 }}
           >
-            <Text className="text-white font-sans-bold text-base">
-              Acquérir cette formation
-            </Text>
+            {enrolling ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text className="text-white font-sans-bold text-base">
+                {isOnline
+                  ? "Commencer la formation"
+                  : "S'inscrire à cette session"}
+              </Text>
+            )}
           </TouchableOpacity>
         </View>
       )}
