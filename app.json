@@ -70,7 +70,12 @@
           "locationWhenInUsePermission": "AGS utilise votre position GPS pour localiser votre ferme avec précision."
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-asset",
+      "expo-font",
+      "expo-image",
+      "expo-sharing",
+      "expo-web-browser"
     ],
     "extra": {
       "router": {

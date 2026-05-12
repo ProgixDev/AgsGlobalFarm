@@ -131,9 +131,25 @@ function buildHtml(itinerary: ScaledCropItinerary, logoDataUri: string | null) {
     itinerary.program.phyto.emergencyFrequency,
   );
 
-  const watermark = logoDataUri
-    ? `<div class="watermark"><img src="${logoDataUri}" alt="" /></div>`
-    : "";
+  // Build SVG wrapper for logo with opacity (CSS has no background-opacity).
+  // SVG sized to one A4 content area (210mm × 265mm with 18/14mm margins),
+  // logo centered. Used as body background-image with repeat-y so each
+  // page renders one watermark. `print-color-adjust: exact` forces browsers
+  // to actually print the body background.
+  const watermarkBg = logoDataUri
+    ? (() => {
+        // Logo positioned in top-third of 265mm tile, rotated for watermark feel.
+        // Rotation pivot at logo center (105, 90). Size 150×120 covers more of
+        // the page. Rotated bounding box reaches roughly y=-6..186 in tile,
+        // so last page needs ≥186mm of body content for full render — short
+        // last pages still show partial watermark from the top.
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="210mm" height="265mm" viewBox="0 0 210 265"><g transform="rotate(-22 105 90)" opacity="0.10"><image href="${logoDataUri}" x="30" y="30" width="150" height="120" preserveAspectRatio="xMidYMid meet"/></g></svg>`;
+        const b64 = (globalThis as any).btoa
+          ? (globalThis as any).btoa(unescape(encodeURIComponent(svg)))
+          : Buffer.from(svg, "utf8").toString("base64");
+        return `data:image/svg+xml;base64,${b64}`;
+      })()
+    : null;
 
   return `
   <html>
@@ -151,24 +167,14 @@ function buildHtml(itinerary: ScaledCropItinerary, logoDataUri: string | null) {
         body {
           position: relative;
           padding-bottom: 8mm;
-        }
-        .watermark {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          z-index: -1;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          opacity: 0.06;
-          pointer-events: none;
-        }
-        .watermark img {
-          width: 70%;
-          max-width: 480px;
-          transform: rotate(-18deg);
+          ${watermarkBg
+            ? `background-image: url("${watermarkBg}");
+          background-repeat: repeat-y;
+          background-position: center top;
+          background-size: 100% 265mm;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;`
+            : ""}
         }
         .brand-top {
           display: flex;
@@ -265,8 +271,6 @@ function buildHtml(itinerary: ScaledCropItinerary, logoDataUri: string | null) {
       </style>
     </head>
     <body>
-      ${watermark}
-
       ${logoDataUri ? `<div class="brand-top"><img class="brand-logo-top" src="${logoDataUri}" alt="AGS Global Farm" /></div>` : ""}
 
       <div class="brand-header">
@@ -339,7 +343,6 @@ export async function generatePdf(
   itinerary: ScaledCropItinerary,
 ): Promise<GeneratedPdf> {
   const logoDataUri = await getLogoDataUri();
-  console.log("[pdf] logoDataUri", logoDataUri ? `data:image/png;base64,... (${logoDataUri.length} chars)` : "NULL");
   const html = buildHtml(itinerary, logoDataUri);
   const fileName = buildPdfFileName(itinerary.cropName, itinerary.areaM2);
 

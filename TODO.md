@@ -126,11 +126,11 @@
 - [x] Delete (DELETE /api/incidents/:id)
 - [x] Photo upload (Cloudinary, ags/incidents folder)
 - [x] Seed script (scripts/seed-incidents.ts)
-- [ ] Incident categories endpoint (kept static client-side for now)
+- [x] Incident categories — kept static client-side (no API needed)
 
 ### Map / Regions
-- [ ] Senegal regions endpoint (or keep static)
-- [ ] Departments endpoint
+- [x] Senegal regions — kept static (GeoJSON in mobile src/data/senegal-regions.ts)
+- [x] Departments — kept static (mobile src/data/senegalData.ts)
 
 ### File Upload
 - [x] Storage provider chosen (Cloudinary)
@@ -138,10 +138,10 @@
 - [x] Avatar upload
 - [ ] Job photo upload
 - [x] Incident photo upload
-- [ ] Product image upload (admin)
+- [x] Product image upload (admin) — signature route accepts ags/products with admin role check
 
 ### Admin
-- [ ] Admin role + middleware
+- [ ] Admin role + middleware (partial — role check in upload signature only, no global middleware)
 - [ ] Dashboard endpoints (stats)
 - [ ] User management
 - [ ] Product / formation CRUD endpoints
@@ -239,4 +239,16 @@
 
 ### Support
 - [x] Contact support → mailto (opens device email with prefilled subject + user info)
+
+---
+
+## New Updates (Client Feedback — 2026-05-12)
+
+- [ ] **Ma Ferme** — GPS point not visible after adding; map cursor/marker not showing
+- [ ] **Explorer** — bottom nav bar shows only colors, no text labels (boutique / emploi / etc.)
+- [ ] **Incident** — no cursor/marker to place incident position on map
+- [ ] **Incident** — all pictograms missing (client sent replacement icons, nothing shows now)
+- [ ] **Partout (Back button)** — back button has no "retour" text; entire app shows only colored dots with no button labels
+- [ ] **Formations** — all courses should be free, no payment required; revert to previous behavior
+- [x] **Itinéraire PDF** — add AGS logo + full-page logo watermark (embedded base64, opacity 0.10)
 
