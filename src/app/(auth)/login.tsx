@@ -5,19 +5,24 @@ import {
   TextInput,
   ActivityIndicator,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Image,
 } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { loginSchema } from "@/schemas/validation";
 import { ZodError } from "zod";
 import { useUserStore } from "@/stores/userStore";
 import { haptic } from "@/utils/haptics";
-import { AnimatedPressable } from "@/components/animated";
-import AuthShell from "@/components/auth/AuthShell";
+import { AnimatedPressable, FadeInView } from "@/components/animated";
 import { colors } from "@/theme/colors";
 
 export default function Login() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const login = useUserStore((state) => state.login);
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
@@ -123,200 +128,221 @@ export default function Login() {
     }
   };
 
+  const bannerMessage = generalError
+    ? generalError
+    : errors.email || errors.password
+      ? "Veuillez corriger les erreurs ci-dessous avant de continuer."
+      : "";
+
   return (
-    <AuthShell
-      title="Connexion"
-      subtitle="Connectez-vous pour accéder à votre espace personnel"
-      showsVerticalScrollIndicator={false}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      {/* General Error */}
-      {generalError ? (
-        <View className="flex-row items-center bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-6">
-          <Ionicons
-            name="alert-circle-outline"
-            size={18}
-            color={colors.danger}
-          />
-          <Text className="text-red-600 text-sm font-sans ml-2 flex-1">
-            {generalError}
-          </Text>
-        </View>
-      ) : null}
-
-      {/* Field Errors Summary */}
-      {(errors.email || errors.password) && !generalError ? (
-        <View className="flex-row items-center bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-6">
-          <Ionicons
-            name="alert-circle-outline"
-            size={18}
-            color={colors.danger}
-          />
-          <Text className="text-red-600 text-sm font-sans ml-2 flex-1">
-            Veuillez corriger les erreurs ci-dessous avant de continuer.
-          </Text>
-        </View>
-      ) : null}
-
-      {/* Email Input */}
-      <View className="mb-6">
-        <Text className="text-sm font-sans-medium text-foreground mb-2">
-          Email <Text className="text-red-500 font-sans">*</Text>
-        </Text>
-        <View
-          className={`flex-row items-center bg-gray-50 border rounded-xl px-4 py-2.5 ${
-            errors.email ? "border-red-400" : "border-gray-200"
-          }`}
-        >
-          <Ionicons name="mail-outline" size={20} color={colors.primary} />
-          <TextInput
-            ref={emailRef}
-            className="flex-1 ml-3 text-base text-foreground"
-            placeholder="votre@email.com"
-            placeholderTextColor={colors.placeholder}
-            value={formData.email}
-            onChangeText={(text) => {
-              setFormData({ ...formData, email: text });
-              if (errors.email || generalError) {
-                setErrors((prev) => ({ ...prev, email: "" }));
-                setGeneralError("");
-              }
-            }}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoComplete="email"
-            returnKeyType="next"
-            onSubmitEditing={() => passwordRef.current?.focus()}
-            blurOnSubmit={false}
-          />
-        </View>
-        {errors.email ? (
-          <Text className="text-red-500 text-xs font-sans mt-1">
-            {errors.email}
-          </Text>
-        ) : null}
-      </View>
-
-      {/* Password Input */}
-      <View className="mb-4">
-        <Text className="text-sm font-sans-medium text-foreground mb-2">
-          Mot de passe <Text className="text-red-500 font-sans">*</Text>
-        </Text>
-        <View
-          className={`flex-row items-center bg-gray-50 border rounded-xl px-4 py-2.5 ${
-            errors.password ? "border-red-400" : "border-gray-200"
-          }`}
-        >
-          <Ionicons
-            name="lock-closed-outline"
-            size={20}
-            color={colors.primary}
-          />
-          <TextInput
-            ref={passwordRef}
-            className="flex-1 ml-3 text-base text-foreground"
-            placeholder="Votre mot de passe"
-            placeholderTextColor={colors.placeholder}
-            value={formData.password}
-            onChangeText={(text) => {
-              setFormData({ ...formData, password: text });
-              if (errors.password || generalError) {
-                setErrors((prev) => ({ ...prev, password: "" }));
-                setGeneralError("");
-              }
-            }}
-            secureTextEntry={!showPassword}
-            autoCapitalize="none"
-            autoComplete="password"
-            returnKeyType="done"
-            onSubmitEditing={handleLogin}
-          />
-          <TouchableOpacity
-            onPress={() => setShowPassword(!showPassword)}
-            activeOpacity={0.7}
-          >
-            <Ionicons
-              name={showPassword ? "eye-off-outline" : "eye-outline"}
-              size={20}
-              color={colors.placeholder}
+      <ScrollView
+        className="flex-1 bg-background"
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingHorizontal: 24,
+          paddingTop: insets.top + 24,
+          paddingBottom: insets.bottom + 32,
+        }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <FadeInView direction="up">
+          {/* Header */}
+          <View className="items-center mb-10">
+            <Image
+              source={require("../../../assets/images/Logo.png")}
+              style={{ width: 88, height: 88, marginBottom: 20 }}
+              resizeMode="contain"
             />
-          </TouchableOpacity>
-        </View>
-        {errors.password ? (
-          <Text className="text-red-500 text-xs font-sans mt-1">
-            {errors.password}
-          </Text>
-        ) : null}
-      </View>
+            <Text className="text-[28px] font-heading-bold text-primary text-center">
+              Bon retour
+            </Text>
+            <Text className="text-base font-sans text-muted-foreground text-center mt-2 px-4">
+              Connectez-vous pour accéder à votre espace
+            </Text>
+          </View>
 
-      {/* Remember Me & Forgot Password */}
-      <View className="flex-row justify-between items-center mb-8">
-        <AnimatedPressable
-          onPress={() =>
-            setFormData({
-              ...formData,
-              rememberMe: !formData.rememberMe,
-            })
-          }
-          className="flex-row items-center"
-        >
-          <View
-            className={`w-5 h-5 rounded border-2 mr-2 items-center justify-center ${
-              formData.rememberMe
-                ? "bg-primary border-primary"
-                : "bg-white border-gray-300"
+          {/* Error Banner */}
+          {bannerMessage ? (
+            <View className="flex-row items-center bg-red-50 border border-red-200 rounded-2xl px-4 py-3 mb-6">
+              <Ionicons
+                name="alert-circle-outline"
+                size={18}
+                color={colors.danger}
+              />
+              <Text className="text-red-600 text-sm font-sans ml-2 flex-1">
+                {bannerMessage}
+              </Text>
+            </View>
+          ) : null}
+
+          {/* Email Input */}
+          <View className="mb-5">
+            <Text className="text-sm font-sans-medium text-foreground mb-2">
+              Email
+            </Text>
+            <View
+              className={`flex-row items-center bg-white border rounded-2xl px-4 py-1 ${
+                errors.email ? "border-red-400" : "border-gray-200"
+              }`}
+            >
+              <Ionicons name="mail-outline" size={20} color={colors.primary} />
+              <TextInput
+                ref={emailRef}
+                className="flex-1 ml-3 text-base text-foreground py-3"
+                placeholder="votre@email.com"
+                placeholderTextColor={colors.placeholder}
+                value={formData.email}
+                onChangeText={(text) => {
+                  setFormData({ ...formData, email: text });
+                  if (errors.email || generalError) {
+                    setErrors((prev) => ({ ...prev, email: "" }));
+                    setGeneralError("");
+                  }
+                }}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+                returnKeyType="next"
+                onSubmitEditing={() => passwordRef.current?.focus()}
+                blurOnSubmit={false}
+              />
+            </View>
+            {errors.email ? (
+              <Text className="text-red-500 text-xs font-sans mt-1.5 ml-1">
+                {errors.email}
+              </Text>
+            ) : null}
+          </View>
+
+          {/* Password Input */}
+          <View className="mb-5">
+            <Text className="text-sm font-sans-medium text-foreground mb-2">
+              Mot de passe
+            </Text>
+            <View
+              className={`flex-row items-center bg-white border rounded-2xl px-4 py-1 ${
+                errors.password ? "border-red-400" : "border-gray-200"
+              }`}
+            >
+              <Ionicons
+                name="lock-closed-outline"
+                size={20}
+                color={colors.primary}
+              />
+              <TextInput
+                ref={passwordRef}
+                className="flex-1 ml-3 text-base text-foreground py-3"
+                placeholder="Votre mot de passe"
+                placeholderTextColor={colors.placeholder}
+                value={formData.password}
+                onChangeText={(text) => {
+                  setFormData({ ...formData, password: text });
+                  if (errors.password || generalError) {
+                    setErrors((prev) => ({ ...prev, password: "" }));
+                    setGeneralError("");
+                  }
+                }}
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                autoComplete="password"
+                returnKeyType="done"
+                onSubmitEditing={handleLogin}
+              />
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                activeOpacity={0.7}
+                hitSlop={8}
+              >
+                <Ionicons
+                  name={showPassword ? "eye-off-outline" : "eye-outline"}
+                  size={20}
+                  color={colors.placeholder}
+                />
+              </TouchableOpacity>
+            </View>
+            {errors.password ? (
+              <Text className="text-red-500 text-xs font-sans mt-1.5 ml-1">
+                {errors.password}
+              </Text>
+            ) : null}
+          </View>
+
+          {/* Remember Me & Forgot Password */}
+          <View className="flex-row justify-between items-center mb-8">
+            <AnimatedPressable
+              onPress={() =>
+                setFormData({
+                  ...formData,
+                  rememberMe: !formData.rememberMe,
+                })
+              }
+              className="flex-row items-center"
+            >
+              <View
+                className={`w-5 h-5 rounded border-2 mr-2 items-center justify-center ${
+                  formData.rememberMe
+                    ? "bg-primary border-primary"
+                    : "bg-white border-gray-300"
+                }`}
+              >
+                {formData.rememberMe && (
+                  <Ionicons name="checkmark" size={14} color="white" />
+                )}
+              </View>
+              <Text className="text-sm font-sans text-foreground">
+                Se souvenir de moi
+              </Text>
+            </AnimatedPressable>
+
+            <Link href="/(auth)/forgot-password" asChild>
+              <AnimatedPressable>
+                <Text className="text-sm text-primary font-sans-medium">
+                  Mot de passe oublié ?
+                </Text>
+              </AnimatedPressable>
+            </Link>
+          </View>
+
+          {/* Login Button */}
+          <AnimatedPressable
+            onPress={handleLogin}
+            disabled={isLoading}
+            className={`bg-primary rounded-2xl py-4 items-center justify-center mb-8 ${
+              isLoading ? "opacity-70" : ""
             }`}
           >
-            {formData.rememberMe && (
-              <Ionicons name="checkmark" size={14} color="white" />
+            {isLoading ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <View className="flex-row items-center">
+                <Ionicons name="log-in-outline" size={20} color="white" />
+                <Text className="text-white text-base font-sans-semibold ml-2">
+                  Se connecter
+                </Text>
+              </View>
             )}
-          </View>
-          <Text className="text-sm font-sans text-foreground">
-            Se souvenir de moi
-          </Text>
-        </AnimatedPressable>
-
-        <Link href="/(auth)/forgot-password" asChild>
-          <AnimatedPressable>
-            <Text className="text-sm text-primary font-sans-medium">
-              Mot de passe oublié ?
-            </Text>
           </AnimatedPressable>
-        </Link>
-      </View>
 
-      {/* Login Button */}
-      <AnimatedPressable
-        onPress={handleLogin}
-        disabled={isLoading}
-        className={`bg-primary rounded-xl py-4 items-center justify-center mb-6 ${
-          isLoading ? "opacity-70" : ""
-        }`}
-      >
-        {isLoading ? (
-          <ActivityIndicator size="small" color="white" />
-        ) : (
-          <View className="flex-row items-center">
-            <Ionicons name="log-in-outline" size={20} color="white" />
-            <Text className="text-white text-base font-sans-semibold ml-2">
-              Se connecter
+          {/* Sign Up Link */}
+          <View className="flex-row justify-center items-center">
+            <Text className="text-sm font-sans text-muted-foreground">
+              Vous n&apos;avez pas de compte ?{" "}
             </Text>
+            <Link replace href="/(auth)/signup" asChild>
+              <AnimatedPressable>
+                <Text className="text-sm text-primary font-sans-semibold">
+                  Créer un compte
+                </Text>
+              </AnimatedPressable>
+            </Link>
           </View>
-        )}
-      </AnimatedPressable>
-
-      {/* Sign Up Link */}
-      <View className="flex-row justify-center items-center">
-        <Text className="text-sm font-sans text-muted-foreground">
-          Vous n&apos;avez pas de compte ?{" "}
-        </Text>
-        <Link replace href="/(auth)/signup" asChild>
-          <AnimatedPressable>
-            <Text className="text-sm text-primary font-sans-semibold">
-              Créer un compte
-            </Text>
-          </AnimatedPressable>
-        </Link>
-      </View>
-    </AuthShell>
+        </FadeInView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
