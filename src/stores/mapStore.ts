@@ -122,6 +122,9 @@ interface MapStore {
   retryIncidentSync: (id: string) => Promise<void>;
   getActiveIncidents: () => IncidentReport[];
   getIncidentsByCategory: (category: IncidentCategory) => IncidentReport[];
+
+  // Clear local state on logout (also wipes AsyncStorage-persisted data)
+  clearLocalData: () => void;
 }
 
 export const useMapStore = create<MapStore>()(
@@ -380,6 +383,17 @@ export const useMapStore = create<MapStore>()(
         return get().incidents.filter(
           (incident) => incident.category === category,
         );
+      },
+
+      clearLocalData: () => {
+        set({
+          farmLocations: [],
+          farmsLoading: false,
+          farmsError: null,
+          incidents: [],
+          incidentsLoading: false,
+          incidentsError: null,
+        });
       },
     }),
     {

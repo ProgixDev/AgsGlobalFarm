@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { authClient } from "@/lib/auth-client";
 import { pickAndUploadImage } from "@/lib/api/upload";
+import { useMapStore } from "@/stores/mapStore";
 
 interface RegisterData {
   firstName: string;
@@ -210,6 +211,8 @@ export const useUserStore = create<UserStore>()((set, get) => ({
       // ignore network errors on signout, clear local state regardless
     } finally {
       set({ currentUser: null });
+      // Wipe user-scoped local data so next account doesn't inherit farms/incidents
+      useMapStore.getState().clearLocalData();
     }
   },
 
