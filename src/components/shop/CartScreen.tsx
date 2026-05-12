@@ -13,6 +13,7 @@ import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
 import { AnimatedPressable } from "@/components/animated";
+import BackButton from "@/components/ui/BackButton";
 import { useTabBarInset } from "@/components/ui/FloatingTabBar";
 import { useShopStore } from "@/stores/shopStore";
 import { useOrdersStore } from "@/stores/ordersStore";
@@ -122,12 +123,10 @@ export default function CartScreen({ origin }: Props) {
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       <View className="px-4 py-3 border-b border-gray-100 bg-white flex-row items-center">
-        <AnimatedPressable
+        <BackButton
+          variant="dark"
           onPress={() => goToOriginShop(router, origin)}
-          className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center"
-        >
-          <Ionicons name="arrow-back" size={20} color={colors.muted} />
-        </AnimatedPressable>
+        />
         <Text className="ml-3 text-base font-heading-bold text-gray-900">
           Mon panier
         </Text>

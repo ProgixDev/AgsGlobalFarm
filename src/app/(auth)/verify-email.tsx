@@ -9,6 +9,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { haptic } from "@/utils/haptics";
 import { AnimatedPressable } from "@/components/animated";
+import BackButton from "@/components/ui/BackButton";
 import AuthShell from "@/components/auth/AuthShell";
 import { colors } from "@/theme/colors";
 import { useUserStore } from "@/stores/userStore";
@@ -84,12 +85,9 @@ export default function VerifyEmailScreen() {
   return (
     <AuthShell>
       <View className="px-6 pt-2">
-        <AnimatedPressable
-          onPress={() => router.back()}
-          className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center mb-6"
-        >
-          <Ionicons name="arrow-back" size={20} color={colors.muted} />
-        </AnimatedPressable>
+        <View className="mb-6 self-start">
+          <BackButton variant="dark" />
+        </View>
 
         <View className="bg-primary/10 self-start rounded-full p-3 mb-4">
           <Ionicons name="mail-open-outline" size={28} color={colors.primary} />

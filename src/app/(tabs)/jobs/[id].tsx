@@ -8,6 +8,7 @@ import { useUserStore } from "@/stores/userStore";
 import { useMapStore } from "@/stores/mapStore";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { AnimatedPressable } from "@/components/animated";
+import BackButton from "@/components/ui/BackButton";
 import { haptic } from "@/utils/haptics";
 import { colors } from "@/theme/colors";
 import { useTabBarInset } from "@/components/ui/FloatingTabBar";
@@ -116,10 +117,8 @@ export default function JobDetailsScreen() {
       <SafeAreaView className="flex-1 bg-white">
         <View className="bg-primary px-4 py-4">
           <View className="flex-row items-center">
-            <AnimatedPressable onPress={() => router.back()} className="mr-3">
-              <Ionicons name="arrow-back" size={24} color="white" />
-            </AnimatedPressable>
-            <Text className="flex-1 text-white text-lg font-heading-bold">
+            <BackButton variant="light" />
+            <Text className="flex-1 ml-3 text-white text-lg font-heading-bold">
               Détails de l&apos;offre
             </Text>
           </View>
@@ -206,12 +205,7 @@ export default function JobDetailsScreen() {
       <View className="bg-white border-b border-gray-100">
         <View className="flex-row items-center justify-between px-4 py-3">
           <View className="flex-row items-center flex-1">
-            <AnimatedPressable
-              onPress={() => router.back()}
-              className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center"
-            >
-              <Ionicons name="arrow-back" size={20} color={colors.muted} />
-            </AnimatedPressable>
+            <BackButton variant="dark" />
             <View className="ml-3 flex-1">
               <Text
                 className="text-base font-heading-bold text-gray-900"

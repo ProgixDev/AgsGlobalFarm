@@ -166,10 +166,13 @@ export default function ItineraryGeneratorScreen() {
           <View className="flex-row items-center mb-5">
             <AnimatedPressable
               onPress={() => router.back()}
-              className="w-11 h-11 rounded-full bg-white border border-[#e7e3d4] items-center justify-center"
+              className="flex-row items-center gap-2 px-3 py-2 rounded-full bg-white border border-[#e7e3d4]"
               hapticType="light"
             >
               <Ionicons name="arrow-back" size={20} color="#1f8a49" />
+              <Text className="text-[#1f8a49] font-sans-bold text-base">
+                Retour
+              </Text>
             </AnimatedPressable>
             <View className="ml-3 flex-1">
               <Text className="text-[11px] font-sans-semibold uppercase tracking-widest text-[#8a6e2f]">

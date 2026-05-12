@@ -1,10 +1,7 @@
 import React from "react";
 import { View, Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import AnimatedPressable from "@/components/animated/AnimatedPressable";
-import { colors } from "@/theme/colors";
+import BackButton from "@/components/ui/BackButton";
 
 interface ScreenHeaderProps {
   title: string;
@@ -22,7 +19,6 @@ export default function ScreenHeader({
   children,
 }: ScreenHeaderProps) {
   const insets = useSafeAreaInsets();
-  const router = useRouter();
 
   return (
     <View
@@ -31,15 +27,7 @@ export default function ScreenHeader({
     >
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center flex-1 gap-3">
-          {showBack && (
-            <AnimatedPressable
-              onPress={() => router.back()}
-              hapticType="light"
-              className="w-11 h-11 rounded-full bg-white/20 items-center justify-center"
-            >
-              <Ionicons name="arrow-back" size={20} color={colors.white} />
-            </AnimatedPressable>
-          )}
+          {showBack && <BackButton variant="light" />}
           <View className="flex-1">
             <Text className="text-white text-2xl font-heading-bold">
               {title}

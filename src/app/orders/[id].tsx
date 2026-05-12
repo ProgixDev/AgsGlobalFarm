@@ -10,6 +10,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AnimatedPressable } from "@/components/animated";
+import BackButton from "@/components/ui/BackButton";
 import { useOrdersStore } from "@/stores/ordersStore";
 import { colors } from "@/theme/colors";
 import { formatFcfa } from "@/utils/currency";
@@ -101,12 +102,7 @@ export default function OrderDetailScreen() {
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       <View className="px-4 py-3 border-b border-gray-100 bg-white flex-row items-center">
-        <AnimatedPressable
-          onPress={() => router.back()}
-          className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center"
-        >
-          <Ionicons name="arrow-back" size={20} color={colors.muted} />
-        </AnimatedPressable>
+        <BackButton variant="dark" />
         <Text className="ml-3 text-base font-heading-bold text-gray-900">
           Commande #{order._id.slice(-8)}
         </Text>

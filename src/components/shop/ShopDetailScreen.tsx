@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AnimatedPressable } from "@/components/animated";
+import BackButton from "@/components/ui/BackButton";
 import { useTabBarInset } from "@/components/ui/FloatingTabBar";
 import { useShopStore } from "@/stores/shopStore";
 import { colors } from "@/theme/colors";
@@ -65,12 +66,10 @@ export default function ShopDetailScreen({ productId, origin }: Props) {
     return (
       <SafeAreaView className="flex-1 bg-white">
         <View className="px-4 py-4 border-b border-gray-100 flex-row items-center">
-          <AnimatedPressable
+          <BackButton
+            variant="dark"
             onPress={() => navigateToOriginShop(router, origin)}
-            className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center"
-          >
-            <Ionicons name="arrow-back" size={20} color={colors.muted} />
-          </AnimatedPressable>
+          />
           <Text className="ml-3 text-base font-heading-bold text-gray-900">
             Boutique
           </Text>
@@ -105,12 +104,10 @@ export default function ShopDetailScreen({ productId, origin }: Props) {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <View className="px-4 py-3 border-b border-gray-100 flex-row items-center justify-between">
-        <AnimatedPressable
+        <BackButton
+          variant="dark"
           onPress={() => navigateToOriginShop(router, origin)}
-          className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center"
-        >
-          <Ionicons name="arrow-back" size={20} color={colors.muted} />
-        </AnimatedPressable>
+        />
         <Text
           className="text-base font-heading-bold text-gray-900 flex-1 ml-3"
           numberOfLines={1}

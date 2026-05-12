@@ -17,6 +17,7 @@ import { useJobsStore } from "@/stores/jobsStore";
 import { useUserStore } from "@/stores/userStore";
 import { senegalRegions, senegalDepartments } from "@/data/senegalData";
 import { colors } from "@/theme/colors";
+import BackButton from "@/components/ui/BackButton";
 import { useTabBarInset } from "@/components/ui/FloatingTabBar";
 import { useHideTabBar } from "@/hooks/useHideTabBar";
 
@@ -219,10 +220,8 @@ export default function JobApplyScreen() {
       <SafeAreaView className="flex-1 bg-white">
         <View className="bg-primary px-4 py-4">
           <View className="flex-row items-center">
-            <TouchableOpacity onPress={() => router.back()} className="mr-3">
-              <Ionicons name="arrow-back" size={24} color="white" />
-            </TouchableOpacity>
-            <Text className="text-white text-lg font-heading-bold">
+            <BackButton variant="light" />
+            <Text className="ml-3 text-white text-lg font-heading-bold">
               Candidature
             </Text>
           </View>
@@ -249,12 +248,7 @@ export default function JobApplyScreen() {
       >
         <View className="px-4 py-3 border-b border-gray-100 bg-white">
           <View className="flex-row items-center">
-            <TouchableOpacity
-              onPress={() => router.back()}
-              className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center"
-            >
-              <Ionicons name="arrow-back" size={20} color={colors.muted} />
-            </TouchableOpacity>
+            <BackButton variant="dark" />
             <View className="ml-3 flex-1">
               <Text className="text-lg font-heading-bold text-gray-900">
                 Formulaire de candidature

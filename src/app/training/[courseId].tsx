@@ -185,11 +185,14 @@ export default function FormationDetailScreen() {
             resizeMode="cover"
           />
           <TouchableOpacity
-            className="absolute left-4 bg-white/90 border border-white rounded-full w-11 h-11 items-center justify-center"
+            className="absolute left-4 flex-row items-center gap-2 bg-white/90 border border-white rounded-full px-3 py-2"
             style={{ top: insets.top + 8 }}
             onPress={() => router.back()}
           >
-            <Ionicons name="arrow-back" size={22} color={colors.black} />
+            <Ionicons name="arrow-back" size={20} color={colors.black} />
+            <Text style={{ color: colors.black }} className="font-sans-bold text-base">
+              Retour
+            </Text>
           </TouchableOpacity>
 
           {owned && isOnline && (

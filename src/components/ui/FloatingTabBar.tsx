@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { TouchableOpacity, StyleSheet } from "react-native";
+import { TouchableOpacity, StyleSheet, Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import Animated, {
@@ -25,7 +25,7 @@ const SLIDE_SPRING = {
   mass: 0.9,
 };
 
-export const TAB_BAR_HEIGHT = 80;
+export const TAB_BAR_HEIGHT = 92;
 
 /** Returns the total bottom padding needed to clear the floating tab bar + system nav bar. */
 export function useTabBarInset() {
@@ -69,8 +69,17 @@ function TabItem({
       {options.tabBarIcon?.({
         focused: isFocused,
         color: iconColor,
-        size: 24,
+        size: 22,
       })}
+      <Text
+        numberOfLines={1}
+        style={[
+          styles.label,
+          { color: iconColor, fontWeight: isFocused ? "700" : "500" },
+        ]}
+      >
+        {label}
+      </Text>
     </TouchableOpacity>
   );
 }
@@ -231,11 +240,16 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
     borderRadius: 22,
-    gap: 4,
+    gap: 2,
     minWidth: 44,
     minHeight: 44,
+  },
+  label: {
+    fontSize: 10,
+    marginTop: 2,
+    textAlign: "center",
   },
 });

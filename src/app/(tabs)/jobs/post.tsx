@@ -23,6 +23,7 @@ import {
 import { AnimatedPressable } from "@/components/animated";
 import { haptic } from "@/utils/haptics";
 import { colors } from "@/theme/colors";
+import BackButton from "@/components/ui/BackButton";
 import { useTabBarInset } from "@/components/ui/FloatingTabBar";
 import { useHideTabBar } from "@/hooks/useHideTabBar";
 
@@ -263,12 +264,7 @@ export default function JobPostScreen() {
           contentContainerStyle={{ paddingBottom: tabBarInset }}
         >
           <View className="flex-row items-center mb-4">
-            <AnimatedPressable
-              onPress={() => router.back()}
-              className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center"
-            >
-              <Ionicons name="arrow-back" size={20} color={colors.muted} />
-            </AnimatedPressable>
+            <BackButton variant="dark" />
             <View className="ml-3">
               <Text className="text-lg font-heading-bold text-gray-900">
                 {isEditing ? "Modifier l'offre" : "Publier une offre"}
