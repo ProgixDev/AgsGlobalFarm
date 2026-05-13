@@ -71,9 +71,14 @@ export default function FormationDetailScreen() {
   useEffect(() => {
     if (!formationId) return;
     if (formation) {
-      if (formation.type === "online" && formation.owned) {
+      const isOnlineType = formation.type === "online";
+      const hasSections = isOnlineType && (formation as OnlineFormation).sections !== undefined;
+      if (isOnlineType && formation.owned) {
         loadProgress(formationId);
         loadQuizResult(formationId);
+      }
+      if (isOnlineType && !hasSections) {
+        loadOnlineById(formationId);
       }
       return;
     }

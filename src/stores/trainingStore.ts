@@ -95,7 +95,11 @@ export const useTrainingStore = create<TrainingStore>((set, get) => ({
         fetchOnlineFormations(),
         fetchPresentialFormations(),
       ]);
-      set({ online, presential, formationsStatus: "ready" });
+      set({
+        online: online.map((f) => ({ ...f, type: "online" as const })),
+        presential: presential.map((f) => ({ ...f, type: "presentiel" as const })),
+        formationsStatus: "ready",
+      });
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Erreur de chargement";
@@ -106,7 +110,10 @@ export const useTrainingStore = create<TrainingStore>((set, get) => ({
   loadOwned: async () => {
     try {
       const { online, presential } = await fetchOwnedFormations();
-      set({ ownedOnline: online, ownedPresential: presential });
+      set({
+        ownedOnline: online.map((f) => ({ ...f, type: "online" as const })),
+        ownedPresential: presential.map((f) => ({ ...f, type: "presentiel" as const })),
+      });
     } catch (err) {
       console.warn("Failed to load owned formations", err);
     }
@@ -115,10 +122,11 @@ export const useTrainingStore = create<TrainingStore>((set, get) => ({
   loadOnlineById: async (id: string) => {
     try {
       const formation = await fetchOnlineFormationById(id);
+      const withType = { ...formation, type: "online" as const };
       set((state) => ({
-        detailById: { ...state.detailById, [id]: formation },
+        detailById: { ...state.detailById, [id]: withType },
       }));
-      return formation;
+      return withType;
     } catch (err) {
       console.warn("Failed to load online formation", err);
       return null;
@@ -128,10 +136,11 @@ export const useTrainingStore = create<TrainingStore>((set, get) => ({
   loadPresentialById: async (id: string) => {
     try {
       const formation = await fetchPresentialFormationById(id);
+      const withType = { ...formation, type: "presentiel" as const };
       set((state) => ({
-        detailById: { ...state.detailById, [id]: formation },
+        detailById: { ...state.detailById, [id]: withType },
       }));
-      return formation;
+      return withType;
     } catch (err) {
       console.warn("Failed to load presential formation", err);
       return null;

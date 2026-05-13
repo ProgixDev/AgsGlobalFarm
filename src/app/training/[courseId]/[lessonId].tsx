@@ -10,8 +10,15 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useVideoPlayer, VideoView } from "expo-video";
 import { useTrainingStore } from "@/stores/trainingStore";
 import { colors } from "@/theme/colors";
+
+const VIDEO_EXTENSIONS = [".mp4", ".mov", ".m4v", ".webm", ".MOV"];
+
+function isVideoUrl(url: string): boolean {
+  return VIDEO_EXTENSIONS.some((ext) => url.toLowerCase().endsWith(ext.toLowerCase()));
+}
 
 export default function LessonViewerScreen() {
   const router = useRouter();
@@ -63,6 +70,12 @@ export default function LessonViewerScreen() {
     (s) => s.id === sectionIdNum,
   );
   const lesson = section?.lessons.find((l) => l.id === lessonIdNum);
+
+  const videoUrl =
+    lesson?.content && isVideoUrl(lesson.content) ? lesson.content : null;
+  const player = useVideoPlayer(videoUrl, (p) => {
+    p.loop = false;
+  });
 
   const handleComplete = async () => {
     if (!formationId || !lessonKey) return;
@@ -145,15 +158,26 @@ export default function LessonViewerScreen() {
 
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 24 }}>
         <View className="px-5 py-5">
-          <View className="bg-white border border-gray-100 rounded-2xl p-5">
-            {lesson.content ? (
-              <Text className="text-base font-sans text-gray-700 leading-7">
-                {lesson.content}
-              </Text>
+          <View className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+            {videoUrl ? (
+              <VideoView
+                player={player}
+                style={{ width: "100%", aspectRatio: 16 / 9 }}
+                allowsFullscreen
+                allowsPictureInPicture
+              />
+            ) : lesson.content ? (
+              <View className="p-5">
+                <Text className="text-base font-sans text-gray-700 leading-7">
+                  {lesson.content}
+                </Text>
+              </View>
             ) : (
-              <Text className="text-sm font-sans text-gray-500 italic">
-                Aucun contenu disponible pour cette leçon.
-              </Text>
+              <View className="p-5">
+                <Text className="text-sm font-sans text-gray-500 italic">
+                  Aucun contenu disponible pour cette leçon.
+                </Text>
+              </View>
             )}
 
             {isCompleted && (
