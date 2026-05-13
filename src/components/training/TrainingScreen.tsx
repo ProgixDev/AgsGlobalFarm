@@ -224,7 +224,7 @@ export default function TrainingScreen() {
                   onPress={() => router.push(`/training/${f._id}` as Href)}
                 >
                   <Image
-                    source={{ uri: f.image }}
+                    source={{ uri: f.image?.startsWith('/') ? `https://ags-globalfarm-sarl.vercel.app${f.image}` : f.image }}
                     className="w-full h-32 rounded-t-2xl"
                     resizeMode="cover"
                   />
@@ -331,7 +331,7 @@ export default function TrainingScreen() {
               >
                 <View className="flex-row">
                   <Image
-                    source={{ uri: f.image }}
+                    source={{ uri: f.image?.startsWith('/') ? `https://ags-globalfarm-sarl.vercel.app${f.image}` : f.image }}
                     className="w-24 rounded-2xl"
                     style={{ alignSelf: "stretch" }}
                     resizeMode="cover"

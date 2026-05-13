@@ -219,7 +219,7 @@ export default function FormationDetailScreen() {
       <ScrollView contentContainerStyle={{ paddingBottom: 112 }}>
         <View className="relative">
           <Image
-            source={{ uri: formation.image }}
+            source={{ uri: formation.image?.startsWith('/') ? `https://ags-globalfarm-sarl.vercel.app${formation.image}` : formation.image }}
             className="w-full h-56"
             resizeMode="cover"
           />
