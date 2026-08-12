@@ -1,0 +1,270 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* 🌾 AGS Global Farm - Modern Agriculture Color Palette */
+
+    /* Background: Soft green tint matching AGS brand */
+    --background: 142 30% 96%;
+    --foreground: 25 15% 20%;
+
+    /* Card: Clean white with warm undertone */
+    --card: 0 0% 100%;
+    --card-foreground: 25 15% 20%;
+
+    /* Popover */
+    --popover: 0 0% 100%;
+    --popover-foreground: 25 15% 20%;
+
+    /* Primary: Vibrant agricultural green (healthy crops) */
+    --primary: 142 76% 36%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Warning: Golden harvest/wheat */
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    /* Danger: Destructive red */
+    --danger: 0 72% 51%;
+    --danger-foreground: 0 0% 100%;
+
+    /* Secondary: Warm earth/soil brown */
+    --secondary: 38 92% 50%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Muted: Soft sage/olive */
+    --muted: 80 20% 90%;
+    --muted-foreground: 25 12% 45%;
+
+    /* Accent: Golden harvest/wheat */
+    --accent: 38 92% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Destructive */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders: Subtle natural tone */
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 142 76% 36%;
+
+    /* Sidebar */
+    --sidebar-background: 45 20% 95%;
+    --sidebar-foreground: 25 15% 20%;
+    --sidebar-primary: 142 76% 36%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 80 20% 88%;
+    --sidebar-accent-foreground: 25 15% 20%;
+    --sidebar-border: 80 15% 85%;
+    --sidebar-ring: 142 76% 36%;
+
+    /* Chart colors - agriculture data visualization */
+    --chart-1: 142 76% 36%; /* Healthy green */
+    --chart-2: 38 92% 50%; /* Golden harvest */
+    --chart-3: 25 75% 47%; /* Rich earth */
+    --chart-4: 195 70% 50%; /* Clear sky */
+    --chart-5: 82 45% 50%; /* Fresh sprout */
+
+    /* Border radius */
+    --radius: 0.75rem;
+
+    /* New Vibrant Variables */
+    --color-brand: #16a34a; /* Vibrant Green */
+    --color-cta: #16a34a; /* CTA Green */
+    --color-cta-hover: #15803d; /* Darker Green */
+    --color-secondary-brand: #f59e0b; /* Earthy Amber/Gold */
+    --color-border: #e5e7eb; /* Light Gray */
+    --color-lavender: #e0e7ff; /* Soft Lavender for image backgrounds */
+    --color-mint: #d1fae5; /* Soft Mint for image backgrounds */
+
+    /* Typography */
+    --font-family-base: "Figtree-Regular", system-ui, sans-serif;
+    --font-family-heading: "DMSans-Bold", system-ui, sans-serif;
+  }
+
+  .dark {
+    /* Dark mode colors with OKLCH */
+    /* Dark green background matching brand */
+    --background: 142 15% 12%;
+    --foreground: 0 0% 98%;
+
+    /* Card with slight elevation */
+    --card: 245 18% 18%;
+    --card-foreground: 0 0% 98%;
+
+    /* Popover */
+    --popover: 245 20% 16%;
+    --popover-foreground: 0 0% 98%;
+
+    /* Primary with cyan/teal accent: oklch(0.75 0.15 195) */
+    --primary: 195 70% 65%;
+    --primary-foreground: 245 20% 15%;
+
+    /* Secondary */
+    --secondary: 245 15% 25%;
+    --secondary-foreground: 0 0% 98%;
+
+    /* Muted */
+    --muted: 245 15% 22%;
+    --muted-foreground: 195 10% 70%;
+
+    /* Accent with cyan tint */
+    --accent: 195 50% 30%;
+    --accent-foreground: 0 0% 98%;
+
+    /* Destructive */
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    /* Border and input */
+    --border: 245 15% 28%;
+    --input: 245 15% 28%;
+    --ring: 195 70% 65%;
+
+    /* Sidebar with navy theme */
+    --sidebar-background: 245 22% 13%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 195 70% 65%;
+    --sidebar-primary-foreground: 245 20% 15%;
+    --sidebar-accent: 245 18% 20%;
+    --sidebar-accent-foreground: 195 70% 75%;
+    --sidebar-border: 245 15% 25%;
+    --sidebar-ring: 195 70% 65%;
+
+    /* Chart colors for dark mode */
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: var(--font-family-base);
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
+    /* Vibrant organic texture for agricultural feel */
+    background-image:
+      radial-gradient(
+        circle at 20% 20%,
+        hsl(var(--primary) / 0.08) 0%,
+        transparent 40%
+      ),
+      radial-gradient(
+        circle at 80% 80%,
+        hsl(var(--accent) / 0.06) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 60% 30%,
+        hsl(var(--secondary) / 0.05) 0%,
+        transparent 45%
+      ),
+      radial-gradient(
+        circle at 10% 80%,
+        hsl(var(--primary) / 0.04) 0%,
+        transparent 35%
+      );
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  /* Custom scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 0.5rem;
+    height: 0.5rem;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+
+  /* Firefox scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+
+  .dark *::-webkit-scrollbar-thumb {
+    background: hsl(var(--border) / 0.8);
+  }
+
+  .dark *::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.5);
+  }
+
+  .dark * {
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+}
+
+@layer utilities {
+  /* Glass morphism card effect */
+  .glass-card {
+    backdrop-filter: blur(16px);
+    background-color: hsl(var(--card) / 0.8);
+    border: 1px solid hsl(var(--border) / 0.5);
+  }
+
+  .dark .glass-card {
+    backdrop-filter: blur(24px);
+    background-color: hsl(var(--card) / 0.6);
+    border-color: hsl(var(--border) / 0.3);
+  }
+
+  /* Glow effect for primary elements */
+  .glow-primary {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+  }
+
+  .dark .glow-primary {
+    box-shadow:
+      0 0 30px hsl(var(--primary) / 0.4),
+      0 0 60px hsl(var(--primary) / 0.2);
+  }
+
+  /* Enhanced glow for hover states */
+  .glow-primary-hover:hover {
+    box-shadow: 0 0 25px hsl(var(--primary) / 0.4);
+  }
+
+  .dark .glow-primary-hover:hover {
+    box-shadow:
+      0 0 40px hsl(var(--primary) / 0.5),
+      0 0 80px hsl(var(--primary) / 0.25);
+  }
+
+  /* Text glow */
+  .text-glow {
+    text-shadow: 0 0 10px hsl(var(--primary) / 0.5);
+  }
+
+  .dark .text-glow {
+    text-shadow:
+      0 0 15px hsl(var(--primary) / 0.6),
+      0 0 30px hsl(var(--primary) / 0.3);
+  }
+}

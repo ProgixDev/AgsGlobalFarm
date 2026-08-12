@@ -1,0 +1,90 @@
+{
+  "expo": {
+    "name": "AGS Mobile",
+    "slug": "ags-mobile",
+    "version": "0.2.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/Logo.png",
+    "scheme": "agsmobile",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "platforms": [
+      "ios",
+      "android"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "pro.progix.agsmobile",
+      "infoPlist": {
+        "UIStatusBarHidden": true,
+        "UIViewControllerBasedStatusBarAppearance": false,
+        "NSLocationWhenInUseUsageDescription": "AGS utilise votre position GPS pour localiser votre ferme avec précision."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/images/Logo.png"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "package": "pro.progix.agsmobile",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ]
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/Logo.png"
+    },
+    "plugins": [
+      [
+        "expo-router",
+        {
+          "root": "./src/app"
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/Logo.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff",
+          "dark": {
+            "backgroundColor": "#000000"
+          }
+        }
+      ],
+      [
+        "@rnmapbox/maps"
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "AGS utilise votre position GPS pour localiser votre ferme avec précision."
+        }
+      ],
+      "expo-secure-store",
+      "expo-asset",
+      "expo-font",
+      "expo-image",
+      "expo-sharing",
+      "expo-web-browser",
+      "expo-video"
+    ],
+    "extra": {
+      "router": {
+        "root": "./src/app"
+      },
+      "eas": {
+        "projectId": "5de333a3-5a47-4628-9d32-c067179ceb3c"
+      }
+    }
+  }
+}
