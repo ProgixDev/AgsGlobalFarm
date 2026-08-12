@@ -44,7 +44,7 @@ async function main() {
 
   if (user) {
     // better-auth stores _id as string (nanoid), so _id IS the userId string
-    userId = user._id as string;
+    userId = user._id as unknown as string;
     console.log(`- User already exists (id: ${userId})`);
   } else {
     const now = new Date();
