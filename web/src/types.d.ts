@@ -34,7 +34,8 @@ export type PaydunyaCartItem = {
 } & Record<string, unknown>;
 
 export interface PaydunyaInvoice {
-  token?: string;
+  /** Always present on the IPN payload; required to re-confirm the invoice. */
+  token: string;
   total_amount: number;
   description?: string;
 }

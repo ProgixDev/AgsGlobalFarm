@@ -7,6 +7,7 @@ const routes = [
   { path: "/boutique", priority: 0.9 },
   { path: "/formation", priority: 0.9 },
   { path: "/contact", priority: 0.7 },
+  { path: "/politique-de-confidentialite", priority: 0.5 },
   { path: "/login", priority: 0.3 },
   { path: "/register", priority: 0.3 },
 ];

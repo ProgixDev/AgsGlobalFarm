@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, Alert, Linking } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import ScreenHeader from "@/components/ui/ScreenHeader";
 import { AnimatedPressable, FadeInView } from "@/components/animated";
 import { haptic } from "@/utils/haptics";
 import { colors } from "@/theme/colors";
+import { PRIVACY_POLICY_URL, SUPPORT_EMAIL } from "@/config/contact";
 
 interface Section {
   id: string;
@@ -53,7 +54,7 @@ const TERMS_SECTIONS: Section[] = [
     id: "7",
     title: "Protection des données personnelles",
     content:
-      "Nous collectons et traitons vos données personnelles conformément à la législation sénégalaise sur la protection des données personnelles (Loi n° 2008-12). Vos données sont utilisées uniquement pour fournir et améliorer nos services. Vous disposez d'un droit d'accès, de rectification et de suppression de vos données. Pour exercer ces droits, contactez notre service de protection des données.",
+      "Nous collectons et traitons vos données personnelles conformément à la législation sénégalaise sur la protection des données personnelles (Loi n° 2008-12). Vos données sont utilisées uniquement pour fournir et améliorer nos services. Vous disposez d'un droit d'accès, de rectification et de suppression de vos données. Le détail des données collectées, des destinataires et des durées de conservation figure dans notre politique de confidentialité, accessible depuis le bouton en bas de cet écran.",
   },
   {
     id: "8",
@@ -65,7 +66,7 @@ const TERMS_SECTIONS: Section[] = [
     id: "9",
     title: "Suspension et résiliation",
     content:
-      "Vous pouvez supprimer votre compte à tout moment depuis les paramètres de l'application. Nous nous réservons le droit de suspendre ou résilier votre accès en cas de violation des présentes conditions, sans préavis ni remboursement. Les dispositions relatives à la propriété intellectuelle et à la limitation de responsabilité survivent à la résiliation.",
+      "Vous pouvez demander la suppression de votre compte à tout moment en écrivant à notre support depuis l'adresse e-mail associée à votre compte ; elle est effectuée dans un délai de 30 jours. Nous nous réservons le droit de suspendre ou résilier votre accès en cas de violation des présentes conditions, sans préavis ni remboursement. Les dispositions relatives à la propriété intellectuelle et à la limitation de responsabilité survivent à la résiliation.",
   },
   {
     id: "10",
@@ -81,6 +82,18 @@ export default function TermsScreen() {
   const toggle = (id: string) => {
     haptic.selection();
     setExpandedId((prev) => (prev === id ? null : id));
+  };
+
+  const openPrivacyPolicy = async () => {
+    haptic.selection();
+    try {
+      await Linking.openURL(PRIVACY_POLICY_URL);
+    } catch {
+      Alert.alert(
+        "Impossible d'ouvrir le lien",
+        `Consultez ${PRIVACY_POLICY_URL} depuis votre navigateur.`,
+      );
+    }
   };
 
   return (
@@ -151,6 +164,29 @@ export default function TermsScreen() {
           })}
         </View>
 
+        {/* Privacy policy */}
+        <AnimatedPressable
+          onPress={openPrivacyPolicy}
+          className="bg-white rounded-2xl shadow-sm p-5 flex-row items-center gap-3"
+        >
+          <View className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center">
+            <Ionicons
+              name="shield-checkmark-outline"
+              size={20}
+              color={colors.primary}
+            />
+          </View>
+          <View className="flex-1">
+            <Text className="text-sm font-sans-semibold text-foreground">
+              Politique de confidentialité
+            </Text>
+            <Text className="text-xs font-sans text-muted-foreground mt-0.5">
+              Quelles données nous collectons et vos droits
+            </Text>
+          </View>
+          <Ionicons name="open-outline" size={18} color={colors.mutedLight} />
+        </AnimatedPressable>
+
         {/* Footer */}
         <View className="bg-white rounded-2xl shadow-sm p-5 flex-row items-center gap-3">
           <View className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center">
@@ -161,7 +197,7 @@ export default function TermsScreen() {
               Des questions ?
             </Text>
             <Text className="text-xs font-sans text-muted-foreground mt-0.5">
-              contact@agsmobile.sn
+              {SUPPORT_EMAIL}
             </Text>
           </View>
         </View>

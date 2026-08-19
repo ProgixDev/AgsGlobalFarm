@@ -7,6 +7,7 @@ import Order from "@/lib/models/Order";
 import OnlineFormationModel from "@/lib/models/OnlineFormation";
 import PresentialFormationModel from "@/lib/models/PresentialFormation";
 import { connectToDatabase } from "@/lib/db";
+import { PayDunyaAPI } from "@/lib/payDunya";
 import { sendEmail } from "@/lib/email";
 import OrderConfirmationEmail from "@/emails/OrderConfirmationEmail";
 import NewOrderNotificationEmail from "@/emails/NewOrderNotificationEmail";
@@ -45,6 +46,7 @@ const CustomDataSchema = z.object({
 
 const InvoiceSchema = z
   .object({
+    token: z.string().min(1),
     total_amount: z.coerce.number(),
   })
   .passthrough();
@@ -127,7 +129,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { invoice, custom_data, hash, status } = validatedData;
+    const {
+      invoice,
+      hash,
+      custom_data: postedCustomData,
+      status: postedStatus,
+    } = validatedData;
 
     // Verify the hash
     const masterKey = process.env.PAYDUNYA_MASTER_KEY;
@@ -141,13 +148,74 @@ export async function POST(request: NextRequest) {
       .createHash("sha512")
       .update(masterKey)
       .digest("hex");
-    if (expectedHash !== hash) {
-      console.error("Hash mismatch: expected", expectedHash, "got", hash);
+    // Never log either side of this comparison: PayDunya's IPN hash is a static
+    // digest of the master key, so leaking it into logs is equivalent to
+    // leaking the credential that authenticates callbacks.
+    const hashBuffer = Buffer.from(hash, "utf8");
+    const expectedBuffer = Buffer.from(expectedHash, "utf8");
+    const hashMatches =
+      hashBuffer.length === expectedBuffer.length &&
+      crypto.timingSafeEqual(hashBuffer, expectedBuffer);
+    if (!hashMatches) {
+      console.error("Paydunya callback rejected: hash mismatch");
       return NextResponse.json({ error: "Invalid hash" }, { status: 400 });
     }
 
     // Connect to MongoDB
     await connectToDatabase();
+
+    // The hash above is the same value on every callback, so on its own it only
+    // proves the caller knows a shared secret - not that a payment happened.
+    // Ask PayDunya directly what the invoice's real state is and trust that.
+    let confirmed;
+    try {
+      confirmed = await new PayDunyaAPI().confirmPayment(invoice.token);
+    } catch (confirmError) {
+      console.error("Paydunya invoice confirmation failed:", confirmError);
+      // 502 keeps the callback in Paydunya's retry queue instead of marking it
+      // delivered, so a transient outage does not silently drop a real payment.
+      return NextResponse.json(
+        { error: "Could not confirm invoice with Paydunya" },
+        { status: 502 },
+      );
+    }
+
+    const status = confirmed.status;
+    const totalAmount = confirmed.invoice.total_amount;
+    const receiptUrl = confirmed.receipt_url ?? validatedData.receipt_url;
+    const customer = confirmed.customer ?? validatedData.customer;
+
+    // Prefer the custom_data Paydunya echoes back over the posted body, so a
+    // forged payload cannot swap in a different cart or user id. Paydunya can
+    // return the cart as a numeric-keyed object, so normalise it the same way
+    // the posted body is normalised before validating.
+    const customDataResult = CustomDataSchema.safeParse(
+      objectToArray(confirmed.custom_data),
+    );
+    const custom_data = customDataResult.success
+      ? customDataResult.data
+      : postedCustomData;
+    if (!customDataResult.success) {
+      console.warn(
+        `Paydunya confirm returned no usable custom_data for ${invoice.token}; falling back to the posted payload`,
+      );
+    }
+
+    if (postedStatus !== status) {
+      console.warn(
+        `Paydunya status mismatch for ${invoice.token}: posted "${postedStatus}", confirmed "${status}"`,
+      );
+    }
+
+    // Paydunya retries a callback until it gets a success response, so the same
+    // invoice can arrive several times. One order per invoice token.
+    const existingOrder = await Order.findOne({ paydunyaToken: invoice.token });
+    if (existingOrder) {
+      console.log(
+        `Paydunya callback for ${invoice.token} already processed (order ${existingOrder._id})`,
+      );
+      return NextResponse.json({ status: "success" });
+    }
 
     // Check payment status
     if (status === "completed") {
@@ -176,7 +244,10 @@ export async function POST(request: NextRequest) {
               onlineFormation.owners,
             );
             await OnlineFormationModel.updateOne(
-              { _id: onlineFormation._id },
+              {
+                _id: onlineFormation._id,
+                "owners.userId": { $ne: custom_data.userId },
+              },
               {
                 $push: {
                   owners: {
@@ -198,7 +269,15 @@ export async function POST(request: NextRequest) {
             if (sessionId) {
               // Update specific session with participant
               await PresentialFormationModel.updateOne(
-                { _id: presentialFormation._id, "sessions.id": sessionId },
+                {
+                  _id: presentialFormation._id,
+                  sessions: {
+                    $elemMatch: {
+                      id: sessionId,
+                      participants: { $ne: custom_data.userId },
+                    },
+                  },
+                },
                 {
                   $addToSet: {
                     "sessions.$.participants": custom_data.userId,
@@ -219,7 +298,12 @@ export async function POST(request: NextRequest) {
                 await PresentialFormationModel.updateOne(
                   {
                     _id: presentialFormation._id,
-                    "sessions.id": openSession.id,
+                    sessions: {
+                      $elemMatch: {
+                        id: openSession.id,
+                        participants: { $ne: custom_data.userId },
+                      },
+                    },
                   },
                   {
                     $addToSet: {
@@ -246,14 +330,14 @@ export async function POST(request: NextRequest) {
       const order = await Order.create({
         userId: custom_data.userId,
         items: orderItems,
-        totalAmount: invoice.total_amount,
+        totalAmount,
         paymentStatus: "paid",
         paymentMethod: "paydunya",
         address: custom_data.address,
         paydunyaToken: invoice.token,
         paydunyaStatus: status,
-        paydunyaReceiptUrl: validatedData.receipt_url,
-        paydunyaCustomer: validatedData.customer,
+        paydunyaReceiptUrl: receiptUrl,
+        paydunyaCustomer: customer,
       });
       console.log("Order created successfully:", order._id);
 
@@ -281,12 +365,12 @@ export async function POST(request: NextRequest) {
       // Send email notifications
       try {
         const customerName =
-          validatedData.customer?.name ||
+          customer?.name ||
           user?.name ||
           user?.firstName + " " + user?.lastName ||
           "Client";
-        const customerEmail = user?.email || validatedData.customer?.email;
-        const customerPhone = validatedData.customer?.phone || user?.phone;
+        const customerEmail = user?.email || customer?.email;
+        const customerPhone = customer?.phone || user?.phone;
 
         // Send confirmation email to client
         if (customerEmail) {
@@ -296,7 +380,7 @@ export async function POST(request: NextRequest) {
             template: OrderConfirmationEmail({
               customerName,
               order: order.toObject(),
-              receiptUrl: validatedData.receipt_url,
+              receiptUrl,
             }),
           });
           console.log("Order confirmation email sent to client");
@@ -345,15 +429,15 @@ export async function POST(request: NextRequest) {
       await Order.create({
         userId: custom_data.userId,
         items: orderItems,
-        totalAmount: invoice.total_amount,
+        totalAmount,
         paymentStatus: "failed",
         paymentMethod: "paydunya",
         address: custom_data.address,
         paydunyaToken: invoice.token,
         paydunyaStatus: status,
-        paydunyaReceiptUrl: validatedData.receipt_url,
-        paydunyaCustomer: validatedData.customer,
-        paydunyaFailReason: validatedData.fail_reason,
+        paydunyaReceiptUrl: receiptUrl,
+        paydunyaCustomer: customer,
+        paydunyaFailReason: confirmed.fail_reason ?? validatedData.fail_reason,
       });
 
       const client = new MongoClient(process.env.MONGODB_URI!);

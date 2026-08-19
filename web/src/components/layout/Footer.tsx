@@ -142,9 +142,17 @@ export default function Footer() {
 
         {/* Footer Bottom */}
         <div className="flex flex-col sm:flex-row justify-between items-center pt-8 border-t-2 border-primary/20">
-          <p className="text-sm font-medium leading-[17px] text-muted-foreground mb-4 sm:mb-0">
-            © 2026 AGROPASTORAL GLOBALE FARMS SARL. Tous droits réservés.
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4 sm:mb-0">
+            <p className="text-sm font-medium leading-[17px] text-muted-foreground">
+              © 2026 AGROPASTORAL GLOBALE FARMS SARL. Tous droits réservés.
+            </p>
+            <Link
+              href="/politique-de-confidentialite"
+              className="text-sm font-medium leading-[17px] text-muted-foreground hover:text-green-600 transition-colors duration-200"
+            >
+              Politique de confidentialité
+            </Link>
+          </div>
           <div className="flex items-center gap-6">
             <a
               href="https://www.facebook.com/share/1B2n3pZo2Q/?mibextid=wwXIfr"
