@@ -9,6 +9,7 @@ const routes = [
   { path: "/contact", priority: 0.7 },
   { path: "/politique-de-confidentialite", priority: 0.5 },
   { path: "/suppression-de-compte", priority: 0.5 },
+  { path: "/suppression-de-donnees", priority: 0.5 },
   { path: "/login", priority: 0.3 },
   { path: "/register", priority: 0.3 },
 ];

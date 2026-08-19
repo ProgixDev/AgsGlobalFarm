@@ -124,11 +124,15 @@ export default function SuppressionDeComptePage() {
               Supprimer une partie de vos données sans fermer votre compte
             </h2>
             <p className="text-base leading-7 text-muted-foreground">
-              Vous pouvez aussi supprimer vous-même, à tout moment et
-              directement depuis l&apos;application, sans passer par cette
-              demande : vos parcelles (Ma Ferme), vos signalements
-              d&apos;incident, et les offres d&apos;emploi que vous avez
-              publiées.
+              Vous pouvez aussi supprimer certaines données sans fermer votre
+              compte : consultez{" "}
+              <Link
+                href="/suppression-de-donnees"
+                className="text-green-700 font-medium hover:underline"
+              >
+                cette page
+              </Link>
+              .
             </p>
           </section>
 
