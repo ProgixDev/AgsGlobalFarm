@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "AGS Mobile",
+    "name": "AGS Globalfarm",
     "slug": "ags-mobile",
     "version": "0.2.0",
     "orientation": "portrait",
@@ -17,7 +17,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "pro.progix.agsmobile",
+      "bundleIdentifier": "com.progix.agsglobalfarmsarl",
       "infoPlist": {
         "UIStatusBarHidden": true,
         "UIViewControllerBasedStatusBarAppearance": false,
@@ -33,7 +33,7 @@
         "foregroundImage": "./assets/images/Logo.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "pro.progix.agsmobile",
+      "package": "com.progix.agsglobalfarmsarl",
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION"

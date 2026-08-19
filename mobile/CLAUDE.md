@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**ags-mobile** is an Expo/React Native mobile application for agricultural job seekers and farm owners in Senegal. It provides job listings, training courses, and agricultural advice based on region/location.
+**AGS Globalfarm** (package `com.progix.agsglobalfarmsarl`, Expo slug `ags-mobile`) is an Expo/React Native mobile application for agricultural job seekers and farm owners in Senegal. It provides job listings, training courses, and agricultural advice based on region/location.
 
 ## Tech Stack
 

@@ -5,7 +5,7 @@ cd "$(dirname "$0")/.."
 
 VERSION=$(node -p "require('./app.json').expo.version")
 GITHUB_SHA=$(git rev-parse --short HEAD)
-APK_NAME="ags-mobile-v${VERSION}-${GITHUB_SHA}.apk"
+APK_NAME="ags-globalfarm-v${VERSION}-${GITHUB_SHA}.apk"
 RELEASES_DIR="./releases"
 
 echo "Building release APK v${VERSION} (${GITHUB_SHA})..."

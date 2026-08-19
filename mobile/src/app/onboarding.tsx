@@ -27,7 +27,7 @@ interface Slide {
 
 const slides: Slide[] = [
   {
-    title: "Bienvenue sur AGS Mobile",
+    title: "Bienvenue sur AGS Globalfarm",
     description:
       "Connectez les acteurs du secteur agricole sénégalais à travers une plateforme interactive.",
     image: require("@/assets/images/Logo.png"),
