@@ -29,7 +29,6 @@
     "expo": "~55.0.29",
     "expo-asset": "~55.0.19",
     "expo-constants": "~55.0.17",
-    "expo-dev-client": "~55.0.38",
     "expo-file-system": "~55.0.25",
     "expo-font": "~55.0.8",
     "expo-haptics": "~55.0.17",
