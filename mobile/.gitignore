@@ -38,6 +38,20 @@ yarn-error.*
 
 app-example
 
+# release signing key - outside android/ so `expo prebuild --clean` can never
+# touch it; ignored wholesale (not just *.jks) so nothing dropped in here
+# later (a .properties file, notes) leaks by accident
+# Excluding the directory's CONTENTS, not the directory: git never descends
+# into an excluded directory, so `/keystores` alone would make the negation
+# below unreachable and the debug keystore would silently stay untracked.
+/keystores/*
+
+# ...except the debug keystore: standard androiddebugkey/android creds, not a
+# secret. Committed on purpose so its SHA-1 stays stable across clones and
+# `prebuild --clean`, instead of AGP silently minting a new random key every
+# time android/ is wiped.
+!/keystores/debug.keystore
+
 # generated native folders
 /ios
 /android

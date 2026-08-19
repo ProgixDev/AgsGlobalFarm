@@ -4,26 +4,18 @@
   "description": "Monorepo runner for the AGS Globalfarm web backend and mobile app. Each workspace keeps its own dependencies: web/ uses npm, mobile/ uses bun.",
   "scripts": {
     "install:all": "cd web && npm install && cd ../mobile && bun install",
-
     "dev": "cd web && npm run dev",
     "web": "cd web && npm run dev",
     "build": "cd web && npm run build",
     "start": "cd web && npm run start",
-
     "expo": "cd mobile && bun expo start",
     "expo:clear": "cd mobile && bun expo start --clear",
     "mobile": "cd mobile && npx expo run:android",
     "ios": "cd mobile && npx expo run:ios",
-
     "prebuild": "cd mobile && npx expo prebuild --platform android",
     "rebuild": "cd mobile && npx expo prebuild --platform android --clean",
     "apk": "cd mobile && npx expo prebuild --platform android && cd android && .\\gradlew.bat assembleRelease",
     "aab": "cd mobile && npx expo prebuild --platform android && cd android && .\\gradlew.bat bundleRelease",
-
-    "eas:preview": "cd mobile && npx eas build --profile preview --platform android",
-    "eas:prod": "cd mobile && npx eas build --profile production --platform all",
-    "eas:submit": "cd mobile && npx eas submit --profile production --platform all",
-
     "check": "npm run typecheck && npm run lint",
     "typecheck": "npm run typecheck:web && npm run typecheck:mobile",
     "typecheck:web": "cd web && npm run typecheck",
@@ -32,7 +24,6 @@
     "lint:web": "cd web && npm run lint",
     "lint:mobile": "cd mobile && bun run lint",
     "format": "cd web && npm run format && cd ../mobile && bun run format",
-
     "doctor": "cd mobile && npx expo-doctor"
   }
 }

@@ -18,6 +18,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.progix.agsglobalfarmsarl",
+      "buildNumber": "1",
       "infoPlist": {
         "UIStatusBarHidden": true,
         "UIViewControllerBasedStatusBarAppearance": false,
@@ -34,6 +35,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.progix.agsglobalfarmsarl",
+      "versionCode": 1,
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION"
@@ -92,7 +94,9 @@
       "expo-image",
       "expo-sharing",
       "expo-web-browser",
-      "expo-video"
+      "expo-video",
+      "./plugins/withReleaseSigning",
+      "./plugins/withDebugSigning"
     ],
     "extra": {
       "router": {
