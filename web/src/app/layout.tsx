@@ -5,6 +5,7 @@ import Cart from "@/components/Cart";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { CartProvider } from "@/contexts/CartContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { siteUrl } from "@/lib/site";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,10 +17,30 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const title = "AGROPASTORAL GLOBALE FARMS SARL - Agriculture Durable & Innovante";
+const description =
+  "Solutions agricoles innovantes pour des récoltes abondantes et un avenir durable";
+
 export const metadata: Metadata = {
-  title: "AGROPASTORAL GLOBALE FARMS SARL - Agriculture Durable & Innovante",
-  description:
-    "Solutions agricoles innovantes pour des récoltes abondantes et un avenir durable",
+  metadataBase: new URL(siteUrl),
+  title,
+  description,
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    locale: "fr_FR",
+    url: siteUrl,
+    siteName: "AGS Globalfarm SARL",
+    title,
+    description,
+    images: [{ url: "/Logo.png", width: 110, height: 100, alt: "AGS Globalfarm SARL" }],
+  },
+  twitter: {
+    card: "summary",
+    title,
+    description,
+    images: ["/Logo.png"],
+  },
 };
 
 export default function RootLayout({

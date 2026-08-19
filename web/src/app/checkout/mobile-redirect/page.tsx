@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
 import { getProducts } from "@/lib/db";
 import MobileRedirectClient from "./MobileRedirectClient";
 

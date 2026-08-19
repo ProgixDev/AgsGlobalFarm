@@ -18,7 +18,7 @@ import type {
 } from "@/types";
 import OnlineFormationModel from "./models/OnlineFormation";
 import PresentialFormationModel from "./models/PresentialFormation";
-import ProductModel, { IProduct } from "./models/Product";
+import ProductModel from "./models/Product";
 import OrderModel, { IOrder } from "./models/Order";
 import FormationProgressModel from "./models/FormationProgress";
 import QuizResultModel from "./models/QuizResult";
@@ -383,7 +383,7 @@ export async function getOwnedFormations(): Promise<{
 
     // Transform online formations: include all matched (no time window)
     const transformedOnline = onlineFormations.map((formation) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+       
       const { owners, ...rest } = formation;
       return { ...rest, type: "online" as const };
     }) as OnlineFormation[];

@@ -44,7 +44,7 @@ interface PayDunyaActions {
 }
 
 interface PayDunyaCustomData {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface CreateInvoiceRequest {

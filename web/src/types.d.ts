@@ -29,6 +29,8 @@ export type PaydunyaCartItem = {
   title?: string;
   name?: string;
   category?: string;
+  /** Presential formation session chosen at checkout. */
+  selectedSessionId?: number;
 } & Record<string, unknown>;
 
 export interface PaydunyaInvoice {
@@ -51,7 +53,7 @@ export interface PaydunyaCustomer {
 
 export interface PaydunyaCustomData {
   userId: string;
-  cart: any[];
+  cart: PaydunyaCartItem[];
   address?: Address;
 }
 

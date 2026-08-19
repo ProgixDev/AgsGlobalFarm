@@ -42,8 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     password: string,
     phone?: string,
   ): Promise<void> => {
-    const result = await (authClient.signUp.email as any)({
-      provider: "email",
+    const result = await authClient.signUp.email({
       email,
       password,
       name: firstName + " " + lastName,

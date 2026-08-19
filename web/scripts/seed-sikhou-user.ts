@@ -39,7 +39,7 @@ async function main() {
   const formations = db.collection("onlineformations");
 
   // 1. Create user if not exists
-  let user = await users.findOne({ email: USER.email });
+  const user = await users.findOne({ email: USER.email });
   let userId: string;
 
   if (user) {

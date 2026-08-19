@@ -63,13 +63,6 @@ export default function ForgotPasswordPage() {
     return () => clearInterval(timer);
   }, [cooldownRemaining]);
 
-  useEffect(() => {
-    // Validate token presence for reset mode
-    if (mode === "reset" && !token) {
-      setError("Lien de réinitialisation invalide ou expiré");
-    }
-  }, [mode, token]);
-
   const sendPasswordResetRequest = useCallback(async (emailAddress: string) => {
     setError("");
     setIsLoading(true);
