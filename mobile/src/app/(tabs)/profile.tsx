@@ -118,15 +118,17 @@ export default function ProfileScreen() {
           </Text>
         </AnimatedPressable>
 
-        <AnimatedPressable
-          className="rounded-2xl py-3.5 px-8 items-center w-full bg-blue-500 flex-row justify-center"
-          onPress={() => router.push("/(auth)/dev-login")}
-        >
-          <Ionicons name="bug" size={18} color={colors.white} />
-          <Text className="text-white font-sans-bold text-base ml-2">
-            DEV LOGIN
-          </Text>
-        </AnimatedPressable>
+        {__DEV__ && (
+          <AnimatedPressable
+            className="rounded-2xl py-3.5 px-8 items-center w-full bg-blue-500 flex-row justify-center"
+            onPress={() => router.push("/(auth)/dev-login")}
+          >
+            <Ionicons name="bug" size={18} color={colors.white} />
+            <Text className="text-white font-sans-bold text-base ml-2">
+              DEV LOGIN
+            </Text>
+          </AnimatedPressable>
+        )}
       </View>
     );
   }
@@ -224,20 +226,22 @@ export default function ProfileScreen() {
       </View>
 
       <FadeInView className="flex-1 px-5 py-2">
-        <AnimatedPressable
-          onPress={async () => {
-            haptic.medium();
-            await logout();
-            router.replace("/(auth)/dev-login");
-          }}
-          hapticType="medium"
-          className="flex-row items-center justify-center bg-blue-500 rounded-2xl py-4 mb-4"
-        >
-          <Ionicons name="bug" size={20} color={colors.white} />
-          <Text className="text-white font-sans-bold text-base ml-2">
-            DEV LOGIN
-          </Text>
-        </AnimatedPressable>
+        {__DEV__ && (
+          <AnimatedPressable
+            onPress={async () => {
+              haptic.medium();
+              await logout();
+              router.replace("/(auth)/dev-login");
+            }}
+            hapticType="medium"
+            className="flex-row items-center justify-center bg-blue-500 rounded-2xl py-4 mb-4"
+          >
+            <Ionicons name="bug" size={20} color={colors.white} />
+            <Text className="text-white font-sans-bold text-base ml-2">
+              DEV LOGIN
+            </Text>
+          </AnimatedPressable>
+        )}
 
         <View className="bg-primary/5 border border-primary/15 rounded-2xl px-4 py-3 mb-5">
           <Text className="text-sm font-sans-semibold text-primary">

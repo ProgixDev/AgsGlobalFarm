@@ -15,6 +15,7 @@ import { AnimatedPressable, FadeInView } from "@/components/animated";
 import { haptic } from "@/utils/haptics";
 import { colors } from "@/theme/colors";
 import { useTabBarInset } from "@/components/ui/FloatingTabBar";
+import { resolveMediaUrl } from "@/lib/api/client";
 
 const CARD_WIDTH = Dimensions.get("window").width * 0.72;
 
@@ -224,7 +225,7 @@ export default function TrainingScreen() {
                   onPress={() => router.push(`/training/${f._id}` as Href)}
                 >
                   <Image
-                    source={{ uri: f.image?.startsWith('/') ? `https://ags-globalfarm-sarl.vercel.app${f.image}` : f.image }}
+                    source={{ uri: resolveMediaUrl(f.image) }}
                     className="w-full h-32 rounded-t-2xl"
                     resizeMode="cover"
                   />
@@ -331,7 +332,7 @@ export default function TrainingScreen() {
               >
                 <View className="flex-row">
                   <Image
-                    source={{ uri: f.image?.startsWith('/') ? `https://ags-globalfarm-sarl.vercel.app${f.image}` : f.image }}
+                    source={{ uri: resolveMediaUrl(f.image) }}
                     className="w-24 rounded-2xl"
                     style={{ alignSelf: "stretch" }}
                     resizeMode="cover"

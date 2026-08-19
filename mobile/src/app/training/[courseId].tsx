@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTrainingStore } from "@/stores/trainingStore";
 import { colors } from "@/theme/colors";
+import { resolveMediaUrl } from "@/lib/api/client";
 
 function getLevelBgColor(level: string) {
   const l = level.toLowerCase();
@@ -224,7 +225,7 @@ export default function FormationDetailScreen() {
       <ScrollView contentContainerStyle={{ paddingBottom: 112 }}>
         <View className="relative">
           <Image
-            source={{ uri: formation.image?.startsWith('/') ? `https://ags-globalfarm-sarl.vercel.app${formation.image}` : formation.image }}
+            source={{ uri: resolveMediaUrl(formation.image) }}
             className="w-full h-56"
             resizeMode="cover"
           />

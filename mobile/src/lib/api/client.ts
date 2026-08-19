@@ -1,9 +1,21 @@
 import { authClient } from "@/lib/auth-client";
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
+const API_URL = (process.env.EXPO_PUBLIC_API_URL ?? "").replace(/\/+$/, "");
 
 if (!API_URL) {
   console.warn("EXPO_PUBLIC_API_URL not set");
+}
+
+/**
+ * Backend media fields are sometimes root-relative ("/formation.jpg") and
+ * sometimes absolute (Cloudinary). Resolve both against the current API host so
+ * nothing is pinned to a single deployment domain.
+ */
+export function resolveMediaUrl(
+  value: string | undefined | null,
+): string | undefined {
+  if (!value) return undefined;
+  return value.startsWith("/") ? `${API_URL}${value}` : value;
 }
 
 export class ApiError extends Error {

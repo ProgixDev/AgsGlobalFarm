@@ -420,27 +420,30 @@ export const useUserStore = create<UserStore>()((set, get) => ({
   },
 }));
 
-// Backwards-compat: dev-login screen imports DEV_ACCOUNTS to prefill creds.
-// They now correspond to seeded server accounts (see scripts/seed-test-users.ts).
+// The dev-login screen imports DEV_ACCOUNTS to prefill creds. They correspond
+// to seeded server accounts (see web/scripts/seed-test-users.ts).
+// Guarded by __DEV__ so the credentials are dropped from release bundles.
 export const DEV_ACCOUNTS: Array<{
   email: string;
   password: string;
   userType: UserType;
   firstName: string;
   lastName: string;
-}> = [
-  {
-    email: "amadou.diallo@example.com",
-    password: "password123",
-    userType: "job_seeker",
-    firstName: "Amadou",
-    lastName: "Diallo",
-  },
-  {
-    email: "fatou.ndiaye@example.com",
-    password: "password123",
-    userType: "farm_owner",
-    firstName: "Fatou",
-    lastName: "Ndiaye",
-  },
-];
+}> = !__DEV__
+  ? []
+  : [
+      {
+        email: "amadou.diallo@example.com",
+        password: "password123",
+        userType: "job_seeker",
+        firstName: "Amadou",
+        lastName: "Diallo",
+      },
+      {
+        email: "fatou.ndiaye@example.com",
+        password: "password123",
+        userType: "farm_owner",
+        firstName: "Fatou",
+        lastName: "Ndiaye",
+      },
+    ];

@@ -8,14 +8,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Tech Stack
 
-- **Framework**: Expo SDK 54 with React Native 0.81.5
+- **Framework**: Expo SDK 55 with React Native 0.83.10
 - **Routing**: expo-router (file-based routing)
 - **Styling**: NativeWind (Tailwind CSS for React Native)
-- **State Management**: React Context API (UserContext, JobsContext, TrainingContext)
-- **Storage**: AsyncStorage for data persistence
+- **State Management**: Zustand stores in `src/stores/`
+- **Backend**: the Next.js app in `../web` (REST under `/api`), via `src/lib/api/`
+- **Auth**: better-auth + `@better-auth/expo`, tokens in expo-secure-store
+- **Storage**: expo-secure-store (session), AsyncStorage (local cache)
 - **Maps**: Mapbox via @rnmapbox/maps
 - **Validation**: Zod
-- **Package Manager**: bun
+- **Package Manager**: bun (`bun.lock` is the only lockfile — do not add package-lock.json)
 
 ## Commands
 
@@ -26,8 +28,9 @@ bun run android      # Run on Android
 bun run ios          # Run on iOS
 bun run web          # Run web build
 bun run lint         # Lint code with ESLint
+bun run typecheck    # tsc --noEmit
 bun run format       # Format code with Prettier
-bun run doctor       # Run Expo doctor
+npx expo-doctor      # Validate project/config/dependency health
 ```
 
 ## Project Structure
@@ -42,12 +45,19 @@ bun run doctor       # Run Expo doctor
 
 - `src/components/ui/` - Reusable UI components (button, FormInput, FormPicker, StepIndicator)
 
-- `src/contexts/` - React Context providers:
-  - `UserContext.tsx` - User authentication and profile
-  - `JobsContext.tsx` - Job listings and applications
-  - `TrainingContext.tsx` - Training courses and progress
+- `src/stores/` - Zustand stores: `userStore`, `jobsStore`, `trainingStore`,
+  `shopStore`, `ordersStore`, `mapStore`, `itineraryStore`, `authGateStore`
 
-- `src/data/` - Static/mock data (senegal-regions.ts, mockJobs.ts, training-courses.ts)
+- `src/lib/api/` - Typed REST wrappers over the web backend. All requests go
+  through `apiFetch` in `client.ts`, which reads `EXPO_PUBLIC_API_URL`.
+  Use `resolveMediaUrl()` from that module for any image path returned by the
+  API — never hardcode a deployment host.
+
+- `src/lib/auth-client.ts` - better-auth client (session, OTP, one-time token)
+
+- `src/data/` - Static reference data only (senegal-regions.ts, senegalData.ts,
+  incident-categories.ts, itineraries.ts, agricultural-data.ts). Everything else
+  comes from the API.
 
 - `src/schemas/` - Zod validation schemas
 
@@ -55,18 +65,20 @@ bun run doctor       # Run Expo doctor
 
 ## Architecture
 
-The app uses a nested provider pattern in `src/app/_layout.tsx`:
+State lives in Zustand stores, not context providers. Navigation uses
+expo-router with two tab groups selected by role: `(tabs)` for `farm_owner`
+and `(tabs-job-seeker)` for `job_seeker`. Path aliases: `@/*` maps to `src/*`.
 
-```
-UserProvider -> JobsProvider -> TrainingProvider -> Stack
-```
-
-Navigation uses React Navigation with bottom tabs. Path aliases: `@/*` maps to `src/*`.
+Environment: `EXPO_PUBLIC_API_URL` (no trailing slash),
+`EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN`, and `RNMAPBOX_MAPS_DOWNLOAD_TOKEN` (build
+only, stored as an EAS secret). See `.env.example`.
 
 ## Key Patterns
 
-- Context hooks follow naming convention: `useUser()`, `useJobs()`, `useTraining()`
+- Store hooks follow naming convention: `useUserStore()`, `useJobsStore()`, `useTrainingStore()`
 - UI components are in `src/components/ui/`
+- Anything dev-only (the `dev-login` screen, `DEV_ACCOUNTS`) must sit behind
+  `__DEV__` so it is stripped from release bundles
 - Types are centralized in `src/types.d.ts` (not co-located with components)
 - Form validation uses Zod schemas in `src/schemas/validation.ts`
 - Senegal region/department data is in `src/data/senegal-regions.ts`

@@ -7,7 +7,6 @@
     "icon": "./assets/images/Logo.png",
     "scheme": "agsmobile",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "platforms": [
       "ios",
       "android"
@@ -23,6 +22,9 @@
         "UIStatusBarHidden": true,
         "UIViewControllerBasedStatusBarAppearance": false,
         "NSLocationWhenInUseUsageDescription": "AGS utilise votre position GPS pour localiser votre ferme avec précision."
+      },
+      "config": {
+        "usesNonExemptEncryption": false
       }
     },
     "android": {
@@ -30,7 +32,6 @@
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/Logo.png"
       },
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "pro.progix.agsmobile",
       "permissions": [
@@ -67,10 +68,25 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "AGS utilise votre position GPS pour localiser votre ferme avec précision."
+          "locationWhenInUsePermission": "AGS utilise votre position GPS pour localiser votre ferme avec précision.",
+          "locationAlwaysAndWhenInUsePermission": "AGS utilise votre position GPS pour localiser votre ferme avec précision.",
+          "locationAlwaysPermission": "AGS utilise votre position GPS pour localiser votre ferme avec précision."
         }
       ],
-      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "AGS accède à vos photos pour votre avatar et les photos d'incident.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": "AGS utilise Face ID pour protéger votre session."
+        }
+      ],
       "expo-asset",
       "expo-font",
       "expo-image",

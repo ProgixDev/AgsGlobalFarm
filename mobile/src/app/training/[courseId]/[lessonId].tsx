@@ -163,7 +163,7 @@ export default function LessonViewerScreen() {
               <VideoView
                 player={player}
                 style={{ width: "100%", aspectRatio: 16 / 9 }}
-                allowsFullscreen
+                fullscreenOptions={{ enable: true }}
                 allowsPictureInPicture
               />
             ) : lesson.content ? (
