@@ -4,7 +4,7 @@
     "slug": "ags-mobile",
     "version": "0.2.0",
     "orientation": "portrait",
-    "icon": "./assets/images/app-icon.png",
+    "icon": "./assets/images/app-icon-ios.png",
     "scheme": "agsmobile",
     "userInterfaceStyle": "automatic",
     "platforms": [
@@ -37,8 +37,8 @@
       "package": "com.progix.agsglobalfarmsarl",
       "versionCode": 1,
       "permissions": [
-        "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION"
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ]
     },
     "web": {
@@ -103,8 +103,9 @@
         "root": "./src/app"
       },
       "eas": {
-        "projectId": "5de333a3-5a47-4628-9d32-c067179ceb3c"
+        "projectId": "56b68c06-e0a0-474c-97b8-a6aa8cf71842"
       }
-    }
+    },
+    "owner": "agsglobalfarmsarl"
   }
 }
