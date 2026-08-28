@@ -13,6 +13,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useUserStore } from "@/stores/userStore";
+import { authClient } from "@/lib/auth-client";
 import { AnimatedPressable, FadeInView } from "@/components/animated";
 import { haptic } from "@/utils/haptics";
 import { colors } from "@/theme/colors";
@@ -26,6 +27,7 @@ export default function ProfileScreen() {
   const logout = useUserStore((state) => state.logout);
   const uploadAvatar = useUserStore((state) => state.uploadAvatar);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   const handlePickAvatar = async () => {
     if (uploadingAvatar) return;
@@ -63,6 +65,40 @@ export default function ProfileScreen() {
     haptic.warning();
     await logout();
     router.replace(__DEV__ ? "/(auth)/dev-login" : "/(auth)/login");
+  };
+
+  const performAccountDeletion = async () => {
+    setDeletingAccount(true);
+    haptic.warning();
+    const { error } = await authClient.deleteUser();
+    setDeletingAccount(false);
+    if (error) {
+      Alert.alert(
+        "Suppression impossible",
+        error.message ??
+          "Reconnectez-vous puis réessayez, ou écrivez-nous si le problème persiste.",
+      );
+      return;
+    }
+    haptic.success();
+    await logout();
+    router.replace(__DEV__ ? "/(auth)/dev-login" : "/(auth)/login");
+  };
+
+  const handleDeleteAccount = () => {
+    haptic.selection();
+    Alert.alert(
+      "Supprimer votre compte ?",
+      "Cette action est définitive. Votre profil, vos parcelles, vos signalements, vos offres et candidatures, ainsi que votre progression de formation seront supprimés. Les commandes déjà passées sont conservées pour des raisons comptables.",
+      [
+        { text: "Annuler", style: "cancel" },
+        {
+          text: "Supprimer définitivement",
+          style: "destructive",
+          onPress: performAccountDeletion,
+        },
+      ],
+    );
   };
 
   const handleResetOnboarding = async () => {
@@ -367,6 +403,24 @@ export default function ProfileScreen() {
           <Text className="text-orange-500 font-sans-semibold text-base ml-2">
             Réinitialiser l&apos;onboarding
           </Text>
+        </AnimatedPressable>
+
+        <AnimatedPressable
+          onPress={handleDeleteAccount}
+          disabled={deletingAccount}
+          hapticType="medium"
+          className="flex-row items-center justify-center bg-red-600 rounded-2xl py-4 mt-3"
+        >
+          {deletingAccount ? (
+            <ActivityIndicator color={colors.white} />
+          ) : (
+            <>
+              <Ionicons name="trash-outline" size={20} color={colors.white} />
+              <Text className="text-white font-sans-semibold text-base ml-2">
+                Supprimer mon compte
+              </Text>
+            </>
+          )}
         </AnimatedPressable>
 
       </FadeInView>

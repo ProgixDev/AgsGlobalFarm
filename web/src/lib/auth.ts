@@ -7,6 +7,13 @@ import { sendEmail } from "./email";
 import PasswordResetEmail from "@/emails/PasswordResetEmail";
 import PasswordResetOtpEmail from "@/emails/PasswordResetOtpEmail";
 import EmailVerificationOtpEmail from "@/emails/EmailVerificationOtpEmail";
+import { connectToDatabase } from "./db";
+import FarmModel from "./models/Farm";
+import IncidentModel from "./models/Incident";
+import JobModel from "./models/Job";
+import JobApplicationModel from "./models/JobApplication";
+import FormationProgressModel from "./models/FormationProgress";
+import QuizResultModel from "./models/QuizResult";
 
 const mongoClient = new MongoClient(
   process.env.MONGODB_URI || "mongodb://localhost:27017",
@@ -74,6 +81,32 @@ export const auth = betterAuth({
     },
     fields: {
       name: "false",
+    },
+    deleteUser: {
+      enabled: true,
+      // Runs while the user record still exists, so cascade-deleting
+      // everything keyed to their id here matches what the privacy policy
+      // (/politique-de-confidentialite, /suppression-de-compte) promises is
+      // erased on account deletion. Order records are deliberately excluded -
+      // both pages state they're retained for accounting/tax purposes.
+      beforeDelete: async (user) => {
+        await connectToDatabase();
+        const userId = user.id;
+        const ownJobs = await JobModel.find({ createdBy: userId }, "_id");
+        const ownJobIds = ownJobs.map((j) => j._id);
+
+        await Promise.all([
+          FarmModel.deleteMany({ userId }),
+          IncidentModel.deleteMany({ reporterId: userId }),
+          JobApplicationModel.deleteMany({ applicantId: userId }),
+          FormationProgressModel.deleteMany({ userId }),
+          QuizResultModel.deleteMany({ userId }),
+          JobModel.deleteMany({ createdBy: userId }),
+          ownJobIds.length
+            ? JobApplicationModel.deleteMany({ jobId: { $in: ownJobIds } })
+            : Promise.resolve(),
+        ]);
+      },
     },
   },
   plugins: [

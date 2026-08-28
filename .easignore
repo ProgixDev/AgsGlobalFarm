@@ -1,0 +1,32 @@
+# EAS archives from the git repo root when the Expo project isn't at repo
+# root (this is a monorepo: mobile/ + web/). Without this file, the entire
+# web/ Next.js app - its node_modules and .next build cache alone run into
+# hundreds of MB to multiple GB - gets swept into the mobile build's upload.
+# EAS only ever builds mobile/; web/ is irrelevant to it.
+web/node_modules
+web/.next
+web/.vercel
+
+# Same reasoning for mobile/: EAS reinstalls dependencies and regenerates
+# native projects on its own servers.
+mobile/node_modules
+mobile/android
+mobile/ios
+mobile/.expo
+
+# Never send the local release-signing key or secrets to a remote build
+# service. Android is self-managed/local-only signing on purpose (see
+# mobile/plugins/withReleaseSigning.js) - this must never leave this machine.
+mobile/keystores
+mobile/.env
+web/.env.local
+
+# Documentation and historical reports, irrelevant to building the app.
+mobile/docs
+mobile/*.pdf
+mobile/AGS-REPORT-*.md
+mobile/ISLEM-REPORT-*.md
+
+# Misc local-only data.
+mobile/.mcp_data
+web/.mcp_data

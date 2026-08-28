@@ -66,7 +66,7 @@ const TERMS_SECTIONS: Section[] = [
     id: "9",
     title: "Suspension et résiliation",
     content:
-      "Vous pouvez demander la suppression de votre compte à tout moment en écrivant à notre support depuis l'adresse e-mail associée à votre compte ; elle est effectuée dans un délai de 30 jours. Nous nous réservons le droit de suspendre ou résilier votre accès en cas de violation des présentes conditions, sans préavis ni remboursement. Les dispositions relatives à la propriété intellectuelle et à la limitation de responsabilité survivent à la résiliation.",
+      "Vous pouvez supprimer votre compte à tout moment directement depuis l'application (Profil > Supprimer mon compte), ce qui efface immédiatement vos données. Si vous n'avez plus accès à l'application, vous pouvez aussi écrire à notre support depuis l'adresse e-mail associée à votre compte ; la suppression est alors effectuée dans un délai de 30 jours. Nous nous réservons le droit de suspendre ou résilier votre accès en cas de violation des présentes conditions, sans préavis ni remboursement. Les dispositions relatives à la propriété intellectuelle et à la limitation de responsabilité survivent à la résiliation.",
   },
   {
     id: "10",

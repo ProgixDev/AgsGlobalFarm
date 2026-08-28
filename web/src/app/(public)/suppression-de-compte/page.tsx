@@ -63,7 +63,24 @@ export default function SuppressionDeComptePage() {
         <div className="max-w-2xl space-y-10">
           <section>
             <h2 className="text-2xl font-bold text-foreground mb-4">
-              Comment faire la demande
+              Depuis l&apos;application (immédiat)
+            </h2>
+            <ol className="list-decimal pl-5 space-y-3 text-base leading-7 text-muted-foreground">
+              <li>
+                Ouvrez l&apos;application, allez dans{" "}
+                <strong>Profil</strong>
+              </li>
+              <li>
+                Faites défiler jusqu&apos;en bas et appuyez sur{" "}
+                <strong>« Supprimer mon compte »</strong>
+              </li>
+              <li>Confirmez — la suppression est immédiate et définitive</li>
+            </ol>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-foreground mb-4">
+              Par e-mail (si vous n&apos;avez plus accès à l&apos;application)
             </h2>
             <ol className="list-decimal pl-5 space-y-3 text-base leading-7 text-muted-foreground">
               <li>
