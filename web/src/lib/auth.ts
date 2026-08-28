@@ -36,7 +36,7 @@ export const auth = betterAuth({
 
       await sendEmail({
         to: user.email,
-        subject: "Réinitialisation de votre mot de passe - AGS Globalfarm",
+        subject: "Réinitialisation de votre mot de passe - GrowFarm",
         template: PasswordResetEmail({
           userName,
           resetUrl: url,
@@ -90,7 +90,7 @@ export const auth = betterAuth({
         if (type === "forget-password") {
           await sendEmail({
             to: email,
-            subject: "Code de réinitialisation - AGS Globalfarm",
+            subject: "Code de réinitialisation - GrowFarm",
             template: PasswordResetOtpEmail({ email, otp }),
           });
           return;
@@ -98,7 +98,7 @@ export const auth = betterAuth({
         if (type === "email-verification") {
           await sendEmail({
             to: email,
-            subject: "Vérification de votre email - AGS Globalfarm",
+            subject: "Vérification de votre email - GrowFarm",
             template: EmailVerificationOtpEmail({ email, otp }),
           });
           return;

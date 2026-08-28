@@ -376,7 +376,7 @@ export async function POST(request: NextRequest) {
         if (customerEmail) {
           await sendEmail({
             to: customerEmail,
-            subject: "Confirmation de votre commande - AGS Globalfarm",
+            subject: "Confirmation de votre commande - GrowFarm",
             template: OrderConfirmationEmail({
               customerName,
               order: order.toObject(),

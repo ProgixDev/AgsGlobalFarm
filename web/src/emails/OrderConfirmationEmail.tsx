@@ -24,7 +24,7 @@ export default function OrderConfirmationEmail({
   );
 
   return (
-    <EmailLayout previewText="Confirmation de votre commande AGS Globalfarm">
+    <EmailLayout previewText="Confirmation de votre commande GrowFarm">
       <Heading style={heading}>Merci pour votre commande !</Heading>
 
       <Text style={paragraph}>Bonjour {customerName},</Text>
@@ -157,7 +157,7 @@ export default function OrderConfirmationEmail({
       <Text style={signature}>
         Cordialement,
         <br />
-        L&apos;équipe AGS Globalfarm SARL
+        L&apos;équipe GrowFarm
       </Text>
     </EmailLayout>
   );

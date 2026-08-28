@@ -73,7 +73,7 @@ EMAIL_PASSWORD=your-16-char-app-password
 
     // Send email
     const info = await transporter.sendMail({
-      from: `"${process.env.EMAIL_FROM_NAME || "AGS Globalfarm SARL"}" <${
+      from: `"${process.env.EMAIL_FROM_NAME || "GrowFarm"}" <${
         process.env.EMAIL_FROM_ADDRESS || process.env.EMAIL_USER
       }>`,
       to,

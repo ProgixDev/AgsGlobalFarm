@@ -12,9 +12,9 @@ import { storeInfo } from "@/lib/store-info";
  */
 
 export const metadata: Metadata = {
-  title: "Supprimer mon compte | AGS Globalfarm SARL",
+  title: "Supprimer mon compte | GrowFarm",
   description:
-    "Comment demander la suppression de votre compte AGS Globalfarm et de vos données personnelles.",
+    "Comment demander la suppression de votre compte GrowFarm et de vos données personnelles.",
   alternates: { canonical: "/suppression-de-compte" },
 };
 

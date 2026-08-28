@@ -271,12 +271,12 @@ function buildHtml(itinerary: ScaledCropItinerary, logoDataUri: string | null) {
       </style>
     </head>
     <body>
-      ${logoDataUri ? `<div class="brand-top"><img class="brand-logo-top" src="${logoDataUri}" alt="AGS Global Farm" /></div>` : ""}
+      ${logoDataUri ? `<div class="brand-top"><img class="brand-logo-top" src="${logoDataUri}" alt="GrowFarm" /></div>` : ""}
 
       <div class="brand-header">
         <div class="brand-text">
           <h1>Itinéraire technique – ${escapeHtml(itinerary.cropName)}</h1>
-          <p class="meta">Document généré le ${escapeHtml(generatedAt)} • AGS Global Farm</p>
+          <p class="meta">Document généré le ${escapeHtml(generatedAt)} • GrowFarm</p>
         </div>
       </div>
 

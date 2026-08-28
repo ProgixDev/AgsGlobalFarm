@@ -17,7 +17,7 @@ export default function EmailVerificationOtpEmail({
       <Text style={text}>Bonjour,</Text>
 
       <Text style={text}>
-        Bienvenue chez AGS Globalfarm. Pour activer votre compte associé à{" "}
+        Bienvenue chez GrowFarm. Pour activer votre compte associé à{" "}
         <strong>{email}</strong>, saisissez ce code dans l&apos;application :
       </Text>
 

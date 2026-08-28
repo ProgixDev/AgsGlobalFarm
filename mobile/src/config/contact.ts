@@ -1,5 +1,5 @@
 export const SUPPORT_EMAIL = "support@agsglobalfarm.com";
-export const SUPPORT_SUBJECT = "Support AGS Globalfarm";
+export const SUPPORT_SUBJECT = "Support GrowFarm";
 
 /** Public privacy policy. Required by the App Store and Google Play listings. */
 export const PRIVACY_POLICY_URL = `${(

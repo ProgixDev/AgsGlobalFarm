@@ -18,13 +18,13 @@ const TERMS_SECTIONS: Section[] = [
     id: "1",
     title: "Acceptation des conditions",
     content:
-      "En accédant à l'application AGS Globalfarm et en l'utilisant, vous acceptez d'être lié par les présentes conditions d'utilisation. Si vous n'acceptez pas ces conditions, vous ne devez pas utiliser l'application. Nous nous réservons le droit de modifier ces conditions à tout moment, avec notification préalable aux utilisateurs.",
+      "En accédant à l'application GrowFarm et en l'utilisant, vous acceptez d'être lié par les présentes conditions d'utilisation. Si vous n'acceptez pas ces conditions, vous ne devez pas utiliser l'application. Nous nous réservons le droit de modifier ces conditions à tout moment, avec notification préalable aux utilisateurs.",
   },
   {
     id: "2",
     title: "Description du service",
     content:
-      "AGS Globalfarm est une plateforme numérique dédiée au secteur agricole au Sénégal. Elle met en relation les chercheurs d'emploi agricole et les propriétaires d'exploitations, tout en fournissant des conseils agricoles personnalisés, des formations et une cartographie des ressources rurales.",
+      "GrowFarm est une plateforme numérique dédiée au secteur agricole au Sénégal. Elle met en relation les chercheurs d'emploi agricole et les propriétaires d'exploitations, tout en fournissant des conseils agricoles personnalisés, des formations et une cartographie des ressources rurales.",
   },
   {
     id: "3",
@@ -42,13 +42,13 @@ const TERMS_SECTIONS: Section[] = [
     id: "5",
     title: "Offres d'emploi et candidatures",
     content:
-      "Les offres d'emploi publiées sur la plateforme doivent être réelles et conformes à la législation sénégalaise du travail. AGS Globalfarm agit uniquement en tant qu'intermédiaire et ne peut être tenu responsable des accords conclus entre employeurs et candidats. Toute offre frauduleuse doit être signalée immédiatement à notre équipe.",
+      "Les offres d'emploi publiées sur la plateforme doivent être réelles et conformes à la législation sénégalaise du travail. GrowFarm agit uniquement en tant qu'intermédiaire et ne peut être tenu responsable des accords conclus entre employeurs et candidats. Toute offre frauduleuse doit être signalée immédiatement à notre équipe.",
   },
   {
     id: "6",
     title: "Contenus et propriété intellectuelle",
     content:
-      "Les contenus fournis par AGS Globalfarm (formations, conseils, cartographie) sont protégés par les droits de propriété intellectuelle. Vous pouvez les utiliser à des fins personnelles et non commerciales. Toute reproduction, distribution ou modification sans autorisation écrite préalable est strictement interdite.",
+      "Les contenus fournis par GrowFarm (formations, conseils, cartographie) sont protégés par les droits de propriété intellectuelle. Vous pouvez les utiliser à des fins personnelles et non commerciales. Toute reproduction, distribution ou modification sans autorisation écrite préalable est strictement interdite.",
   },
   {
     id: "7",
@@ -60,7 +60,7 @@ const TERMS_SECTIONS: Section[] = [
     id: "8",
     title: "Limitation de responsabilité",
     content:
-      "AGS Globalfarm est fourni « tel quel » sans garantie d'aucune sorte. Nous ne pouvons être tenus responsables des dommages directs ou indirects résultant de l'utilisation ou de l'impossibilité d'utiliser l'application, des erreurs ou inexactitudes dans les contenus, ou des actions des utilisateurs de la plateforme.",
+      "GrowFarm est fourni « tel quel » sans garantie d'aucune sorte. Nous ne pouvons être tenus responsables des dommages directs ou indirects résultant de l'utilisation ou de l'impossibilité d'utiliser l'application, des erreurs ou inexactitudes dans les contenus, ou des actions des utilisateurs de la plateforme.",
   },
   {
     id: "9",
@@ -118,7 +118,7 @@ export default function TermsScreen() {
           />
           <Text className="text-sm font-sans text-muted-foreground ml-2 flex-1 leading-relaxed">
             Veuillez lire attentivement les présentes conditions avant
-            d&apos;utiliser AGS Globalfarm. En utilisant l&apos;application, vous
+            d&apos;utiliser GrowFarm. En utilisant l&apos;application, vous
             acceptez l&apos;intégralité de ces conditions.
           </Text>
         </View>

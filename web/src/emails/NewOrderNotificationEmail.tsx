@@ -27,7 +27,7 @@ export default function NewOrderNotificationEmail({
   );
 
   return (
-    <EmailLayout previewText="Nouvelle commande reçue sur AGS Globalfarm">
+    <EmailLayout previewText="Nouvelle commande reçue sur GrowFarm">
       <Heading style={heading}>🎉 Nouvelle Commande Reçue !</Heading>
 
       <Text style={paragraph}>

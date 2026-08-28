@@ -61,12 +61,12 @@ export async function POST(request: NextRequest) {
     const invoiceData = {
       items,
       total_amount: totalAmount,
-      description: `Commande AGS Globalfarm - ${user.firstName} ${user.lastName}`,
+      description: `Commande GrowFarm - ${user.firstName} ${user.lastName}`,
     };
 
     // Build store data
     const storeData = {
-      name: "AGS Globalfarm SARL",
+      name: "GrowFarm",
       tagline: "Agriculture durable",
       phone: process.env.STORE_PHONE || "",
       postal_address: process.env.STORE_ADDRESS || "",

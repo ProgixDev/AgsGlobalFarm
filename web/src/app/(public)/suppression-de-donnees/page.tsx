@@ -14,9 +14,9 @@ import { storeInfo } from "@/lib/store-info";
  */
 
 export const metadata: Metadata = {
-  title: "Supprimer mes données | AGS Globalfarm SARL",
+  title: "Supprimer mes données | GrowFarm",
   description:
-    "Comment supprimer certaines de vos données sur AGS Globalfarm sans fermer votre compte.",
+    "Comment supprimer certaines de vos données sur GrowFarm sans fermer votre compte.",
   alternates: { canonical: "/suppression-de-donnees" },
 };
 

@@ -15,7 +15,7 @@ export default function CertificateEmail({
   totalQuestions,
 }: CertificateEmailProps) {
   return (
-    <EmailLayout previewText="Votre certificat de formation AGS Globalfarm">
+    <EmailLayout previewText="Votre certificat de formation GrowFarm">
       <Heading style={heading}>🎓 Félicitations !</Heading>
 
       <Text style={paragraph}>Bonjour {userName},</Text>
@@ -62,7 +62,7 @@ export default function CertificateEmail({
       <Text style={signature}>
         Cordialement,
         <br />
-        L&apos;équipe AGS Globalfarm SARL
+        L&apos;équipe GrowFarm
       </Text>
     </EmailLayout>
   );

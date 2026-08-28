@@ -60,12 +60,12 @@ export default function EmailLayout({
           <Section style={header}>
             <Img
               src={`${process.env.NEXT_PUBLIC_APP_URL || "https://agsglobalfarm.com"}/Logo.png`}
-              alt="AGS Globalfarm SARL"
+              alt="GrowFarm"
               width="100"
               height="100"
               style={logoImage}
             />
-            <Text style={logoText}>🌾 AGS Globalfarm SARL</Text>
+            <Text style={logoText}>🌾 GrowFarm</Text>
           </Section>
 
           {/* Main Content */}
