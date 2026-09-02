@@ -12,12 +12,15 @@
     "preview": {
       "extends": "base",
       "ios": {
-        "simulator": true
+        "simulator": true,
+        "autoIncrement": true
       }
     },
     "production": {
       "extends": "base",
-      "ios": {}
+      "ios": {
+        "autoIncrement": true
+      }
     }
   },
   "submit": {
