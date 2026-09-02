@@ -8,21 +8,21 @@ export default function TabsLayout() {
   const router = useRouter();
   const currentUser = useUserStore((state) => state.currentUser);
   const userType = useUserStore((state) => state.userType);
+  const isJobSeeker =
+    currentUser?.userType === "job_seeker" || userType === "job_seeker";
 
   useEffect(() => {
-    if (!currentUser) {
-      router.replace(__DEV__ ? "/(auth)/dev-login" : "/(auth)/login");
-    }
-    if (currentUser?.userType === "job_seeker" || userType === "job_seeker") {
+    if (isJobSeeker) {
       router.replace("/(tabs-job-seeker)/map");
     }
-  }, [currentUser, userType, router]);
+  }, [isJobSeeker, router]);
 
-  if (!currentUser) return null;
+  if (isJobSeeker) return null;
 
-  if (currentUser.userType === "job_seeker" || userType === "job_seeker") {
-    return null;
-  }
+  // Boutique (and Profil, which already prompts login inline) stay browsable
+  // without an account — Apple 5.1.1(v) forbids gating non-account browsing
+  // behind login. Map/Emplois/Formation still require an account here.
+  const accountOnly = currentUser ? undefined : null;
 
   return (
     <Tabs
@@ -33,6 +33,7 @@ export default function TabsLayout() {
         name="map"
         options={{
           title: "Carte",
+          href: accountOnly,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="map" size={size} color={color} />
           ),
@@ -42,6 +43,7 @@ export default function TabsLayout() {
         name="jobs"
         options={{
           title: "Emplois",
+          href: accountOnly,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="briefcase" size={size} color={color} />
           ),
@@ -60,6 +62,7 @@ export default function TabsLayout() {
         name="training"
         options={{
           title: "Formation",
+          href: accountOnly,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="school" size={size} color={color} />
           ),
