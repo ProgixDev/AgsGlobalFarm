@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Picker } from "@react-native-picker/picker";
+import FormPicker from "@/components/ui/FormPicker";
 import {
   signupStep1Schema,
   signupStep2Schema,
@@ -364,72 +364,44 @@ export default function Signup() {
               </View>
 
               {/* Gender */}
-              <View className="mb-5">
-                <Text className="text-sm font-sans-medium text-foreground mb-2">
-                  Genre
-                </Text>
-                <View className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-                  <Picker
-                    selectedValue={formData.gender}
-                    onValueChange={(itemValue) =>
-                      setFormData({ ...formData, gender: itemValue })
-                    }
-                    style={{ height: 54, color: colors.black }}
-                  >
-                    <Picker.Item label="Sélectionnez votre genre" value="" />
-                    <Picker.Item label="Homme" value="male" />
-                    <Picker.Item label="Femme" value="female" />
-                    <Picker.Item label="Autre" value="other" />
-                  </Picker>
-                </View>
-              </View>
+              <FormPicker
+                label="Genre"
+                value={formData.gender}
+                onValueChange={(itemValue) =>
+                  setFormData({ ...formData, gender: itemValue })
+                }
+                items={[
+                  { label: "Homme", value: "male" },
+                  { label: "Femme", value: "female" },
+                  { label: "Autre", value: "other" },
+                ]}
+                placeholder="Sélectionnez votre genre"
+              />
 
               {/* User Type */}
-              <View>
-                <Text className="text-sm font-sans-medium text-foreground mb-2">
-                  Type de compte
-                </Text>
-                <View
-                  className={`bg-white border rounded-2xl overflow-hidden ${
-                    errors.userType ? "border-red-400" : "border-gray-200"
-                  }`}
-                >
-                  <Picker
-                    selectedValue={formData.userType}
-                    onValueChange={(itemValue) => {
-                      setFormData({
-                        ...formData,
-                        userType: itemValue as
-                          | "job_seeker"
-                          | "farm_owner"
-                          | "",
-                      });
-                      if (errors.userType) {
-                        setErrors({ ...errors, userType: "" });
-                      }
-                    }}
-                    style={{ height: 54, color: colors.black }}
-                  >
-                    <Picker.Item
-                      label="Sélectionnez votre type de compte"
-                      value=""
-                    />
-                    <Picker.Item
-                      label="Chercheur d'emploi"
-                      value="job_seeker"
-                    />
-                    <Picker.Item
-                      label="Propriétaire de ferme / Recruteur"
-                      value="farm_owner"
-                    />
-                  </Picker>
-                </View>
-                {errors.userType ? (
-                  <Text className="text-red-500 text-xs font-sans mt-1.5 ml-1">
-                    {errors.userType}
-                  </Text>
-                ) : null}
-              </View>
+              <FormPicker
+                label="Type de compte"
+                value={formData.userType}
+                onValueChange={(itemValue) => {
+                  setFormData({
+                    ...formData,
+                    userType: itemValue as "job_seeker" | "farm_owner" | "",
+                  });
+                  if (errors.userType) {
+                    setErrors({ ...errors, userType: "" });
+                  }
+                }}
+                items={[
+                  { label: "Chercheur d'emploi", value: "job_seeker" },
+                  {
+                    label: "Propriétaire de ferme / Recruteur",
+                    value: "farm_owner",
+                  },
+                ]}
+                placeholder="Sélectionnez votre type de compte"
+                error={errors.userType}
+                required
+              />
             </View>
           )}
 
