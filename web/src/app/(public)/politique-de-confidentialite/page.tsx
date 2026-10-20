@@ -10,7 +10,7 @@ import { storeInfo } from "@/lib/store-info";
  */
 
 export const metadata: Metadata = {
-  title: "Politique de confidentialité | GrowFarm",
+  title: "Politique de confidentialité | AGS Globalfarm SARL",
   description:
     "Comment AGROPASTORAL GLOBALE FARMS SARL collecte, utilise et protège vos données personnelles sur le site et l'application mobile AGS.",
   alternates: { canonical: "/politique-de-confidentialite" },

@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const title = "GrowFarm - Agriculture Durable & Innovante";
+const title = "AGROPASTORAL GLOBALE FARMS SARL - Agriculture Durable & Innovante";
 const description =
   "Solutions agricoles innovantes pour des récoltes abondantes et un avenir durable";
 
@@ -30,16 +30,16 @@ export const metadata: Metadata = {
     type: "website",
     locale: "fr_FR",
     url: siteUrl,
-    siteName: "GrowFarm",
+    siteName: "AGS Globalfarm SARL",
     title,
     description,
-    images: [{ url: "/Logo.png", width: 1139, height: 1139, alt: "GrowFarm" }],
+    images: [{ url: "/og-image.png", width: 1024, height: 1024, alt: "AGS Globalfarm SARL" }],
   },
   twitter: {
     card: "summary",
     title,
     description,
-    images: ["/Logo.png"],
+    images: ["/og-image.png"],
   },
 };
 

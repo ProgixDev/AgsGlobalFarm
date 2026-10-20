@@ -1,5 +1,5 @@
 export const storeInfo = {
-  name: "GrowFarm",
+  name: "AGS Global Farm",
   phone: "+221 78 138 38 38",
   phoneTel: "+221781383838",
   email: "contact@agsglobalfarm.com",

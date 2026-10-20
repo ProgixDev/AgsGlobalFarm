@@ -18,7 +18,7 @@ export default function PasswordResetEmail({
 
       <Text style={text}>
         Vous avez demandé la réinitialisation de votre mot de passe pour votre
-        compte GrowFarm.
+        compte AGS Globalfarm SARL.
       </Text>
 
       <Text style={text}>

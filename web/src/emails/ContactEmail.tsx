@@ -83,7 +83,7 @@ export default function ContactEmail({
 
         <Text style={footer}>
           Ce message a été envoyé depuis le formulaire de contact du site web
-          GrowFarm.
+          AGS Globalfarm SARL.
         </Text>
       </Section>
     </EmailLayout>
