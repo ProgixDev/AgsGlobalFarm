@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import { render } from "@react-email/render";
 import { ReactElement } from "react";
 import type { EmailAttachment } from "@/types";
@@ -10,13 +11,50 @@ interface EmailOptions {
   attachments?: EmailAttachment[];
 }
 
+// Resend is used when RESEND_API_KEY is set; otherwise fall back to SMTP.
+const useResend = Boolean(process.env.RESEND_API_KEY);
+
 // Validate email configuration
-if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+if (!useResend && (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD)) {
   console.error("⚠️ Email configuration missing!");
   console.error(
-    "Please add EMAIL_USER and EMAIL_PASSWORD to your .env.local file",
+    "Add RESEND_API_KEY (preferred) or EMAIL_USER and EMAIL_PASSWORD to your .env.local file",
   );
   console.error("See docs/QUICKSTART.md for setup instructions");
+}
+
+function fromHeader() {
+  const name = process.env.EMAIL_FROM_NAME || "AGS Globalfarm SARL";
+  const address = process.env.EMAIL_FROM_ADDRESS || process.env.EMAIL_USER;
+  return `"${name}" <${address}>`;
+}
+
+async function sendWithResend(
+  to: string,
+  subject: string,
+  html: string,
+  attachments: EmailAttachment[] | undefined,
+) {
+  if (!process.env.EMAIL_FROM_ADDRESS) {
+    throw new Error(
+      "EMAIL_FROM_ADDRESS is required with Resend (e.g. noreply@agsglobalfarm.com)",
+    );
+  }
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const { data, error } = await resend.emails.send({
+    from: fromHeader(),
+    to,
+    subject,
+    html,
+    attachments: attachments?.map((a) => ({
+      filename: a.filename,
+      content: Buffer.from(a.content),
+    })),
+  });
+  // Resend returns errors instead of throwing; surface them so callers
+  // (OTP, password reset) fail loudly rather than silently losing the email.
+  if (error) throw new Error(`Resend error: ${error.name}: ${error.message}`);
+  return data?.id;
 }
 
 /**
@@ -44,7 +82,7 @@ export async function sendEmail({
   attachments,
 }: EmailOptions) {
   // Check if credentials are configured
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+  if (!useResend && (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD)) {
     const errorMsg = `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ⚠️  EMAIL CONFIGURATION MISSING
@@ -68,14 +106,18 @@ EMAIL_PASSWORD=your-16-char-app-password
     // Render React component to HTML
     const html = await render(template);
 
+    if (useResend) {
+      const id = await sendWithResend(to, subject, html, attachments);
+      console.log("✅ Email sent successfully (Resend):", id);
+      return { success: true, messageId: id };
+    }
+
     // Create fresh transporter for this email
     const transporter = createTransporter();
 
     // Send email
     const info = await transporter.sendMail({
-      from: `"${process.env.EMAIL_FROM_NAME || "AGS Globalfarm SARL"}" <${
-        process.env.EMAIL_FROM_ADDRESS || process.env.EMAIL_USER
-      }>`,
+      from: fromHeader(),
       to,
       subject,
       html,
@@ -115,6 +157,7 @@ EMAIL_PASSWORD=your-16-char-app-password
  * Verify email transporter configuration
  */
 export async function verifyEmailConfig() {
+  if (useResend) return Boolean(process.env.EMAIL_FROM_ADDRESS);
   try {
     const transporter = createTransporter();
     await transporter.verify();
