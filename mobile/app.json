@@ -18,7 +18,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.progix.agsglobalfarmsarl",
-      "buildNumber": "5",
+      "buildNumber": "6",
       "infoPlist": {
         "UIStatusBarHidden": true,
         "UIViewControllerBasedStatusBarAppearance": false,
@@ -35,7 +35,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.progix.agsglobalfarmsarl",
-      "versionCode": 5,
+      "versionCode": 6,
       "permissions": [
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION"
