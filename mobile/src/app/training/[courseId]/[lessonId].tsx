@@ -17,7 +17,8 @@ import { colors } from "@/theme/colors";
 const VIDEO_EXTENSIONS = [".mp4", ".mov", ".m4v", ".webm", ".MOV"];
 
 function isVideoUrl(url: string): boolean {
-  return VIDEO_EXTENSIONS.some((ext) => url.toLowerCase().endsWith(ext.toLowerCase()));
+  const path = url.split(/[?#]/)[0].toLowerCase();
+  return VIDEO_EXTENSIONS.some((ext) => path.endsWith(ext.toLowerCase()));
 }
 
 export default function LessonViewerScreen() {

@@ -22,6 +22,7 @@ import ProductModel from "./models/Product";
 import OrderModel, { IOrder } from "./models/Order";
 import FormationProgressModel from "./models/FormationProgress";
 import QuizResultModel from "./models/QuizResult";
+import { signSectionVideos } from "./r2";
 import { generateCertificatePdf } from "./certificate";
 import { sendEmail } from "./email";
 import ContactEmail from "@/emails/ContactEmail";
@@ -287,7 +288,7 @@ export async function getOnlineFormationById(
     return {
       ...rest,
       type: "online" as const,
-      sections: owned ? sections : undefined,
+      sections: owned ? await signSectionVideos(sections) : undefined,
       owned,
       stats: { totalSections, totalLessons },
     } as OnlineFormation;
@@ -382,11 +383,16 @@ export async function getOwnedFormations(): Promise<{
     }) as PresentialFormation[];
 
     // Transform online formations: include all matched (no time window)
-    const transformedOnline = onlineFormations.map((formation) => {
-       
-      const { owners, ...rest } = formation;
-      return { ...rest, type: "online" as const };
-    }) as OnlineFormation[];
+    const transformedOnline = (await Promise.all(
+      onlineFormations.map(async (formation) => {
+        const { owners, sections, ...rest } = formation;
+        return {
+          ...rest,
+          sections: await signSectionVideos(sections),
+          type: "online" as const,
+        };
+      }),
+    )) as OnlineFormation[];
 
     return {
       presential: transformedPresential,
